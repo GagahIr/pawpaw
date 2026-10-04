@@ -1,75 +1,15 @@
 @extends('landing_page.layouts.app-landing')
 
 @section('content')
-<!-- Carousel -->
-<div id="hs-carousel" class="relative" data-hs-carousel='{"loadingClasses": "opacity-0"}' >
-  <div class="hs-carousel relative w-full min-h-96 overflow-hidden">
-    <!-- Carousel Body -->
-    <div class="hs-carousel-body flex flex-nowrap absolute top-0 bottom-0 inset-s-0 transition-transform duration-700 opacity-0">
-      <div class="hs-carousel-slide ">
-        <div class="flex justify-center h-full bg-surface p-6">
-          <span class="self-center text-4xl text-foreground transition duration-700">First slide</span>
-        </div>
-      </div>
-      <div class="hs-carousel-slide ">
-        <div class="flex justify-center h-full bg-surface-1 p-6">
-          <span class="self-center text-4xl text-foreground transition duration-700">Second slide</span>
-        </div>
-      </div>
-      <div class="hs-carousel-slide ">
-        <div class="flex justify-center h-full bg-surface-2 p-6">
-          <span class="self-center text-4xl text-foreground transition duration-700">Third slide</span>
-        </div>
-      </div>
-    </div>
-    <!-- End Carousel Body -->
-  </div>
-<!-- Card -->
-<div class="" style="width: 18rem;">
-    <div class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl">
-  <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
-  <div class="p-4  ">
-    <h3 class="font-semibold text-foreground">
-      Card title
-    </h3>
-    <p class="mt-1 text-muted-foreground-1">
-      Some quick example text to build on the card title and make up the bulk of the card's content.
-    </p>
-    <a class="mt-2 py-2 px-3 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-black border border-primary-line text-primary-foreground hover:bg-primary-hover focus:outline-hidden focus:bg-primary-focus disabled:opacity-50 disabled:pointer-events-none" href="#">
-      Go somewhere
-    </a>
-  </div>
-</div>
-</div>
-<!-- End Card -->
-  <!-- Arrows -->
-  <button type="button" class="hs-carousel-prev hs-carousel-disabled:opacity-50 hs-carousel-disabled:cursor-default absolute top-1/2 inset-s-2 inline-flex justify-center items-center size-10 bg-layer text-layer-foreground rounded-full shadow-2xs hover:bg-layer-hover -translate-y-1/2 focus:outline-hidden">
-    <span class="text-2xl" aria-hidden="true">
-      <svg class="shrink-0 size-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-    </span>
-    <span class="sr-only">Previous</span>
-  </button>
-  <button type="button" class="hs-carousel-next hs-carousel-disabled:opacity-50 hs-carousel-disabled:cursor-default absolute top-1/2 inset-e-2 inline-flex justify-center items-center size-10 bg-layer text-layer-foreground rounded-full shadow-2xs hover:bg-layer-hover -translate-y-1/2 focus:outline-hidden">
-    <span class="sr-only">Next</span>
-    <span class="text-2xl" aria-hidden="true">
-      <svg class="shrink-0 size-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-    </span>
-  </button>
-  <!-- End Arrows -->
-</div>
-<!-- End Carousel -->
+
     {{-- =========================================================
      HERO
 ========================================================= --}}
-    <section class="relative overflow-hidden bg-gradient-to-b from-amber-50 to-white">
-        <div
-            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
+    <section class="relative overflow-hidden bg-[#FFF8F5]">
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
-            <div data-animate="fade-up">
-                <span
-                    class="inline-flex items-center gap-2 py-1.5 px-3 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 mb-6">
-                    ✨ Baru: Booking dokter hewan online
-                </span>
+            <div class="z-20 lg:-mr-16" data-animate="fade-up">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                     Urus si kesayangan,<br>
                     <span class="text-black-500">tanpa ribet.</span>
@@ -78,34 +18,141 @@
                     PawPaw membantu kamu jadwalkan grooming, konsultasi dokter hewan, dan pengingat vaksin — semua dalam
                     satu aplikasi.
                 </p>
-                <div class="mt-8 flex flex-col sm:flex-row gap-4">
-                    <a href="#"
-                        class="py-3.5 px-6 text-sm font-semibold rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition shadow-lg shadow-amber-200 text-center">
-                        Mulai Sekarang — Gratis
-                    </a>
-                    <a href="#how-it-works"
-                        class="py-3.5 px-6 text-sm font-semibold rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition text-center">
-                        Lihat Cara Kerja
-                    </a>
-                </div>
-                <div class="mt-8 flex items-center gap-4 text-sm text-gray-500">
-                    <div class="flex -space-x-2">
-                        <img class="size-8 rounded-full ring-2 ring-white" src="https://i.pravatar.cc/64?img=12"
-                            alt="">
-                        <img class="size-8 rounded-full ring-2 ring-white" src="https://i.pravatar.cc/64?img=32"
-                            alt="">
-                        <img class="size-8 rounded-full ring-2 ring-white" src="https://i.pravatar.cc/64?img=48"
-                            alt="">
+
+                <div class="max-w-xl w-full mt-8">
+                    <!-- SearchBox -->
+                    <div class="relative" data-hs-combo-box='{
+                        "groupingType": "default",
+                        "isOpenOnFocus": true,
+                        "apiUrl": "../../assets/data/searchbox.json",
+                        "apiGroupField": "category",
+                        "outputItemTemplate": "<div data-hs-combo-box-output-item class=\"rounded-lg hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100\"><span class=\"flex items-center cursor-pointer py-2 px-4 w-full text-sm text-gray-800 rounded-lg\"><div class=\"flex items-center w-full\"><div class=\"flex items-center justify-center rounded-full bg-gray-100 size-6 overflow-hidden me-2.5\"><img class=\"shrink-0\" data-hs-combo-box-output-item-attr=&#39;[{\"valueFrom\": \"image\", \"attr\": \"src\"}, {\"valueFrom\": \"name\", \"attr\": \"alt\"}]&#39; /></div><div data-hs-combo-box-output-item-field=\"name\" data-hs-combo-box-value></div><div class=\"hidden\" data-hs-combo-box-output-item-field=&#39;[\"name\", \"category\"]&#39; data-hs-combo-box-search-text></div></div><span class=\"hidden hs-combo-box-selected:block\"><svg class=\"shrink-0 size-3.5 text-amber-500\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg></span></span></div>",
+                        "groupingTitleTemplate": "<div class=\"text-xs uppercase text-gray-400 m-3 mb-1\"></div>"}'>
+                        <div class="relative">
+                        <!-- Icon Search -->
+                        <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none z-20 ps-5">
+                            <img src="{{ asset('../../assets/img/searching.png') }}" class="size-6 object-contain" alt="Search Icon">
+                        </div>
+
+                        <!-- Input Field -->
+                        <input class="py-3.5 ps-14 pe-6 block w-full bg-white border border-gray-100 rounded-full text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#EE6D52] focus:ring-1 focus:ring-[#EE6D52] shadow-sm transition-all" 
+                                type="text" 
+                                role="combobox" 
+                                aria-expanded="false" 
+                                placeholder="Cari klinik atau layanan" 
+                                value="" 
+                                data-hs-combo-box-input="">
+                        </div>
+
+                        <!-- SearchBox Dropdown -->
+                        <div class="absolute z-50 w-full bg-white border border-gray-100 rounded-2xl shadow-xl p-2 mt-2" style="display: none;" data-hs-combo-box-output="">
+                        <div class="max-h-72 rounded-b-xl overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300" data-hs-combo-box-output-items-wrapper=""></div>
+                        </div>
+                        <!-- End SearchBox Dropdown -->
                     </div>
-                    <span>Dipercaya <strong class="text-gray-900">12.000+</strong> pemilik hewan</span>
+                    <!-- End SearchBox -->
                 </div>
+
             </div>
 
-            <div data-animate="fade-left" data-animate-delay="0.15" class="relative">
-                <div class="absolute -inset-6 bg-amber-200/40 rounded-[2.5rem] blur-2xl"></div>
-                <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=900&auto=format&fit=crop&q=60"
-                    alt="Anjing bahagia bersama pemiliknya"
-                    class="relative rounded-3xl shadow-2xl w-full object-cover aspect-[4/5]">
+            <div class="relative z-10 flex justify-center lg:justify-end" data-animate="fade-left" data-animate-delay="0.15">
+                <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" 
+                    src="{{ asset('assets/img/cat-dog-blob.png') }}">
+            </div>
+        </div>
+    </section>
+
+    {{-- =========================================================
+     PILIHAN LAYANAN
+========================================================= --}}
+    <section id="services" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12 text-left" data-animate="fade-up">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Pilihan layanan</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+                <div data-animate="fade-up" data-animate-delay="0.1" class="flex flex-col items-center text-center group cursor-pointer">
+                    <div class="size-32 sm:size-36 rounded-full bg-[#FDE4DB] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" 
+                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Grooming</h3>
+                </div>
+
+                <div data-animate="fade-up" data-animate-delay="0.2" class="flex flex-col items-center text-center group cursor-pointer">
+                    <div class="size-32 sm:size-36 rounded-full bg-[#D2EBE0] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" 
+                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Pet Hotel</h3>
+                </div>
+
+                <div data-animate="fade-up" data-animate-delay="0.3" class="flex flex-col items-center text-center group cursor-pointer">
+                    <div class="size-32 sm:size-36 rounded-full bg-[#FDF0CF] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" 
+                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Klinik</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    {{-- =========================================================
+     TEMUKAN VET
+========================================================= --}}
+    <section id="services" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12 text-left" data-animate="fade-up">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Temukan Vet</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+
+                <!-- Card -->
+                <a data-animate="fade-up" data-animate-delay="0.1" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
+                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
+                <div class="p-4">
+                    <h3 class="font-semibold text-foreground">
+                    Card title
+                    </h3>
+                    <p class="mt-1 text-muted-foreground-1">
+                    Some quick example text to build on the card title and make up the bulk of the card's content.
+                    </p>
+                </div>
+                </a>
+                <!-- End Card -->
+
+                <!-- Card -->
+                <a data-animate="fade-up" data-animate-delay="0.2" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
+                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
+                <div class="p-4">
+                    <h3 class="font-semibold text-foreground">
+                    Card title
+                    </h3>
+                    <p class="mt-1 text-muted-foreground-1">
+                    Some quick example text to build on the card title and make up the bulk of the card's content.
+                    </p>
+                </div>
+                </a>
+                <!-- End Card -->
+
+                <!-- Card -->
+                <a data-animate="fade-up" data-animate-delay="0.3" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
+                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
+                <div class="p-4">
+                    <h3 class="font-semibold text-foreground">
+                    Card title
+                    </h3>
+                    <p class="mt-1 text-muted-foreground-1">
+                    Some quick example text to build on the card title and make up the bulk of the card's content.
+                    </p>
+                </div>
+                </a>
+                <!-- End Card -->
             </div>
         </div>
     </section>
