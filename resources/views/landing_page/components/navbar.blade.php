@@ -2,7 +2,7 @@
     <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center gap-8">
             <a class="flex-none text-xl font-semibold text-foreground focus:outline-hidden focus:opacity-80" href="#" aria-label="Brand">
-                <img class="w-36 h-auto" src="../../assets/img/pawpaw-logo.png" alt="Logo">
+                <img class="w-36 h-auto" src="../../assets/img/pawpaw-logo.webp" alt="Logo">
             </a>
 
             <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">

@@ -7,9 +7,10 @@
 ========================================================= --}}
     <section class="relative overflow-hidden bg-[#FFF8F5]">
         
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
+        <!-- <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center"> -->
+        <div class="w-full pl-4 sm:pl-6 lg:pl-8 pr-0 pt-0 pb-20 lg:pt-0 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
-            <div class="z-20 lg:-mr-16" data-animate="fade-up">
+            <div class="z-20 w-full" data-animate="fade-up">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                     Urus si kesayangan,<br>
                     <span class="text-black-500">tanpa ribet.</span>
@@ -31,7 +32,7 @@
                         <div class="relative">
                         <!-- Icon Search -->
                         <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none z-20 ps-5">
-                            <img src="{{ asset('../../assets/img/searching.png') }}" class="size-6 object-contain" alt="Search Icon">
+                            <img src="{{ asset('../../assets/img/searching.webp') }}" class="size-6 object-contain" alt="Search Icon">
                         </div>
 
                         <!-- Input Field -->
@@ -55,9 +56,9 @@
 
             </div>
 
-            <div class="relative z-10 flex justify-center lg:justify-end" data-animate="fade-left" data-animate-delay="0.15">
+            <div class="relative z-10 flex justify-end" data-animate="fade-left" data-animate-delay="0.15">
                 <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" 
-                    src="{{ asset('assets/img/cat-dog-blob.png') }}">
+                    src="{{ asset('assets/img/cat-dog.webp') }}">
             </div>
         </div>
     </section>
@@ -76,7 +77,7 @@
                 <div data-animate="fade-up" data-animate-delay="0.1" class="flex flex-col items-center text-center group cursor-pointer">
                     <div class="size-32 sm:size-36 rounded-full bg-[#FDE4DB] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
                         <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                            src="{{ asset('assets/img/stethoscope.webp') }}">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Grooming</h3>
                 </div>
@@ -84,7 +85,7 @@
                 <div data-animate="fade-up" data-animate-delay="0.2" class="flex flex-col items-center text-center group cursor-pointer">
                     <div class="size-32 sm:size-36 rounded-full bg-[#D2EBE0] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
                         <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                            src="{{ asset('assets/img/searching.webp') }}">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Pet Hotel</h3>
                 </div>
@@ -92,7 +93,7 @@
                 <div data-animate="fade-up" data-animate-delay="0.3" class="flex flex-col items-center text-center group cursor-pointer">
                     <div class="size-32 sm:size-36 rounded-full bg-[#FDF0CF] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
                         <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/Codex Image Sep 24, 2026, 01_00_43 PM 2.png') }}">
+                            src="{{ asset('assets/img/inject.webp') }}">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Klinik</h3>
                 </div>
@@ -112,47 +113,91 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
 
-                <!-- Card -->
-                <a data-animate="fade-up" data-animate-delay="0.1" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
-                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
-                <div class="p-4">
-                    <h3 class="font-semibold text-foreground">
-                    Card title
-                    </h3>
-                    <p class="mt-1 text-muted-foreground-1">
-                    Some quick example text to build on the card title and make up the bulk of the card's content.
-                    </p>
-                </div>
-                </a>
-                <!-- End Card -->
+                @php
+                    $vets = [
+                        [
+                            'title' => 'Klinik Sahabat Satwa',
+                            'rating' => '4.9',
+                            'reviews' => '120',
+                            'distance' => '1.2 km',
+                            'image' => 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+                            'tags' => [
+                                ['label' => 'Vaksin', 'bg' => 'bg-[#D2EBE0]', 'text' => 'text-[#2C5E4E]'],
+                                ['label' => 'Grooming', 'bg' => 'bg-[#FDE4DB]', 'text' => 'text-[#EE6D52]'],
+                                ['label' => '+1', 'bg' => 'bg-gray-200/80', 'text' => 'text-gray-600'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Happy Paws Vet',
+                            'rating' => '4.8',
+                            'reviews' => '96',
+                            'distance' => '1.2 km',
+                            'image' => 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
+                            'tags' => [
+                                ['label' => 'Vaksin', 'bg' => 'bg-[#D2EBE0]', 'text' => 'text-[#2C5E4E]'],
+                                ['label' => 'Rawat Inap', 'bg' => 'bg-[#FDF0CF]', 'text' => 'text-[#8C6D1F]'],
+                                ['label' => '+1', 'bg' => 'bg-gray-200/80', 'text' => 'text-gray-600'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Rumah Hewan',
+                            'rating' => '4.9',
+                            'reviews' => '85',
+                            'distance' => '1.2 km',
+                            'image' => 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80',
+                            'tags' => [
+                                ['label' => 'Konsultasi', 'bg' => 'bg-[#F8E0EC]', 'text' => 'text-[#9C3D74]'],
+                                ['label' => 'Grooming', 'bg' => 'bg-[#FDE4DB]', 'text' => 'text-[#EE6D52]'],
+                                ['label' => '+1', 'bg' => 'bg-gray-200/80', 'text' => 'text-gray-600'],
+                            ],
+                        ],
+                    ];
+                @endphp
 
-                <!-- Card -->
-                <a data-animate="fade-up" data-animate-delay="0.2" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
-                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
-                <div class="p-4">
-                    <h3 class="font-semibold text-foreground">
-                    Card title
-                    </h3>
-                    <p class="mt-1 text-muted-foreground-1">
-                    Some quick example text to build on the card title and make up the bulk of the card's content.
-                    </p>
-                </div>
-                </a>
-                <!-- End Card -->
+                @foreach ($vets as $i => $vet)
+                    <!-- Card -->
+                    <a data-animate="fade-up" data-animate-delay="{{ ($i + 1) * 0.1 }}"
+                        class="group flex flex-col bg-white rounded-t-[75px] sm:rounded-t-[90px] rounded-b-[32px] overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 focus:outline-none"
+                        href="#">
+                        <div class="overflow-hidden">
+                            <img class="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                                src="{{ $vet['image'] }}" alt="{{ $vet['title'] }}">
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 group-hover:text-[#2C5E4E] transition-colors">
+                                    {{ $vet['title'] }}
+                                </h3>
 
-                <!-- Card -->
-                <a data-animate="fade-up" data-animate-delay="0.3" class="flex flex-col bg-card border border-card-line shadow-2xs rounded-xl hover:shadow-lg focus:outline-hidden focus:shadow-lg transition" href="#">
-                <img class="w-full h-auto rounded-t-xl" src="https://images.unsplash.com/photo-1680868543815-b8666dba60f7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=320&q=80" alt="Card Image">
-                <div class="p-4">
-                    <h3 class="font-semibold text-foreground">
-                    Card title
-                    </h3>
-                    <p class="mt-1 text-muted-foreground-1">
-                    Some quick example text to build on the card title and make up the bulk of the card's content.
-                    </p>
-                </div>
-                </a>
-                <!-- End Card -->
+                                <div class="mt-3 flex items-center gap-4 text-sm">
+                                    <div class="flex items-center gap-1.5">
+                                        <svg class="size-4 text-amber-400 fill-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span class="font-bold text-gray-900">{{ $vet['rating'] }}</span>
+                                        <span class="text-gray-400">({{ $vet['reviews'] }})</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <svg class="size-4 text-[#C86D51] shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-gray-400 font-medium">{{ $vet['distance'] }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 flex flex-wrap items-center gap-2">
+                                @foreach ($vet['tags'] as $tag)
+                                    <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold {{ $tag['bg'] }} {{ $tag['text'] }}">
+                                        {{ $tag['label'] }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </a>
+                    <!-- End Card -->
+                @endforeach
             </div>
         </div>
     </section>
