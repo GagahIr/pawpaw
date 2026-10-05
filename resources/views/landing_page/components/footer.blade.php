@@ -9,7 +9,7 @@
         <div class="pawpaw-footer-brand">
             <a href="{{ url('/') }}" class="pawpaw-footer-logo-link">
                 <img
-                    src="{{ asset('assets/pawpaw-logo.png') }}"
+                    src="{{ asset('assets/pawpaw-logo.webp') }}"
                     alt="PawPaw Logo"
                     class="pawpaw-footer-logo-img"
                 >
@@ -83,7 +83,7 @@
         {{-- ── Column 4: Cat Illustration --}}
         <div class="pawpaw-footer-illustration" aria-hidden="true">
             <img
-                src="{{ asset('assets/footer-cat-illustration.png') }}"
+                src="{{ asset('assets/footer-cat-illustration.webp') }}"
                 alt="Hewan Sehat, Hidup Lebih Bahagia"
                 class="pawpaw-footer-cat-img"
             >

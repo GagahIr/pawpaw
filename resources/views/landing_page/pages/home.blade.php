@@ -26,7 +26,7 @@
                 <div class="pawpaw-howtouse-step">
                     <div class="pawpaw-step-header">
                         <span class="pawpaw-step-num">01</span>
-                        <img src="{{ asset('assets/maps.png') }}" alt="Maps icon" class="pawpaw-step-icon">
+                        <img src="{{ asset('assets/map.webp') }}" alt="Maps icon" class="pawpaw-step-icon">
                     </div>
                     <p class="pawpaw-step-desc">Jelajahi klinik dan layanan yang sesuai di sekitarmu.</p>
                 </div>
@@ -42,7 +42,7 @@
                 <div class="pawpaw-howtouse-step">
                     <div class="pawpaw-step-header">
                         <span class="pawpaw-step-num">02</span>
-                        <img src="{{ asset('assets/calendar.png') }}" alt="Calendar icon" class="pawpaw-step-icon">
+                        <img src="{{ asset('assets/calendar.webp') }}" alt="Calendar icon" class="pawpaw-step-icon">
                     </div>
                     <p class="pawpaw-step-desc">Tentukan waktu kunjungan yang paling pas.</p>
                 </div>
@@ -58,7 +58,7 @@
                 <div class="pawpaw-howtouse-step">
                     <div class="pawpaw-step-header">
                         <span class="pawpaw-step-num">03</span>
-                        <img src="{{ asset('assets/list.png') }}" alt="List icon" class="pawpaw-step-icon">
+                        <img src="{{ asset('assets/list.webp') }}" alt="List icon" class="pawpaw-step-icon">
                     </div>
                     <p class="pawpaw-step-desc">Konfirmasi pilihanmu, lalu datang sesuai jadwal.</p>
                 </div>
@@ -82,7 +82,7 @@
 
             {{-- Left: Cat illustration --}}
             <div class="pawpaw-whyus-illustration" aria-hidden="true">
-                <img src="{{ asset('assets/cat-sleep-illustration.png') }}" alt="Kucing tidur manis" class="pawpaw-whyus-cat-img">
+                <img src="{{ asset('assets/cat-sleep-illustration.webp') }}" alt="Kucing tidur manis" class="pawpaw-whyus-cat-img">
             </div>
 
             {{-- Right: Content --}}
@@ -95,25 +95,25 @@
                 <ul class="pawpaw-whyus-list">
                     <li class="pawpaw-whyus-item">
                         <span class="pawpaw-whyus-icon-wrap">
-                            <img src="{{ asset('assets/pawkucing.png') }}" alt="Paw icon" class="pawpaw-whyus-icon">
+                            <img src="{{ asset('assets/pawkucing.webp') }}" alt="Paw icon" class="pawpaw-whyus-icon">
                         </span>
                         <span class="pawpaw-whyus-text">Temukan klinik secara cepat</span>
                     </li>
                     <li class="pawpaw-whyus-item">
                         <span class="pawpaw-whyus-icon-wrap">
-                            <img src="{{ asset('assets/tag.png') }}" alt="Tag icon" class="pawpaw-whyus-icon">
+                            <img src="{{ asset('assets/tag.webp') }}" alt="Tag icon" class="pawpaw-whyus-icon">
                         </span>
                         <span class="pawpaw-whyus-text">Harga jelas dan terjangkau</span>
                     </li>
                     <li class="pawpaw-whyus-item">
                         <span class="pawpaw-whyus-icon-wrap">
-                            <img src="{{ asset('assets/calendar.png') }}" alt="Calendar icon" class="pawpaw-whyus-icon">
+                            <img src="{{ asset('assets/calendar.webp') }}" alt="Calendar icon" class="pawpaw-whyus-icon">
                         </span>
                         <span class="pawpaw-whyus-text">Reservasi lebih praktis</span>
                     </li>
                     <li class="pawpaw-whyus-item">
                         <span class="pawpaw-whyus-icon-wrap">
-                            <img src="{{ asset('assets/heart.png') }}" alt="Heart icon" class="pawpaw-whyus-icon">
+                            <img src="{{ asset('assets/heart.webp') }}" alt="Heart icon" class="pawpaw-whyus-icon">
                         </span>
                         <span class="pawpaw-whyus-text">Berbagai layanan dan produk hewan</span>
                     </li>
