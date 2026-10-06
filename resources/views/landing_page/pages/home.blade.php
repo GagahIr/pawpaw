@@ -2,21 +2,11 @@
 
 @section('content')
     {{-- =========================================================
-     HOW TO USE — "Cari klinik, pilih jadwal, lalu datang."
-    ========================================================= --}}
-    <section class="pawpaw-howtouse-section">
-        {{-- Top cream wave over green --}}
-        <div class="pawpaw-howtouse-wave-top" aria-hidden="true">
-            <svg viewBox="0 0 1440 54" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M0,0 L1440,0 L1440,20 Q1320,54 1080,28 Q840,4 720,28 Q600,52 360,28 Q180,8 0,28 Z" fill="#FFF9F2"/>
-            </svg>
-
-    {{-- =========================================================
      HERO
+    ========================================================= --}}
     <section class="relative overflow-hidden bg-[#FFF8F5]">
-        
-        <!-- <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center"> -->
-        <div class="w-full pl-4 sm:pl-6 lg:pl-8 pr-0 pt-0 pb-20 lg:pt-0 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
             <div class="z-20 w-full" data-animate="fade-up">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -30,77 +20,90 @@
 
                 <div class="max-w-xl w-full mt-8">
                     <!-- SearchBox -->
-                    <div class="relative" data-hs-combo-box='{
+                    <div class="relative"
+                        data-hs-combo-box='{
                         "groupingType": "default",
                         "isOpenOnFocus": true,
-                        "apiUrl": "../../assets/data/searchbox.json",
+                        "apiUrl": "{{ asset('assets/data/searchbox.json') }}",
                         "apiGroupField": "category",
                         "outputItemTemplate": "<div data-hs-combo-box-output-item class=\"rounded-lg hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100\"><span class=\"flex items-center cursor-pointer py-2 px-4 w-full text-sm text-gray-800 rounded-lg\"><div class=\"flex items-center w-full\"><div class=\"flex items-center justify-center rounded-full bg-gray-100 size-6 overflow-hidden me-2.5\"><img class=\"shrink-0\" data-hs-combo-box-output-item-attr=&#39;[{\"valueFrom\": \"image\", \"attr\": \"src\"}, {\"valueFrom\": \"name\", \"attr\": \"alt\"}]&#39; /></div><div data-hs-combo-box-output-item-field=\"name\" data-hs-combo-box-value></div><div class=\"hidden\" data-hs-combo-box-output-item-field=&#39;[\"name\", \"category\"]&#39; data-hs-combo-box-search-text></div></div><span class=\"hidden hs-combo-box-selected:block\"><svg class=\"shrink-0 size-3.5 text-amber-500\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg></span></span></div>",
                         "groupingTitleTemplate": "<div class=\"text-xs uppercase text-gray-400 m-3 mb-1\"></div>"}'>
                         <div class="relative">
-                        <!-- Icon Search -->
-                        <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none z-20 ps-5">
-                            <img src="{{ asset('../../assets/img/searching.webp') }}" class="size-6 object-contain" alt="Search Icon">
-                        </div>
+                            <!-- Icon Search -->
+                            <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none z-20 ps-5">
+                                <img src="{{ asset('assets/img/searching.webp') }}" class="size-6 object-contain"
+                                    alt="Search Icon">
+                            </div>
 
-                        <!-- Input Field -->
-                        <input class="py-3.5 ps-14 pe-6 block w-full bg-white border border-gray-100 rounded-full text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#EE6D52] focus:ring-1 focus:ring-[#EE6D52] shadow-sm transition-all" 
-                                type="text" 
-                                role="combobox" 
-                                aria-expanded="false" 
-                                placeholder="Cari klinik atau layanan" 
-                                value="" 
-                                data-hs-combo-box-input="">
+                            <!-- Input Field -->
+                            <input
+                                class="py-3.5 ps-14 pe-6 block w-full bg-white border border-gray-100 rounded-full text-base text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#EE6D52] focus:ring-1 focus:ring-[#EE6D52] shadow-sm transition-all"
+                                type="text" role="combobox" aria-expanded="false" placeholder="Cari klinik atau layanan"
+                                value="" data-hs-combo-box-input="">
+                            {{-- <div>
+                                <a href="#"
+                                    class="hidden md:inline-block py-3 px-6 text-sm font-medium rounded-full text-gray-700 hover:bg-gray-100 transition">
+                                    Daftar Pelanggan
+                                </a>
+                                <a href="{{ route('vendor.register') }}"
+                                    class="hidden sm:inline-flex py-2.5 px-5 md:py-3 md:px-6 justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs">
+                                    Daftar Mitra
+                                </a>
+                            </div> --}}
                         </div>
 
                         <!-- SearchBox Dropdown -->
-                        <div class="absolute z-50 w-full bg-white border border-gray-100 rounded-2xl shadow-xl p-2 mt-2" style="display: none;" data-hs-combo-box-output="">
-                        <div class="max-h-72 rounded-b-xl overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300" data-hs-combo-box-output-items-wrapper=""></div>
+                        <div class="absolute z-50 w-full bg-white border border-gray-100 rounded-2xl shadow-xl p-2 mt-2"
+                            style="display: none;" data-hs-combo-box-output="">
+                            <div class="max-h-72 rounded-b-xl overflow-hidden overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300"
+                                data-hs-combo-box-output-items-wrapper=""></div>
                         </div>
                         <!-- End SearchBox Dropdown -->
                     </div>
                     <!-- End SearchBox -->
                 </div>
-
             </div>
 
             <div class="relative z-10 flex justify-end" data-animate="fade-left" data-animate-delay="0.15">
-                <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" 
-                    src="{{ asset('assets/img/cat-dog.webp') }}">
+                <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" src="{{ asset('assets/img/cat-dog.webp') }}"
+                    alt="Kucing dan anjing">
             </div>
         </div>
     </section>
 
     {{-- =========================================================
      PILIHAN LAYANAN
+    ========================================================= --}}
     <section id="services" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
-        
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-12 text-left" data-animate="fade-up">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Pilihan layanan</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
-                <div data-animate="fade-up" data-animate-delay="0.1" class="flex flex-col items-center text-center group cursor-pointer">
-                    <div class="size-32 sm:size-36 rounded-full bg-[#FDE4DB] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
-                        <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/stethoscope.webp') }}">
+                <div data-animate="fade-up" data-animate-delay="0.1"
+                    class="flex flex-col items-center text-center group cursor-pointer">
+                    <div
+                        class="size-32 sm:size-36 rounded-full bg-[#FDE4DB] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" src="{{ asset('assets/img/stethoscope.webp') }}" alt="Grooming">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Grooming</h3>
                 </div>
 
-                <div data-animate="fade-up" data-animate-delay="0.2" class="flex flex-col items-center text-center group cursor-pointer">
-                    <div class="size-32 sm:size-36 rounded-full bg-[#D2EBE0] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
-                        <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/searching.webp') }}">
+                <div data-animate="fade-up" data-animate-delay="0.2"
+                    class="flex flex-col items-center text-center group cursor-pointer">
+                    <div
+                        class="size-32 sm:size-36 rounded-full bg-[#D2EBE0] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" src="{{ asset('assets/img/searching.webp') }}" alt="Pet Hotel">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Pet Hotel</h3>
                 </div>
 
-                <div data-animate="fade-up" data-animate-delay="0.3" class="flex flex-col items-center text-center group cursor-pointer">
-                    <div class="size-32 sm:size-36 rounded-full bg-[#FDF0CF] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
-                        <img class="size-16 object-contain" 
-                            src="{{ asset('assets/img/inject.webp') }}">
+                <div data-animate="fade-up" data-animate-delay="0.3"
+                    class="flex flex-col items-center text-center group cursor-pointer">
+                    <div
+                        class="size-32 sm:size-36 rounded-full bg-[#FDF0CF] flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300">
+                        <img class="size-16 object-contain" src="{{ asset('assets/img/inject.webp') }}" alt="Klinik">
                     </div>
                     <h3 class="text-lg font-bold text-gray-900">Klinik</h3>
                 </div>
@@ -108,10 +111,10 @@
         </div>
     </section>
 
-    
     {{-- =========================================================
      TEMUKAN VET
-    <section id="services" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
+    ========================================================= --}}
+    <section id="vets" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-12 text-left" data-animate="fade-up">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Temukan Vet</h2>
@@ -126,7 +129,8 @@
                             'rating' => '4.9',
                             'reviews' => '120',
                             'distance' => '1.2 km',
-                            'image' => 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+                            'image' =>
+                                'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
                             'tags' => [
                                 ['label' => 'Vaksin', 'bg' => 'bg-[#D2EBE0]', 'text' => 'text-[#2C5E4E]'],
                                 ['label' => 'Grooming', 'bg' => 'bg-[#FDE4DB]', 'text' => 'text-[#EE6D52]'],
@@ -138,7 +142,8 @@
                             'rating' => '4.8',
                             'reviews' => '96',
                             'distance' => '1.2 km',
-                            'image' => 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
+                            'image' =>
+                                'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
                             'tags' => [
                                 ['label' => 'Vaksin', 'bg' => 'bg-[#D2EBE0]', 'text' => 'text-[#2C5E4E]'],
                                 ['label' => 'Rawat Inap', 'bg' => 'bg-[#FDF0CF]', 'text' => 'text-[#8C6D1F]'],
@@ -150,7 +155,8 @@
                             'rating' => '4.9',
                             'reviews' => '85',
                             'distance' => '1.2 km',
-                            'image' => 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80',
+                            'image' =>
+                                'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80',
                             'tags' => [
                                 ['label' => 'Konsultasi', 'bg' => 'bg-[#F8E0EC]', 'text' => 'text-[#9C3D74]'],
                                 ['label' => 'Grooming', 'bg' => 'bg-[#FDE4DB]', 'text' => 'text-[#EE6D52]'],
@@ -177,16 +183,21 @@
 
                                 <div class="mt-3 flex items-center gap-4 text-sm">
                                     <div class="flex items-center gap-1.5">
-                                        <svg class="size-4 text-amber-400 fill-amber-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        <svg class="size-4 text-amber-400 fill-amber-400 shrink-0"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                            <path
+                                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                         </svg>
                                         <span class="font-bold text-gray-900">{{ $vet['rating'] }}</span>
                                         <span class="text-gray-400">({{ $vet['reviews'] }})</span>
                                     </div>
 
                                     <div class="flex items-center gap-1.5">
-                                        <svg class="size-4 text-[#C86D51] shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                            <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
+                                        <svg class="size-4 text-[#C86D51] shrink-0" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                         <span class="text-gray-400 font-medium">{{ $vet['distance'] }}</span>
                                     </div>
@@ -195,7 +206,8 @@
 
                             <div class="mt-5 flex flex-wrap items-center gap-2">
                                 @foreach ($vet['tags'] as $tag)
-                                    <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold {{ $tag['bg'] }} {{ $tag['text'] }}">
+                                    <span
+                                        class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold {{ $tag['bg'] }} {{ $tag['text'] }}">
                                         {{ $tag['label'] }}
                                     </span>
                                 @endforeach
@@ -205,6 +217,20 @@
                     <!-- End Card -->
                 @endforeach
             </div>
+        </div>
+    </section>
+
+    {{-- =========================================================
+     HOW TO USE — "Cari klinik, pilih jadwal, lalu datang."
+    ========================================================= --}}
+    <section class="pawpaw-howtouse-section">
+
+        {{-- Top cream wave over green --}}
+        <div class="pawpaw-howtouse-wave-top" aria-hidden="true">
+            <svg viewBox="0 0 1440 54" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,0 L1440,0 L1440,20 Q1320,54 1080,28 Q840,4 720,28 Q600,52 360,28 Q180,8 0,28 Z"
+                    fill="#FFF9F2" />
+            </svg>
         </div>
 
         <div class="pawpaw-howtouse-inner">
@@ -228,8 +254,10 @@
 
                 {{-- Arrow --}}
                 <div class="pawpaw-step-arrow" aria-hidden="true">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 12H18.5M13.5 6.5L19 12L13.5 17.5" stroke="#e07a5f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 12H18.5M13.5 6.5L19 12L13.5 17.5" stroke="#e07a5f" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
 
@@ -244,8 +272,10 @@
 
                 {{-- Arrow --}}
                 <div class="pawpaw-step-arrow" aria-hidden="true">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 12H18.5M13.5 6.5L19 12L13.5 17.5" stroke="#e07a5f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 12H18.5M13.5 6.5L19 12L13.5 17.5" stroke="#e07a5f" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </div>
 
@@ -264,7 +294,8 @@
         {{-- Bottom cream wave over green --}}
         <div class="pawpaw-howtouse-wave-bottom" aria-hidden="true">
             <svg viewBox="0 0 1440 54" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M0,54 L1440,54 L1440,34 Q1260,0 1080,26 Q840,52 720,26 Q540,0 360,26 Q180,50 0,26 Z" fill="#FFF9F2"/>
+                <path d="M0,54 L1440,54 L1440,34 Q1260,0 1080,26 Q840,52 720,26 Q540,0 360,26 Q180,50 0,26 Z"
+                    fill="#FFF9F2" />
             </svg>
         </div>
     </section>
@@ -277,7 +308,8 @@
 
             {{-- Left: Cat illustration --}}
             <div class="pawpaw-whyus-illustration" aria-hidden="true">
-                <img src="{{ asset('assets/cat-sleep-illustration.webp') }}" alt="Kucing tidur manis" class="pawpaw-whyus-cat-img">
+                <img src="{{ asset('assets/cat-sleep-illustration.webp') }}" alt="Kucing tidur manis"
+                    class="pawpaw-whyus-cat-img">
             </div>
 
             {{-- Right: Content --}}
@@ -302,7 +334,8 @@
                     </li>
                     <li class="pawpaw-whyus-item">
                         <span class="pawpaw-whyus-icon-wrap">
-                            <img src="{{ asset('assets/calendar.webp') }}" alt="Calendar icon" class="pawpaw-whyus-icon">
+                            <img src="{{ asset('assets/calendar.webp') }}" alt="Calendar icon"
+                                class="pawpaw-whyus-icon">
                         </span>
                         <span class="pawpaw-whyus-text">Reservasi lebih praktis</span>
                     </li>
@@ -331,13 +364,14 @@
             </div>
         </div>
     </section>
-
-    <style>
+@endsection
+<style>
     /* =============================================
-       SECTION 1: HOW TO USE (wave green band)
-       ============================================= */
+               SECTION 1: HOW TO USE (wave green band)
+               ============================================= */
     .pawpaw-howtouse-section {
-        background-color: #c8dfd8;  /* sage green from design */
+        background-color: #c8dfd8;
+        /* sage green from design */
         position: relative;
         font-family: 'Inter', sans-serif;
     }
@@ -468,7 +502,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 44px;  /* Exactly matches height of step header row */
+            height: 44px;
+            /* Exactly matches height of step header row */
             margin: 0 10px;
             padding: 0;
         }
@@ -527,7 +562,8 @@
         }
 
         .pawpaw-step-arrow {
-            height: 52px;  /* Matches desktop step header height */
+            height: 52px;
+            /* Matches desktop step header height */
             margin: 0 14px;
         }
 
@@ -538,8 +574,8 @@
     }
 
     /* =============================================
-       SECTION 2: WHY CHOOSE US
-       ============================================= */
+               SECTION 2: WHY CHOOSE US
+               ============================================= */
     .pawpaw-whyus-section {
         background-color: #faf6f0;
         padding: 72px 0;
@@ -590,7 +626,8 @@
 
     .pawpaw-whyus-title-accent {
         color: #e07a5f;
-        display: block;  /* "memilih kami?" on its own line */
+        display: block;
+        /* "memilih kami?" on its own line */
     }
 
     /* Feature list — bounded max-width so border lines don't stretch too far right */
@@ -738,10 +775,11 @@
     }
 
     /* =============================================
-       SECTION 3: GOOD CARE CTA CARD
-       ============================================= */
+               SECTION 3: GOOD CARE CTA CARD
+               ============================================= */
     .pawpaw-goodcare-section {
-        background-color: #faf6f0;   /* Cream page background */
+        background-color: #faf6f0;
+        /* Cream page background */
         width: 100%;
         padding: 24px 0 64px;
         font-family: 'Nunito', sans-serif;
@@ -756,7 +794,8 @@
 
     /* Rounded peach card inside cream background */
     .pawpaw-goodcare-card {
-        background-color: #f6a88a;   /* Peach card color from reference */
+        background-color: #f6a88a;
+        /* Peach card color from reference */
         border-radius: 28px;
         padding: 48px 36px;
         width: 100%;
@@ -773,8 +812,10 @@
     }
 
     .pawpaw-goodcare-accent {
-        color: #bf3c29;       /* Rust red color */
-        font-style: italic;   /* Italic style like reference image */
+        color: #bf3c29;
+        /* Rust red color */
+        font-style: italic;
+        /* Italic style like reference image */
         font-weight: 900;
         display: inline-block;
     }
@@ -826,7 +867,11 @@
             font-size: 4.2rem;
         }
     }
+</style>
+
+{{-- @push('styles')
+    <style>
+        /* Tempel seluruh CSS .pawpaw-* (howtouse, whyus, goodcare) di sini.
+           Pastikan layouts/app-landing.blade.php punya @stack('styles') di <head>. */
     </style>
-
-@endsection
-
+@endpush --}}
