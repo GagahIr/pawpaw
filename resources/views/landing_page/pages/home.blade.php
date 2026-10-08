@@ -7,7 +7,7 @@
 ========================================================= --}}
     <section class="relative overflow-hidden bg-[#FFF8F5]">
         
-        <div class="w-full pl-4 sm:pl-6 lg:pl-8 pr-0 pt-0 pb-20 lg:pt-0 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
             <div class="z-20 w-full" data-animate="fade-up">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
