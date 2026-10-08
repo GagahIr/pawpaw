@@ -10,8 +10,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body>
+<body class="bg-[#FFF8F5]">
+    <x-client.navbar />
+
     {{ $slot }}
+
+    <x-client.footer />
 
     @livewireScripts
     @fluxScripts
