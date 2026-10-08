@@ -5,8 +5,8 @@
      HERO
     ========================================================= --}}
     <section class="relative overflow-hidden bg-[#FFF8F5]">
-        <div
-            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
+        
+        <div class="w-full pl-4 sm:pl-6 lg:pl-8 pr-0 pt-0 pb-20 lg:pt-0 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
             <div class="z-20 w-full" data-animate="fade-up">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -62,11 +62,22 @@
                     </div>
                     <!-- End SearchBox -->
                 </div>
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 mt-6 sm:hidden">
+                    <a href="#"
+                        class="flex-1 min-w-[140px] py-3 px-5 inline-flex justify-center items-center text-sm font-medium text-gray-700 bg-white hover:text-[#EE6D52] hover:bg-gray-50 border border-gray-200 rounded-full transition-all text-center">
+                        Daftar Pelanggan
+                    </a>
+                    <a href="{{ route('vendor.register') }}"
+                        class="flex-1 min-w-[140px] py-3 px-5 inline-flex justify-center items-center text-sm font-semibold rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs text-center">
+                        Daftar Mitra
+                    </a>
+                </div>
+
             </div>
 
-            <div class="relative z-10 flex justify-end" data-animate="fade-left" data-animate-delay="0.15">
-                <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" src="{{ asset('assets/img/cat-dog.webp') }}"
-                    alt="Kucing dan anjing">
+            <div class="relative z-10 hidden lg:flex justify-end" data-animate="fade-left" data-animate-delay="0.15">
+                <img class="w-full max-w-lg lg:max-w-xl h-auto object-contain" 
+                    src="{{ asset('assets/img/cat-dog.webp') }}">
             </div>
         </div>
     </section>
