@@ -14,7 +14,7 @@
 
 </head>
 
-<body>
+<body class="bg-[#FFF8F5]">
     <x-client.navbar />
 
     <main>

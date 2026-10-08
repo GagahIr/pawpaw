@@ -16,11 +16,6 @@ new class extends Component {
     public string $phone_number = '';
     public string $password = '';
 
-    // Sumber kebenaran untuk progress. Di-entangle ke Alpine (lihat root <div>),
-    // jadi mundur/lompat balik terasa instan di client sementara nilainya tetap
-    // tersinkron ke server di background — tidak perlu properti/metode terpisah
-    // untuk itu. register() tetap memvalidasi semua field di akhir, jadi
-    // currentStep di sini murni penanda UI, bukan gerbang keamanan.
     public int $currentStep = 1;
 
     public array $steps = [
@@ -94,7 +89,7 @@ new class extends Component {
     {
         $this->validate();
 
-        $data = new RegisterVendorData(vendorName: $this->vendor_name, address: $this->address, contact: $this->contact, email_vendor: $this->email_vendor, email: $this->email, description: $this->description, ownerName: $this->owner_name, phoneNumber: $this->phone_number, password: $this->password);
+        $data = new RegisterVendorData(vendorName: $this->vendor_name, address: $this->address, contact: $this->contact, emailVendor: $this->email_vendor, email: $this->email, description: $this->description, ownerName: $this->owner_name, phoneNumber: $this->phone_number, password: $this->password);
 
         try {
             $action->execute($data);
@@ -110,8 +105,32 @@ new class extends Component {
 };
 ?>
 
-<div x-data="{ step: @entangle('currentStep') }">
-    <div class="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
+<div x-data="{
+    step: @entangle('currentStep'),
+    f: {
+        email_vendor: $wire.email_vendor ?? '',
+        contact: $wire.contact ?? '',
+        email: $wire.email ?? '',
+        phone_number: $wire.phone_number ?? '',
+    },
+    normEmail(v) { return (v || '').trim().toLowerCase(); },
+    normPhone(v) {
+        const d = (v || '').replace(/\D/g, '');
+        return d.startsWith('62') ? '0' + d.slice(2) : d;
+    },
+    get emailConflict() {
+        const a = this.normEmail(this.f.email_vendor),
+            b = this.normEmail(this.f.email);
+        return a !== '' && a === b;
+    },
+    get phoneConflict() {
+        const a = this.normPhone(this.f.contact),
+            b = this.normPhone(this.f.phone_number);
+        return a !== '' && a === b;
+    },
+    get hasConflict() { return this.emailConflict || this.phoneConflict; },
+}">
+    <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
                 <div class="w-full max-w-xl space-y-6">
@@ -121,77 +140,65 @@ new class extends Component {
                         Kembali ke Beranda
                     </flux:link>
 
-                    <div class="flex flex-col items-center justify-center opacity-70">
-                        <a href="/" class="group flex items-center gap-3 mb-4">
-                            <div>
-                                <svg class="h-6 text-zinc-800 dark:text-white" viewBox="0 0 18 13" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <g>
-                                        <line x1="1" y1="5" x2="1" y2="10"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-                                        <line x1="5" y1="1" x2="5" y2="8"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-                                        <line x1="9" y1="5" x2="9" y2="10"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-                                        <line x1="13" y1="1" x2="13" y2="12"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-                                        <line x1="17" y1="5" x2="17" y2="10"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-                                    </g>
-                                </svg>
+                    {{-- <div class="flex flex-col items-center justify-center">
+                        <img class="w-28 sm:w-36 h-auto" src="{{ asset('assets/img/pawpaw-logo.webp') }}"
+                            alt="PawPaw">
+                    </div> --}}
+                    <div class="text-center">
+                        <flux:heading size="xl">Pendaftaran Vendor</flux:heading>
+                        <flux:subheading
+                            x-text="step === 1 ? 'Ceritakan tentang bisnis pet care Anda.' : step === 2 ? 'Lengkapi data pemilik dan akun untuk masuk.' : 'Periksa kembali data sebelum menyelesaikan pendaftaran.'">
+                            Ceritakan tentang bisnis pet care Anda.
+                        </flux:subheading>
+                    </div>
+
+                    <div class="space-y-6 px-0 sm:px-6 lg:px-8">
+                        <nav aria-label="Langkah pendaftaran">
+                            <div class="flex items-center">
+                                @foreach ($steps as $num => $label)
+                                    <div class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors"
+                                        :class="{
+                                            'bg-[#1a5c40] text-white': step > {{ $num }},
+                                        
+                                            'bg-[#1a5c40] text-white ring-4 ring-[#1a5c40]/30': step ===
+                                                {{ $num }},
+                                        
+                                            'border border-zinc-200 text-zinc-400 dark:border-zinc-700 dark:text-zinc-600': step <
+                                                {{ $num }},
+                                        }"
+                                        :aria-current="step === {{ $num }} ? 'step' : null">
+
+                                        <span x-show="step > {{ $num }}" x-cloak>
+                                            <flux:icon.check variant="micro" />
+                                        </span>
+                                        <span x-show="step <= {{ $num }}">{{ $num }}</span>
+                                    </div>
+
+                                    @if (!$loop->last)
+                                        <div class="mx-2 h-0.5 flex-1 rounded-full transition-colors"
+                                            :class="step > {{ $num }} ?
+                                                'bg-[#1a5c40]' :
+                                                'bg-zinc-200 dark:bg-zinc-700'">
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
-                            <span class="text-2xl font-semibold text-zinc-800 dark:text-white">PawPaw</span>
-                        </a>
+
+                            <div class="mt-1.5 grid grid-cols-3 gap-2">
+                                @foreach ($steps as $num => $label)
+                                    <span class="text-center text-xs transition-colors"
+                                        :class="step === {{ $num }} ?
+                                            'font-bold text-[#1a5c40] dark:text-[#25825a]' :
+                                            (step > {{ $num }} ? 'font-medium text-zinc-900 dark:text-white' :
+                                                'text-zinc-400 dark:text-zinc-600')">
+                                        {{ $label }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </nav>
                     </div>
 
                     <flux:card class="space-y-8">
-
-                        <div class="space-y-6">
-                            <div class="text-center">
-                                <flux:heading size="xl">Pendaftaran Vendor</flux:heading>
-                                <flux:subheading
-                                    x-text="step === 1 ? 'Ceritakan tentang bisnis pet care Anda.' : step === 2 ? 'Lengkapi data pemilik dan akun untuk masuk.' : 'Periksa kembali data sebelum menyelesaikan pendaftaran.'">
-                                    Ceritakan tentang bisnis pet care Anda.
-                                </flux:subheading>
-                            </div>
-
-                            <nav aria-label="Langkah pendaftaran">
-                                <div class="flex items-center">
-                                    @foreach ($steps as $num => $label)
-                                        <div class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors"
-                                            :class="{
-                                                'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900': step >
-                                                    {{ $num }},
-                                                'border-2 border-zinc-900 text-zinc-900 ring-4 ring-zinc-900/10 dark:border-white dark:text-white dark:ring-white/10': step ===
-                                                    {{ $num }},
-                                                'border border-zinc-200 text-zinc-400 dark:border-zinc-700 dark:text-zinc-600': step <
-                                                    {{ $num }},
-                                            }"
-                                            :aria-current="step === {{ $num }} ? 'step' : null">
-                                            <span x-show="step > {{ $num }}" x-cloak>
-                                                <flux:icon.check variant="micro" />
-                                            </span>
-                                            <span x-show="step <= {{ $num }}">{{ $num }}</span>
-                                        </div>
-                                        @if (!$loop->last)
-                                            <div class="mx-2 h-0.5 flex-1 rounded-full transition-colors"
-                                                :class="step > {{ $num }} ?
-                                                    'bg-zinc-900 dark:bg-white' :
-                                                    'bg-zinc-200 dark:bg-zinc-700'">
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                                <div class="mt-1.5 grid grid-cols-3 gap-2">
-                                    @foreach ($steps as $num => $label)
-                                        <span class="text-center text-xs transition-colors"
-                                            :class="step >= {{ $num }} ?
-                                                'font-medium text-zinc-900 dark:text-white' :
-                                                'text-zinc-400 dark:text-zinc-600'">{{ $label }}</span>
-                                    @endforeach
-                                </div>
-                            </nav>
-                        </div>
 
                         @if (session('success'))
                             <flux:callout variant="success" icon="check-circle" heading="{{ session('success') }}" />
@@ -201,7 +208,9 @@ new class extends Component {
                             <flux:callout variant="danger" icon="x-circle" heading="{{ session('error') }}" />
                         @endif
 
-                        <form wire:submit.prevent="register" class="space-y-8">
+                        <form wire:submit.prevent="register"
+                            x-on:submit.capture="if (hasConflict) { $event.stopImmediatePropagation(); $event.preventDefault(); }"
+                            class="space-y-8">
 
                             {{-- Langkah 1: Informasi Vendor --}}
                             <div class="space-y-5" x-show="step === 1"
@@ -214,21 +223,23 @@ new class extends Component {
                                 </flux:heading>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <flux:input wire:model="vendor_name" label="Nama Vendor"
-                                        placeholder="Contoh: Pawtner Pet Grooming" icon="building-storefront" />
+                                    <flux:input wire:model.blur="vendor_name" label="Nama Vendor" required
+                                        maxlength="100" placeholder="Contoh: Pawtner Pet Grooming"
+                                        icon="building-storefront" />
 
-                                    <flux:input wire:model="contact" label="Kontak Vendor" placeholder="08xxxxxxxxxx"
+                                    <flux:input wire:model.blur="contact" x-model="f.contact" label="Kontak Vendor"
+                                        required minlength="10" maxlength="13" placeholder="08xxxxxxxxxx"
                                         icon="phone" />
                                 </div>
 
-                                <flux:input wire:model="email_vendor" label="Email Vendor"
-                                    placeholder="example@vendor.com" icon="envelope" />
+                                <flux:input wire:model.blur="email_vendor" x-model="f.email_vendor" label="Email Vendor"
+                                    required type="email" placeholder="example@vendor.com" icon="envelope" />
 
-                                <flux:textarea wire:model="address" label="Alamat" rows="3"
+                                <flux:textarea wire:model.blur="address" label="Alamat" rows="3" required
                                     placeholder="Jalan, nomor, kelurahan, kecamatan, kota"
                                     description="Alamat lengkap memudahkan pelanggan menemukan lokasi Anda" />
 
-                                <flux:textarea wire:model="description" label="Deskripsi (Opsional)" rows="3"
+                                <flux:textarea wire:model.blur="description" label="Deskripsi (Opsional)" rows="3"
                                     placeholder="Ceritakan keunggulan layanan, jam operasional, atau spesialisasi vendor Anda" />
                             </div>
 
@@ -243,17 +254,26 @@ new class extends Component {
                                 </flux:heading>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <flux:input wire:model="owner_name" label="Nama Pemilik"
+                                    <flux:input wire:model.blur="owner_name" label="Nama Pemilik" required
                                         placeholder="Nama lengkap sesuai KTP" icon="user" />
 
-                                    <flux:input wire:model="phone_number" label="No. WhatsApp/Telepon"
+                                    <flux:input wire:model.blur="phone_number" x-model="f.phone_number"
+                                        label="No. WhatsApp/Telepon" required minlength="10" maxlength="13"
                                         placeholder="08xxxxxxxxxx" icon="device-phone-mobile" autocomplete="tel" />
                                 </div>
 
-                                <flux:input wire:model="email" type="email" label="Email"
-                                    placeholder="email@example.com" icon="envelope" autocomplete="email" />
+                                <p x-show="phoneConflict" x-cloak class="text-sm text-red-600">
+                                    Nomor telepon pemilik tidak boleh sama dengan kontak vendor.
+                                </p>
 
-                                <flux:input wire:model="password" type="password" label="Password"
+                                <flux:input wire:model.blur="email" x-model="f.email" type="email" label="Email"
+                                    required placeholder="email@example.com" icon="envelope" autocomplete="email" />
+
+                                <p x-show="emailConflict" x-cloak class="text-sm text-red-600">
+                                    Email pemilik tidak boleh sama dengan email vendor.
+                                </p>
+
+                                <flux:input wire:model.blur="password" type="password" label="Password" required
                                     placeholder="Minimal 8 karakter" icon="lock-closed" viewable
                                     description="Gunakan kombinasi huruf, angka, dan simbol agar lebih aman"
                                     autocomplete="new-password" />
@@ -346,8 +366,6 @@ new class extends Component {
 
                             <flux:separator variant="subtle" />
 
-                            {{-- Navigasi: mundur murni Alpine (instan, sinkron ke server otomatis lewat
-                                 entangle di background); maju tetap wire:click karena butuh validasi. --}}
                             <div class="flex items-center gap-3">
                                 <flux:button type="button" x-show="step > 1" x-on:click="step = step - 1"
                                     variant="subtle" icon="chevron-left">
@@ -355,13 +373,13 @@ new class extends Component {
                                 </flux:button>
 
                                 <flux:button type="button" wire:click="nextStep"
-                                    x-show="step < {{ count($steps) }}" variant="primary"
-                                    icon:trailing="chevron-right" class="flex-1">
+                                    x-show="step < {{ count($steps) }}" x-bind:disabled="hasConflict"
+                                    variant="primary" icon:trailing="chevron-right" class="flex-1 !bg-[#1a5c40]">
                                     Selanjutnya
                                 </flux:button>
 
-                                <flux:button type="submit" x-show="step === {{ count($steps) }}" variant="primary"
-                                    class="flex-1">
+                                <flux:button type="submit" x-show="step === {{ count($steps) }}"
+                                    x-bind:disabled="hasConflict" variant="primary" class="flex-1 !bg-[#1a5c40]">
                                     Daftar Sekarang
                                 </flux:button>
                             </div>
@@ -369,7 +387,8 @@ new class extends Component {
                     </flux:card>
 
                     <flux:text class="text-center">
-                        Sudah memiliki akun? <flux:link href="{{ route('filament.owner.pages.dashboard') }}">Masuk
+                        Sudah memiliki akun? <flux:link class="!text-[#1a5c40]"
+                            href="{{ route('filament.owner.pages.dashboard') }}">Masuk
                             di sini</flux:link>
                     </flux:text>
                 </div>
