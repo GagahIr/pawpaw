@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             RoleSeeder::class,
+            categoryServicesSeeder::class,
             // Seeder lain bisa ditambahkan di sini
         ]);
     }
