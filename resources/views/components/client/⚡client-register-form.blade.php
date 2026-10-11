@@ -1,23 +1,115 @@
 <?php
 
+use App\Actions\Client\RegisterClientAction;
+use App\DTOs\RegisterClientData;
+use App\Enums\SystemMessage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
-new class extends Component {};
+new class extends Component {
+    public string $name = '';
+    public string $username = '';
+    public string $phone_number = '';
+    public string $email = '';
+    public string $password = '';
+    public string $password_confirmation = '';
+    public bool $terms = false;
+    public string $errorMessage = '';
+
+    protected function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'min:4', 'max:100'],
+            'username' => ['required', 'string', 'min:5', 'max:50', 'alpha_dash:ascii', 'unique:users,username'],
+            'phone_number' => ['required', 'string', 'min:10', 'max:15', 'regex:/\A\+?[0-9]{10,20}\z/', 'unique:users,phone_number', 'unique:vendors,contact'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email', 'unique:vendors,email'],
+            'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed', function (string $attribute, mixed $value, \Closure $fail) {
+                if (strlen($value) > 72) {
+                    $fail('Password terlalu panjang. Maksimal 72 byte; emoji atau huruf beraksen dapat memakai lebih dari satu byte.');
+                }
+            }],
+            'password_confirmation' => ['required', 'string', 'min:8', 'max:72', 'same:password'],
+            'terms' => ['accepted'],
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'unique' => ':attribute sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
+            'phone_number.regex' => 'Nomor telepon harus berisi minimal 10 angka, dengan tanda + hanya di awal jika diperlukan.',
+            'email.email' => 'Format email tidak valid.',
+            'password.confirmed' => 'Konfirmasi password harus sama dengan password.',
+            'password_confirmation.same' => 'Konfirmasi password harus sama dengan password.',
+            'terms.accepted' => 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.',
+        ];
+    }
+
+    protected function validationAttributes(): array
+    {
+        return [
+            'name' => 'Nama lengkap',
+            'username' => 'Username',
+            'phone_number' => 'Nomor telepon',
+            'email' => 'Email',
+            'password' => 'Password',
+            'password_confirmation' => 'Konfirmasi password',
+        ];
+    }
+
+    public function register(RegisterClientAction $action)
+    {
+        $this->errorMessage = '';
+        $this->username = strtolower(trim($this->username));
+        $this->email = strtolower(trim($this->email));
+        $this->name = trim($this->name);
+        $this->phone_number = preg_replace('/[\s()-]+/', '', trim($this->phone_number));
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            $this->dispatch('client-registration-notification',
+                message: 'Pendaftaran belum berhasil. Periksa kembali data yang ditandai pada form.',
+                type: 'error',
+            );
+
+            throw $e;
+        }
+
+        $data = new RegisterClientData(
+            name: $this->name,
+            username: $this->username,
+            phoneNumber: $this->phone_number,
+            email: $this->email,
+            password: $this->password,
+        );
+
+        try {
+            $action->execute($data);
+        } catch (\Throwable $e) {
+            report($e);
+            $this->errorMessage = SystemMessage::ERROR_SYSTEM->value;
+            $this->dispatch('client-registration-notification', message: $this->errorMessage, type: 'error');
+
+            return;
+        }
+
+        session()->flash('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+
+        return redirect('/');
+    }
+};
 
 ?>
 
 <div x-data="{
-    form: {
-        name: '',
-        username: '',
-        phone_number: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-        terms: false,
-    },
     notice: '',
 }">
+    <x-client.registration-toast />
     <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
@@ -35,8 +127,11 @@ new class extends Component {};
                     </div>
 
                     <flux:card class="space-y-8">
+                        @if ($errorMessage)
+                            <flux:callout variant="danger" icon="x-circle" heading="{{ $errorMessage }}" />
+                        @endif
                         <form class="space-y-8"
-                            x-on:submit.prevent="notice = 'Tampilan form sudah siap. Pendaftaran belum terhubung ke backend.'">
+                            wire:submit.prevent="register">
                             <div class="space-y-5">
                                 <header class="flex items-center gap-3">
                                     <div
@@ -68,39 +163,38 @@ new class extends Component {};
 
                                 <flux:separator class="my-6 !bg-[#F2F2EE]" />
 
-                                <flux:input id="client-name" name="name" x-model="form.name" label="Nama Lengkap"
+                                <flux:input id="client-name" name="name" wire:model.blur="name" label="Nama Lengkap"
                                     required maxlength="100" placeholder="Contoh: John Doe" icon="user"
                                     autocomplete="name" />
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <flux:input id="client-username" name="username" x-model="form.username"
+                                    <flux:input id="client-username" name="username" wire:model.blur="username"
                                         label="Username" required maxlength="50" placeholder="johndoe"
                                         icon="at-symbol" autocomplete="username" />
 
-                                    <flux:input id="client-phone" name="phone_number" x-model="form.phone_number"
-                                        type="tel" label="No. WhatsApp/Telepon" required placeholder="08xxxxxxxxxx"
+                                    <flux:input id="client-phone" name="phone_number" wire:model.blur="phone_number"
+                                        type="tel" label="No. WhatsApp/Telepon" required minlength="10" maxlength="20" placeholder="08xxxxxxxxxx"
                                         icon="device-phone-mobile" autocomplete="tel" />
                                 </div>
 
-                                <flux:input id="client-email" name="email" x-model="form.email" type="email"
-                                    label="Email" required placeholder="johndoe@example.com" icon="envelope"
+                                <flux:input id="client-email" name="email" wire:model.blur="email" type="email"
+                                    label="Email" required maxlength="255" placeholder="johndoe@example.com" icon="envelope"
                                     autocomplete="email" />
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <flux:input id="client-password" name="password" x-model="form.password"
-                                        type="password" label="Password" required minlength="8"
+                                    <flux:input id="client-password" name="password" wire:model="password"
+                                        type="password" label="Password" required minlength="8" maxlength="72"
                                         placeholder="Minimal 8 karakter" icon="lock-closed" viewable
                                         autocomplete="new-password" />
 
                                     <flux:input id="client-password-confirmation" name="password_confirmation"
-                                        x-model="form.password_confirmation" type="password" label="Konfirmasi Password"
-                                        x-effect="$el.setCustomValidity(form.password_confirmation !== form.password ? 'Konfirmasi password harus sama dengan password.' : '')"
-                                        required minlength="8" placeholder="Ulangi password" icon="lock-closed"
+                                        wire:model="password_confirmation" type="password" label="Konfirmasi Password"
+                                        required minlength="8" maxlength="72" placeholder="Ulangi password" icon="lock-closed"
                                         viewable autocomplete="new-password" />
                                 </div>
 
                                 <flux:field variant="inline">
-                                    <flux:checkbox id="client-terms" name="terms" x-model="form.terms" required />
+                                    <flux:checkbox id="client-terms" name="terms" wire:model="terms" required />
                                     <flux:label for="client-terms" class="!font-normal">
                                         <span>
                                             Saya menyetujui <span
@@ -111,6 +205,7 @@ new class extends Component {};
                                                 Privasi</span> PawPaw.
                                         </span>
                                     </flux:label>
+                                    <flux:error name="terms" />
                                 </flux:field>
                             </div>
 
@@ -118,7 +213,7 @@ new class extends Component {};
 
                             <div class="flex items-center gap-3">
                                 <flux:button type="submit" variant="primary" icon:trailing="arrow-right"
-                                    class="flex-1 !bg-[#1a5c40]">
+                                    wire:loading.attr="disabled" wire:target="register" class="flex-1 !bg-[#1a5c40]">
                                     Daftar Sekarang
                                 </flux:button>
                             </div>

@@ -23,8 +23,8 @@
 
     <x-client.footer />
 
-    {{-- @livewireScripts
-    @fluxScripts --}}
+    @livewireScripts
+    @fluxScripts
 </body>
 
 </html>
