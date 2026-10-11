@@ -41,24 +41,12 @@ new class extends Component {
 
     public function mount()
     {
-        // if (auth()->guard('owner')->check()) {
-        //     return redirect()->route('filament.owner.pages.dashboard');
-        // }
-
-        // if (auth()->guard('front-office')->check()) {
-        //     // Sesuaikan nama route dashboard front-office Anda
-        //     return redirect()->route('filament.front-office.pages.dashboard');
-        // }
-
         if (auth()->check()) {
             $user = auth()->user();
+            $vendor = $user->vendorStaff->first()?->vendor;
 
-            if ($user->role === 'owner') {
-                return redirect()->route('filament.owner.pages.dashboard');
-            } elseif ($user->role === 'front_office') {
-                return redirect()->route('filament.front-office.pages.dashboard');
-            } else {
-                return redirect('/');
+            if ($vendor) {
+                return redirect()->route('admin.dashboard', ['subdomain' => $vendor->slug]);
             }
         }
     }
@@ -95,7 +83,7 @@ new class extends Component {
             $action->execute($data);
             // session()->flash('success', SystemMessage::VENDOR_REGISTER_SUCCESS->value);
             notify('Success', SystemMessage::VENDOR_REGISTER_SUCCESS->value, 'success');
-            return redirect()->route('filament.owner.pages.dashboard');
+            // return redirect()->route('admin.dashboard', ['subdomain' => $vendor->slug]);
         } catch (\Throwable $e) {
             report($e);
             notify('Error', SystemMessage::ERROR_SYSTEM->value, 'danger');
@@ -135,7 +123,7 @@ new class extends Component {
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
                 <div class="w-full max-w-xl space-y-6">
 
-                    <flux:link href="/" variant="subtle" class="inline-flex items-center gap-1 text-sm">
+                    <flux:link href="{{ route('landing_page') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
                         <flux:icon.arrow-left variant="micro" />
                         Kembali ke Beranda
                     </flux:link>
@@ -152,7 +140,7 @@ new class extends Component {
                         </flux:subheading>
                     </div>
 
-                    <div class="space-y-6 px-0 sm:px-6 lg:px-8">
+                    <div class="space-y-6 px-0 sm:px-20 lg:px-28">
                         <nav aria-label="Langkah pendaftaran">
                             <div class="flex items-center">
                                 @foreach ($steps as $num => $label)
@@ -388,8 +376,7 @@ new class extends Component {
 
                     <flux:text class="text-center">
                         Sudah memiliki akun? <flux:link class="!text-[#1a5c40]"
-                            href="{{ route('filament.owner.pages.dashboard') }}">Masuk
-                            di sini</flux:link>
+                            href="{{ route('landing_page') }}">Masuk melalui domain klinik Anda</flux:link>
                     </flux:text>
                 </div>
             </div>

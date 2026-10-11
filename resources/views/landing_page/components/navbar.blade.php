@@ -2,7 +2,7 @@
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap lg:flex-nowrap items-center justify-between" aria-label="Global">
 
         <div class="flex items-center">
-            <a class="flex items-center focus:outline-none focus:opacity-80" href="#" aria-label="PawPaw Brand">
+            <a class="flex items-center focus:outline-none focus:opacity-80" href="{{ route('landing_page') }}" aria-label="PawPaw Brand">
                 <img class="w-36 h-auto" src="{{ asset('assets/img/pawpaw-logo.webp') }}" alt="PawPaw Logo">
             </a>
         </div>
