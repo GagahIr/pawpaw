@@ -1,0 +1,171 @@
+<?php
+
+use Livewire\Component;
+
+new class extends Component {};
+
+?>
+
+<div x-data="{
+    form: {
+        name: '',
+        username: '',
+        phone_number: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        terms: false,
+    },
+    notice: '',
+}">
+    <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
+        <div class="flex min-h-screen">
+            <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="w-full max-w-xl space-y-6">
+                    <flux:link href="{{ url('/') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
+                        <flux:icon.arrow-left variant="micro" />
+                        Kembali ke Beranda
+                    </flux:link>
+
+                    <div class="text-center">
+                        <flux:heading size="xl" level="1">Daftar Akun Pelanggan</flux:heading>
+                        <flux:subheading>
+                            Buat akun untuk mempermudah reservasi dokter hewan dan perawatan anabul.
+                        </flux:subheading>
+                    </div>
+
+                    <flux:card class="space-y-8">
+                        <form class="space-y-8"
+                            x-on:submit.prevent="notice = 'Tampilan form sudah siap. Pendaftaran belum terhubung ke backend.'">
+                            <div class="space-y-5">
+                                <header class="flex items-center gap-3">
+                                    <div
+                                        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EE] text-[#236B55]">
+                                        <svg class="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <ellipse cx="5.5" cy="9" rx="2" ry="2.7"
+                                                transform="rotate(-25 5.5 9)" />
+                                            <ellipse cx="9.5" cy="5.5" rx="2" ry="2.7"
+                                                transform="rotate(-10 9.5 5.5)" />
+                                            <ellipse cx="14.5" cy="5.5" rx="2" ry="2.7"
+                                                transform="rotate(10 14.5 5.5)" />
+                                            <ellipse cx="18.5" cy="9" rx="2" ry="2.7"
+                                                transform="rotate(25 18.5 9)" />
+                                            <path
+                                                d="M7 14.2c1.3-1.5 2.2-4.1 5-4.1s3.7 2.6 5 4.1c1.2 1.4 1.8 3.4.6 4.6-1.5 1.5-3.4.3-5.6.3s-4.1 1.2-5.6-.3c-1.2-1.2-.6-3.2.6-4.6Z" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="min-w-0 space-y-1">
+                                        <flux:heading id="client-register-heading" level="1"
+                                            class="!text-base !font-bold !text-[#303A35]">
+                                            Informasi Akun Pelanggan
+                                        </flux:heading>
+                                        <flux:text class="!text-xs !leading-relaxed !text-[#90958F]">
+                                            Lengkapi identitas Anda untuk kemudahan verifikasi reservasi.
+                                        </flux:text>
+                                    </div>
+                                </header>
+
+                                <flux:separator class="my-6 !bg-[#F2F2EE]" />
+
+                                <flux:input id="client-name" name="name" x-model="form.name" label="Nama Lengkap"
+                                    required maxlength="100" placeholder="Contoh: John Doe" icon="user"
+                                    autocomplete="name" />
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <flux:input id="client-username" name="username" x-model="form.username"
+                                        label="Username" required maxlength="50" placeholder="johndoe"
+                                        icon="at-symbol" autocomplete="username" />
+
+                                    <flux:input id="client-phone" name="phone_number" x-model="form.phone_number"
+                                        type="tel" label="No. WhatsApp/Telepon" required placeholder="08xxxxxxxxxx"
+                                        icon="device-phone-mobile" autocomplete="tel" />
+                                </div>
+
+                                <flux:input id="client-email" name="email" x-model="form.email" type="email"
+                                    label="Email" required placeholder="johndoe@example.com" icon="envelope"
+                                    autocomplete="email" />
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <flux:input id="client-password" name="password" x-model="form.password"
+                                        type="password" label="Password" required minlength="8"
+                                        placeholder="Minimal 8 karakter" icon="lock-closed" viewable
+                                        autocomplete="new-password" />
+
+                                    <flux:input id="client-password-confirmation" name="password_confirmation"
+                                        x-model="form.password_confirmation" type="password" label="Konfirmasi Password"
+                                        x-effect="$el.setCustomValidity(form.password_confirmation !== form.password ? 'Konfirmasi password harus sama dengan password.' : '')"
+                                        required minlength="8" placeholder="Ulangi password" icon="lock-closed"
+                                        viewable autocomplete="new-password" />
+                                </div>
+
+                                <flux:field variant="inline">
+                                    <flux:checkbox id="client-terms" name="terms" x-model="form.terms" required />
+                                    <flux:label for="client-terms" class="!font-normal">
+                                        <span>
+                                            Saya menyetujui <span
+                                                class="font-medium text-[#1a5c40] dark:text-[#25825a]">Syarat &amp;
+                                                Ketentuan</span>
+                                            serta <span
+                                                class="font-medium text-[#1a5c40] dark:text-[#25825a]">Kebijakan
+                                                Privasi</span> PawPaw.
+                                        </span>
+                                    </flux:label>
+                                </flux:field>
+                            </div>
+
+                            <flux:separator variant="subtle" />
+
+                            <div class="flex items-center gap-3">
+                                <flux:button type="submit" variant="primary" icon:trailing="arrow-right"
+                                    class="flex-1 !bg-[#1a5c40]">
+                                    Daftar Sekarang
+                                </flux:button>
+                            </div>
+
+                            <div class="space-y-5">
+                                <div class="flex items-center gap-3">
+                                    <flux:separator variant="subtle" class="flex-1" />
+                                    <flux:text class="shrink-0 text-xs">atau daftar dengan</flux:text>
+                                    <flux:separator variant="subtle" class="flex-1" />
+                                </div>
+
+                                <flux:button type="button" variant="outline" class="w-full"
+                                    x-on:click="notice = 'Pendaftaran dengan Google belum terhubung ke backend.'">
+                                    <svg class="size-4" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path fill="#4285F4"
+                                            d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.32 2.98-7.36Z" />
+                                        <path fill="#34A853"
+                                            d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.13H3.07v2.59A10 10 0 0 0 12 22Z" />
+                                        <path fill="#FBBC05"
+                                            d="M6.41 13.91a6 6 0 0 1 0-3.82V7.5H3.07a10 10 0 0 0 0 9l3.34-2.59Z" />
+                                        <path fill="#EA4335"
+                                            d="M12 5.96c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.5l3.34 2.59C7.2 7.72 9.4 5.96 12 5.96Z" />
+                                    </svg>
+                                    Daftar dengan Google
+                                </flux:button>
+                            </div>
+
+                            <p x-show="notice" x-text="notice" style="display: none" role="status"
+                                aria-live="polite" class="text-sm text-zinc-500 dark:text-zinc-400"></p>
+                        </form>
+                    </flux:card>
+
+                    <div class="space-y-2">
+                        <flux:text class="text-center">
+                            Sudah memiliki akun?
+                            <flux:link class="!text-[#1a5c40]" href="{{ url('/client-login') }}">Masuk di sini</flux:link>
+                        </flux:text>
+
+                        <flux:text class="flex flex-wrap items-center justify-center gap-1 text-[11px]">
+                            <flux:icon.building-storefront variant="micro" class="size-3.5" />
+                            Punya klinik atau salon hewan?
+                            <flux:link href="{{ url('/vendor-register') }}" class="!text-[#777E77]">Daftar sebagai
+                                Vendor</flux:link>
+                        </flux:text>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

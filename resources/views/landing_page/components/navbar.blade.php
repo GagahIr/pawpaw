@@ -9,7 +9,7 @@
 
         <div class="flex items-center gap-3 ms-auto lg:ms-0 lg:order-3">
             <div class="hidden sm:flex items-center gap-2 lg:gap-3">
-                <a href="#"
+                <a href="{{ route('client.register') }}"
                     class="py-2.5 px-3.5 lg:px-5 text-sm font-medium text-gray-700 hover:text-[#EE6D52] hover:bg-white/60 rounded-full transition-all whitespace-nowrap">
                     Daftar Pelanggan
                 </a>
