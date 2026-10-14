@@ -42,10 +42,10 @@
             aria-labelledby="hs-navbar-collapse">
             <div class="flex flex-col lg:flex-row lg:items-center gap-y-2 lg:gap-y-0 lg:gap-8 text-sm font-medium text-gray-700 pt-3 pb-2 lg:py-0 border-t border-gray-100 lg:border-t-0 mt-2 lg:mt-0">
                 <a href="#services" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Layanan</a>
-                <a href="#features" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Fitur</a>
-                <a href="#how-it-works" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Cara Kerja</a>
-                <a href="#testimonials" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Testimoni</a>
-                <a href="#faq" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">FAQ</a>
+                <a href="#location" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Lokasi</a>
+                <a href="#how-to-use" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Cara Kerja</a>
+                <a href="#benefits" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Keunggulan</a>
+                <a href="#footer" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Contact Us</a>
             </div>
         </div>
     </nav>
