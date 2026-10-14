@@ -46,7 +46,7 @@ new class extends Component {
             $vendor = $user->vendorStaff->first()?->vendor;
 
             if ($vendor) {
-                return redirect()->route('admin.dashboard', ['subdomain' => $vendor->slug]);
+                return redirect()->route('vendor.admin.dashboard', ['subdomain' => $vendor->slug]);
             }
         }
     }
@@ -81,13 +81,12 @@ new class extends Component {
 
         try {
             $action->execute($data);
-            // session()->flash('success', SystemMessage::VENDOR_REGISTER_SUCCESS->value);
+            session()->flash('success', SystemMessage::VENDOR_REGISTER_SUCCESS->value);
             notify('Success', SystemMessage::VENDOR_REGISTER_SUCCESS->value, 'success');
-            // return redirect()->route('admin.dashboard', ['subdomain' => $vendor->slug]);
+            return redirect()->route('vendor.admin.dashboard', ['subdomain' => $vendor->slug]);
         } catch (\Throwable $e) {
             report($e);
-            notify('Error', SystemMessage::ERROR_SYSTEM->value, 'danger');
-            // session()->flash('error', SystemMessage::ERROR_SYSTEM->value);
+            session()->flash('error', SystemMessage::ERROR_SYSTEM->value);
         }
     }
 };
@@ -95,6 +94,8 @@ new class extends Component {
 
 <div x-data="{
     step: @entangle('currentStep'),
+    vendorName: $wire.vendor_name || '',
+    baseDomain: '{{ request()->getHost() }}{{ request()->getPort() !== 80 && request()->getPort() !== 443 ? ':' . request()->getPort() : '' }}',
     f: {
         email_vendor: $wire.email_vendor ?? '',
         contact: $wire.contact ?? '',
@@ -117,6 +118,17 @@ new class extends Component {
         return a !== '' && a === b;
     },
     get hasConflict() { return this.emailConflict || this.phoneConflict; },
+    get domainPreview() {
+            if (!this.vendorName) return '';
+            let slug = this.vendorName.toString().toLowerCase()
+                .replace(/\s+/g, '-')           
+                .replace(/[^\w\-]+/g, '')       
+                .replace(/\-\-+/g, '-')         
+                .replace(/^-+/, '')             
+                .replace(/-+$/, '');            
+                
+            return slug ? slug + '.' + this.baseDomain : ''; 
+        },
 }">
     <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
@@ -211,9 +223,17 @@ new class extends Component {
                                 </flux:heading>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <flux:input wire:model.blur="vendor_name" label="Nama Vendor" required
-                                        maxlength="100" placeholder="Contoh: Pawtner Pet Grooming"
-                                        icon="building-storefront" />
+                                    <div class="space-y-1">
+                                        <flux:input wire:model.blur="vendor_name" 
+                                            x-on:input="vendorName = $event.target.value"
+                                            label="Nama Vendor" required
+                                            maxlength="100" placeholder="Contoh: Pawtner Pet Grooming"
+                                            icon="building-storefront" />
+                                        
+                                        <div x-show="domainPreview" x-cloak class="text-sm px-1 mt-1 text-zinc-500">
+                                            Domain Anda: <span class="font-medium text-[#1a5c40] dark:text-[#25825a]" x-text="domainPreview"></span>
+                                        </div>
+                                    </div>
 
                                     <flux:input wire:model.blur="contact" x-model="f.contact" label="Kontak Vendor"
                                         required minlength="10" maxlength="13" placeholder="08xxxxxxxxxx"

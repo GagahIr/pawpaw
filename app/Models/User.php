@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\StaffPosition;
 use Database\Factories\UserFactory;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'email', 'password', 'phone_number', 'role_id'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -32,21 +32,37 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    public function role()
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
-    public function canAccessPanel(Panel $panel): bool
+    public function vendorStaff(): HasMany
     {
-        if ($panel->getId() === 'owner') {
-            return $this->role->name === 'owner';
-        }
+        return $this->hasMany(VendorStaff::class);
+    }
 
-        if ($panel->getId() === 'frontOffice') {
-            return $this->role->name === 'front_office';
-        }
+    public function userClient()
+    {
+        return $this->hasOne(UserClient::class);
+    }
 
-        return false;
+    public function staffPosition(): ?StaffPosition
+    {
+        return $this->vendorStaff()
+            ->where('vendor_id', app('vendor.context')->id())
+            ->value('position');
+    }
+
+    public function vendor()
+    {
+        return $this->hasOneThrough(
+            Vendor::class,
+            VendorStaff::class,
+            'user_id',
+            'id',
+            'id',
+            'vendor_id'
+        );
     }
 }
