@@ -15,6 +15,11 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+@source "../../vendor/ramonrietdijk/livewire-tables/resources/**/*.blade.php";
+@source '../../app/Livewire/**/*Table.php';
+@source '../../vendor/power-components/livewire-powergrid/resources/views/**/*.php';
+@source '../../vendor/power-components/livewire-powergrid/src/Themes/Tailwind.php';
+
 @theme {
     --font-sans:
         "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
