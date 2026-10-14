@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\ResolveVendor;
+use App\Supports\VendorContext;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->scoped('vendor.context', fn () => new VendorContext);
     }
 
     /**
@@ -19,6 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Livewire::addPersistentMiddleware([ResolveVendor::class]);
     }
 }
