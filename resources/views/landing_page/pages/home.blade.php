@@ -1,6 +1,9 @@
 @extends('landing_page.layouts.app-landing')
 
 @section('content')
+    @if (session('client_registered') || session('client_logged_in'))
+        <x-client.registration-toast :message="session('client_registered') ?? session('client_logged_in')" />
+    @endif
     {{-- =========================================================
      HERO
     ========================================================= --}}
@@ -63,7 +66,7 @@
                     <!-- End SearchBox -->
                 </div>
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 mt-6 sm:hidden">
-                    <a href="#"
+                    <a href="{{ route('client.register') }}"
                         class="flex-1 min-w-[140px] py-3 px-5 inline-flex justify-center items-center text-sm font-medium text-gray-700 bg-white hover:text-[#EE6D52] hover:bg-gray-50 border border-gray-200 rounded-full transition-all text-center">
                         Daftar Pelanggan
                     </a>

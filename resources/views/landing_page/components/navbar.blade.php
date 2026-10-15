@@ -9,7 +9,17 @@
 
         <div class="flex items-center gap-3 ms-auto lg:ms-0 lg:order-3">
             <div class="hidden sm:flex items-center gap-2 lg:gap-3">
-                <a href="#"
+                @auth
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                            class="py-2.5 lg:py-3 px-4 lg:px-6 inline-flex justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs whitespace-nowrap">
+                            Logout
+                        </button>
+                    </form>
+                @endauth
+                @guest
+                <a href="{{ route('client.register') }}"
                     class="py-2.5 px-3.5 lg:px-5 text-sm font-medium text-gray-700 hover:text-[#EE6D52] hover:bg-white/60 rounded-full transition-all whitespace-nowrap">
                     Daftar Pelanggan
                 </a>
@@ -17,6 +27,7 @@
                     class="py-2.5 lg:py-3 px-4 lg:px-6 inline-flex justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs whitespace-nowrap">
                     Daftar Mitra
                 </a>
+                @endguest
             </div>
 
             <div class="lg:hidden">
@@ -42,10 +53,10 @@
             aria-labelledby="hs-navbar-collapse">
             <div class="flex flex-col lg:flex-row lg:items-center gap-y-2 lg:gap-y-0 lg:gap-8 text-sm font-medium text-gray-700 pt-3 pb-2 lg:py-0 border-t border-gray-100 lg:border-t-0 mt-2 lg:mt-0">
                 <a href="#services" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Layanan</a>
-                <a href="#location" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Lokasi</a>
-                <a href="#how-to-use" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Cara Kerja</a>
-                <a href="#benefits" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Keunggulan</a>
-                <a href="#footer" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Contact Us</a>
+                <a href="#features" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Fitur</a>
+                <a href="#how-it-works" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Cara Kerja</a>
+                <a href="#testimonials" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Testimoni</a>
+                <a href="#faq" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">FAQ</a>
             </div>
         </div>
     </nav>
