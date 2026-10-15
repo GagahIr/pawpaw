@@ -3,6 +3,7 @@
 use App\Actions\Client\RegisterClientAction;
 use App\DTOs\RegisterClientData;
 use App\Enums\SystemMessage;
+use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -29,7 +30,7 @@ new class extends Component {
                 'terms.accepted' => 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.',
             ]);
         } catch (ValidationException $e) {
-            $this->dispatch('client-registration-notification', message: $e->validator->errors()->first(), type: 'error');
+            Flux::toast($e->validator->errors()->first(), variant: 'danger');
 
             throw $e;
         }
@@ -95,10 +96,7 @@ new class extends Component {
         try {
             $this->validate();
         } catch (ValidationException $e) {
-            $this->dispatch('client-registration-notification',
-                message: $e->validator->errors()->first(),
-                type: 'error',
-            );
+            Flux::toast($e->validator->errors()->first(), variant: 'danger');
 
             throw $e;
         }
@@ -116,7 +114,7 @@ new class extends Component {
         } catch (\Throwable $e) {
             report($e);
             $this->errorMessage = SystemMessage::ERROR_SYSTEM->value;
-            $this->dispatch('client-registration-notification', message: $this->errorMessage, type: 'error');
+            Flux::toast($this->errorMessage, variant: 'danger');
 
             return;
         }
@@ -124,7 +122,7 @@ new class extends Component {
         session()->forget('google_client_registration');
         session()->flash('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
 
-        return redirect('/');
+        return redirect()->route('client.dashboard');
     }
 };
 
@@ -133,9 +131,6 @@ new class extends Component {
 <div x-data="{
     notice: '',
 }">
-    <x-client.registration-toast
-        :message="session('client_register_error') ?? session('client_register_notice', '')"
-        :type="session('client_register_error') ? 'error' : 'success'" />
     <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">

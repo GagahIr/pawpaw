@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Controllers\Client\GoogleLoginController;
+use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureVendorStaff;
 use App\Http\Middleware\ResolveVendor;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Client\GoogleLoginController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -25,6 +26,9 @@ $domain = config('app.domain');
 Route::domain($domain)->group(function () {
     Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
+    Route::view('/client-dashboard', 'components.client.dashboard')
+        ->middleware(['auth', EnsureClient::class])
+        ->name('client.dashboard');
 });
 Route::domain('{subdomain}.'.$domain)
     ->middleware(ResolveVendor::class)
@@ -53,6 +57,7 @@ Route::domain('{subdomain}.'.$domain)
             })->name('logout');
         });
     });
+    
 Route::livewire('/client-register', 'client.client-register-form')->middleware('guest')->name('client.register');
 Route::livewire('/client-login', 'client.client-login-form')->middleware('guest')->name('client.login');
 Route::livewire('/client-forgot-password', 'client.client-forgot-password-form')->middleware('guest')->name('client.password.request');
