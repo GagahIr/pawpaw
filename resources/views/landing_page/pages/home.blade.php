@@ -9,9 +9,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
             <div class="z-20 w-full" data-animate="fade-up">
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight" style="font-family: 'Fredoka', 'Nunito', sans-serif;">
                     Urus si kesayangan,<br>
-                    <span class="text-black-500">tanpa ribet.</span>
+                    <span class="text-black-500" style="color: #e07a5f;">tanpa ribet.</span>
                 </h1>
                 <p class="mt-6 text-lg text-gray-600 max-w-lg">
                     PawPaw membantu kamu jadwalkan grooming, konsultasi dokter hewan, dan pengingat vaksin — semua dalam
@@ -88,7 +88,7 @@
     <section id="services" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-12 text-left" data-animate="fade-up">
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Pilihan layanan</h2>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight" style="font-family: 'Fredoka', 'Nunito', sans-serif;">Pilihan layanan</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
@@ -125,10 +125,10 @@
     {{-- =========================================================
      TEMUKAN VET
     ========================================================= --}}
-    <section id="vets" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
+    <section id="location" class="pt-20 pb-20 lg:pt-24 lg:pb-28 bg-[#FFF8F5]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-12 text-left" data-animate="fade-up">
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight">Temukan Vet</h2>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C5E4E] tracking-tight" style="font-family: 'Fredoka', 'Nunito', sans-serif;">Temukan Vet</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
@@ -234,7 +234,7 @@
     {{-- =========================================================
      HOW TO USE — "Cari klinik, pilih jadwal, lalu datang."
     ========================================================= --}}
-    <section class="pawpaw-howtouse-section">
+    <section id="how-to-use" class="pawpaw-howtouse-section">
 
         {{-- Top cream wave over green --}}
         <div class="pawpaw-howtouse-wave-top" aria-hidden="true">
@@ -314,7 +314,7 @@
     {{-- =========================================================
      WHY CHOOSE US — "Mengapa harus memilih kami?"
     ========================================================= --}}
-    <section class="pawpaw-whyus-section">
+    <section id="benefits" class="pawpaw-whyus-section">
         <div class="pawpaw-whyus-inner">
 
             {{-- Left: Cat illustration --}}
