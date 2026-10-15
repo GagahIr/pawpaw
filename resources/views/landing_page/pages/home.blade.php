@@ -1,8 +1,8 @@
 @extends('landing_page.layouts.app-landing')
 
 @section('content')
-    @if (session('client_registered'))
-        <x-client.registration-toast :message="session('client_registered')" />
+    @if (session('client_registered') || session('client_logged_in'))
+        <x-client.registration-toast :message="session('client_registered') ?? session('client_logged_in')" />
     @endif
     {{-- =========================================================
      HERO

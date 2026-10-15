@@ -3,6 +3,7 @@
 use App\Actions\Client\RegisterClientAction;
 use App\DTOs\RegisterClientData;
 use App\Enums\SystemMessage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -15,6 +16,28 @@ new class extends Component {
     public string $password_confirmation = '';
     public bool $terms = false;
     public string $errorMessage = '';
+
+    public function mount(): void
+    {
+        session()->forget('google_client_registration');
+    }
+
+    public function registerWithGoogle(): RedirectResponse
+    {
+        try {
+            $this->validate(['terms' => ['accepted']], [
+                'terms.accepted' => 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi.',
+            ]);
+        } catch (ValidationException $e) {
+            $this->dispatch('client-registration-notification', message: $e->validator->errors()->first(), type: 'error');
+
+            throw $e;
+        }
+
+        session()->put('google_registration_terms', true);
+
+        return redirect()->route('client.google.redirect', ['intent' => 'register']);
+    }
 
     protected function rules(): array
     {
@@ -73,7 +96,7 @@ new class extends Component {
             $this->validate();
         } catch (ValidationException $e) {
             $this->dispatch('client-registration-notification',
-                message: 'Pendaftaran belum berhasil. Periksa kembali data yang ditandai pada form.',
+                message: $e->validator->errors()->first(),
                 type: 'error',
             );
 
@@ -98,6 +121,7 @@ new class extends Component {
             return;
         }
 
+        session()->forget('google_client_registration');
         session()->flash('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
 
         return redirect('/');
@@ -109,7 +133,9 @@ new class extends Component {
 <div x-data="{
     notice: '',
 }">
-    <x-client.registration-toast />
+    <x-client.registration-toast
+        :message="session('client_register_error') ?? session('client_register_notice', '')"
+        :type="session('client_register_error') ? 'error' : 'success'" />
     <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
@@ -226,7 +252,7 @@ new class extends Component {
                                 </div>
 
                                 <flux:button type="button" variant="outline" class="w-full"
-                                    x-on:click="notice = 'Pendaftaran dengan Google belum terhubung ke backend.'">
+                                    wire:click="registerWithGoogle" wire:loading.attr="disabled" wire:target="registerWithGoogle" :loading="false">
                                     <svg class="size-4" viewBox="0 0 24 24" aria-hidden="true">
                                         <path fill="#4285F4"
                                             d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.32 2.98-7.36Z" />

@@ -27,6 +27,10 @@ class RegisterClientAction
 
             UserClient::create(['user_id' => $user->id]);
 
+            if ($data->googleId !== null) {
+                $user->forceFill(['google_id' => $data->googleId])->save();
+            }
+
             return $user;
         });
 
