@@ -102,7 +102,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle();
         $sessionId = session()->getId();
 
-        $this->googleCallback()->assertRedirect('/')->assertSessionHas('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value)
+        $this->googleCallback()->assertRedirect(route('client.dashboard'))->assertSessionHas('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value)
             ->assertSessionMissing('client_google_oauth');
         $this->assertAuthenticatedAs($user);
         $this->assertNotSame($sessionId, session()->getId());
@@ -119,7 +119,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user();
         $this->fakeGoogle();
-        $this->googleCallback(context: ['remember' => true])->assertRedirect('/');
+        $this->googleCallback(context: ['remember' => true])->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
         $this->assertNotEmpty($user->fresh()->remember_token);
         $this->assertSame('amanda@gmail.com', Cookie::queued('pawpaw_client_identifier')->getValue());
@@ -129,7 +129,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user(overrides: ['google_id' => 'google-subject-123']);
         $this->fakeGoogle(['email' => 'changed@gmail.com']);
-        $this->googleCallback()->assertRedirect('/');
+        $this->googleCallback()->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
         $this->assertSame('amanda@gmail.com', $user->fresh()->email);
     }
@@ -138,7 +138,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user(overrides: ['email' => 'amanda@company.test']);
         $this->fakeGoogle(['email' => 'amanda@company.test', 'hd' => 'company.test']);
-        $this->googleCallback()->assertRedirect('/');
+        $this->googleCallback()->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -212,7 +212,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $this->user();
         $this->fakeGoogle();
-        $this->googleCallback()->assertRedirect('/');
+        $this->googleCallback()->assertRedirect(route('client.dashboard'));
         $this->post(route('logout'))->assertRedirect('/');
         $this->get(route('client.google.callback', ['state' => 'test-state', 'code' => 'test-code']))
             ->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
@@ -225,6 +225,26 @@ class ClientGoogleLoginTest extends TestCase
         $this->googleCallback(context: ['started_at' => now()->subMinutes(11)->timestamp])
             ->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         Http::assertNothingSent();
+    }
+
+    public static function malformedOAuthContexts(): array
+    {
+        return [
+            'non-string state' => [['state' => ['test-state']]],
+            'non-string verifier' => [['verifier' => ['invalid-verifier']]],
+            'non-integer start time' => [['started_at' => 'invalid-time']],
+        ];
+    }
+
+    #[DataProvider('malformedOAuthContexts')]
+    public function test_malformed_oauth_context_is_rejected_without_contacting_google(array $context): void
+    {
+        $this->googleCallback(context: $context)->assertRedirect(route('client.login'))
+            ->assertSessionHas('client_login_error', 'Sesi login Google tidak valid atau sudah kedaluwarsa. Silakan coba lagi.')
+            ->assertSessionMissing('client_google_oauth');
+
+        Http::assertNothingSent();
+        $this->assertGuest();
     }
 
     public function test_google_cancellation_displays_friendly_toast(): void
@@ -250,7 +270,7 @@ class ClientGoogleLoginTest extends TestCase
 
     public function test_authenticated_user_cannot_restart_google_login(): void
     {
-        $this->actingAs($this->user())->get(route('client.google.redirect'))->assertRedirect('/');
+        $this->actingAs($this->user())->get(route('client.google.redirect'))->assertRedirect(route('client.dashboard'));
         Http::assertNothingSent();
     }
 }

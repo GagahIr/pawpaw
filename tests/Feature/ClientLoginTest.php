@@ -73,21 +73,21 @@ class ClientLoginTest extends TestCase
         $oldSession = session()->getId();
 
         $this->form(['identifier' => $identifier])->call('login')
-            ->assertHasNoErrors()->assertSet('password', '')->assertRedirect('/');
+            ->assertHasNoErrors()->assertSet('password', '')->assertRedirect(route('client.dashboard'));
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotSame($oldSession, session()->getId());
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('user_clients', 1);
         $this->assertNull($user->fresh()->remember_token);
-        $this->withoutVite()->get('/')->assertOk()->assertSee(SystemMessage::CLIENT_LOGIN_SUCCESS->value);
+        $this->withoutVite()->get(route('client.dashboard'))->assertOk()->assertSee(SystemMessage::CLIENT_LOGIN_SUCCESS->value);
     }
 
     public function test_blank_fields_are_rejected_with_toast(): void
     {
         Livewire::test('client.client-login-form')->call('login')
             ->assertHasErrors(['identifier' => 'required', 'password' => 'required'])
-            ->assertDispatched('client-registration-notification', type: 'error');
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
         $this->assertGuest();
     }
 
@@ -109,7 +109,7 @@ class ClientLoginTest extends TestCase
     public function test_invalid_inputs_are_rejected(array $inputs, string $field, string $rule): void
     {
         $this->form($inputs)->call('login')->assertHasErrors([$field => $rule])
-            ->assertDispatched('client-registration-notification', type: 'error');
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
         $this->assertGuest();
         $this->assertDatabaseCount('users', 0);
     }
@@ -135,8 +135,8 @@ class ClientLoginTest extends TestCase
     {
         $this->user();
         $this->form($inputs)->call('login')->assertHasErrors(['identifier'])
-            ->assertDispatched('client-registration-notification', type: 'error',
-                message: 'Email/nomor telepon atau password tidak sesuai dengan akun pelanggan.')
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger'],
+                slots: ['text' => 'Email/nomor telepon atau password tidak sesuai dengan akun pelanggan.'])
             ->assertSet('password', '')->assertNoRedirect();
         $this->assertGuest();
     }
@@ -165,7 +165,7 @@ class ClientLoginTest extends TestCase
     public function test_remember_me_issues_cookie_and_restores_login_without_session(): void
     {
         $user = $this->user();
-        $this->form(['remember' => true])->call('login')->assertHasNoErrors()->assertRedirect('/');
+        $this->form(['remember' => true])->call('login')->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
         $this->assertNotEmpty($user->fresh()->remember_token);
 
@@ -176,7 +176,7 @@ class ClientLoginTest extends TestCase
 
         session()->invalidate();
         Auth::forgetGuards();
-        $this->withCookie($cookieName, $cookie->getValue())->withoutVite()->get('/')->assertOk();
+        $this->withCookie($cookieName, $cookie->getValue())->withoutVite()->get(route('client.dashboard'))->assertOk();
         $this->assertAuthenticatedAs($user);
         $this->assertTrue(Auth::viaRemember());
     }
@@ -225,8 +225,8 @@ class ClientLoginTest extends TestCase
         }
 
         $this->form()->call('login')->assertHasErrors(['identifier'])
-            ->assertDispatched('client-registration-notification', type: 'error',
-                message: 'Terlalu banyak percobaan login. Coba lagi dalam 60 detik.');
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger'],
+                slots: ['text' => 'Terlalu banyak percobaan login. Coba lagi dalam 60 detik.']);
         $this->assertGuest();
 
         $this->travel(61)->seconds();
@@ -241,7 +241,7 @@ class ClientLoginTest extends TestCase
         });
         $this->form()->call('login')->assertHasNoErrors()
             ->assertSet('errorMessage', SystemMessage::ERROR_SYSTEM->value)
-            ->assertDispatched('client-registration-notification', type: 'error', message: SystemMessage::ERROR_SYSTEM->value)
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger'], slots: ['text' => SystemMessage::ERROR_SYSTEM->value])
             ->assertSet('password', '')->assertNoRedirect();
         $this->assertGuest();
     }
@@ -249,6 +249,6 @@ class ClientLoginTest extends TestCase
     public function test_login_page_is_guest_only(): void
     {
         $this->withoutVite()->get(route('client.login'))->assertOk()->assertSee('Masuk Akun Pelanggan');
-        $this->actingAs($this->user())->get(route('client.login'))->assertRedirect('/');
+        $this->actingAs($this->user())->get(route('client.login'))->assertRedirect(route('client.dashboard'));
     }
 }

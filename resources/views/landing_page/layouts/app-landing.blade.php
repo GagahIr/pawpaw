@@ -25,6 +25,7 @@
 
     @livewireScripts
     @fluxScripts
+    <x-client.registration-toast />
 </body>
 
 </html>

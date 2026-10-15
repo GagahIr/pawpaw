@@ -44,7 +44,7 @@ class ClientRegistrationTest extends TestCase
     public function test_registration_creates_client_profile_hashes_password_and_logs_in(): void
     {
         $this->form(['username' => ' AmandaDealova ', 'email' => ' AMANDA@example.com '])
-            ->call('register')->assertHasNoErrors()->assertSet('errorMessage', '')->assertRedirect('/');
+            ->call('register')->assertHasNoErrors()->assertSet('errorMessage', '')->assertRedirect(route('client.dashboard'));
 
         $user = User::where('email', 'amanda@example.com')->firstOrFail();
         $this->assertSame('amandadealova', $user->username);
@@ -54,9 +54,9 @@ class ClientRegistrationTest extends TestCase
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, User::count());
         $this->assertSame(0, Vendor::count());
-        $this->withoutVite()->get('/')->assertOk()
+        $this->withoutVite()->get(route('client.dashboard'))->assertOk()
             ->assertSee('Pendaftaran akun pelanggan berhasil');
-        $this->get('/client-register')->assertRedirect('/');
+        $this->get('/client-register')->assertRedirect(route('client.dashboard'));
     }
 
     public function test_invalid_inputs_do_not_create_accounts(): void
@@ -65,7 +65,7 @@ class ClientRegistrationTest extends TestCase
             'name' => '', 'username' => 'invalid username', 'phone_number' => 'abc',
             'email' => 'invalid', 'password' => 'short', 'password_confirmation' => 'different', 'terms' => false,
         ])->call('register')->assertHasErrors(['name', 'username', 'phone_number', 'email', 'password', 'terms'])
-            ->assertDispatched('client-registration-notification', type: 'error');
+            ->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
 
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('user_clients', 0);
@@ -115,7 +115,7 @@ class ClientRegistrationTest extends TestCase
     public function test_phone_formatting_is_removed_before_saving(): void
     {
         $this->form(['phone_number' => '(0812) 3456-7890'])->call('register')
-            ->assertHasNoErrors()->assertRedirect('/');
+            ->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
         $this->assertDatabaseHas('users', ['phone_number' => '081234567890']);
     }
 
@@ -204,7 +204,7 @@ class ClientRegistrationTest extends TestCase
         try {
             $this->form()->call('register')
                 ->assertSet('errorMessage', 'Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.')
-                ->assertDispatched('client-registration-notification', type: 'error', message: 'Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.')
+                ->assertDispatched('toast-show', dataset: ['variant' => 'danger'], slots: ['text' => 'Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.'])
                 ->assertNoRedirect();
             $this->assertDatabaseCount('users', 0);
             $this->assertDatabaseCount('user_clients', 0);
