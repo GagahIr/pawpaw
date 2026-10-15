@@ -2,7 +2,7 @@
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap lg:flex-nowrap items-center justify-between" aria-label="Global">
 
         <div class="flex items-center">
-            <a class="flex items-center focus:outline-none focus:opacity-80" href="{{ url('/') }}" aria-label="PawPaw Brand">
+            <a class="flex items-center focus:outline-none focus:opacity-80" href="{{ route('landing_page') }}" aria-label="PawPaw Brand">
                 <img class="w-36 h-auto" src="{{ asset('assets/img/pawpaw-logo.webp') }}" alt="PawPaw Logo">
             </a>
         </div>
@@ -57,21 +57,6 @@
                 <a href="#how-it-works" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Cara Kerja</a>
                 <a href="#testimonials" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">Testimoni</a>
                 <a href="#faq" class="py-2 px-3 lg:p-0 rounded-lg hover:bg-white/60 lg:hover:bg-transparent hover:text-[#EE6D52] transition-colors">FAQ</a>
-                <div class="sm:hidden flex flex-col gap-2 border-t border-gray-100 pt-3">
-                    @auth
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="w-full py-2.5 px-4 text-sm font-medium rounded-full bg-[#EE6D52] text-white hover:bg-[#d95b42] transition-colors">
-                                Logout
-                            </button>
-                        </form>
-                    @endauth
-                    @guest
-                        <a href="{{ route('client.login') }}" class="py-2 px-3 rounded-lg hover:bg-white/60 hover:text-[#EE6D52] transition-colors">Masuk</a>
-                        <a href="{{ route('client.register') }}" class="py-2 px-3 rounded-lg hover:bg-white/60 hover:text-[#EE6D52] transition-colors">Daftar Pelanggan</a>
-                        <a href="{{ route('vendor.register') }}" class="py-2.5 px-4 text-center rounded-full bg-[#EE6D52] text-white hover:bg-[#d95b42] transition-colors">Daftar Mitra</a>
-                    @endguest
-                </div>
             </div>
         </div>
     </nav>

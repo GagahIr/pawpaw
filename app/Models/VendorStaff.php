@@ -3,14 +3,17 @@
 namespace App\Models;
 
 use App\Enums\StaffPosition;
+use App\Models\Concerns\BelongsToVendor;
 use Illuminate\Database\Eloquent\Model;
 
 class VendorStaff extends Model
 {
+    use BelongsToVendor;
+
     protected $fillable = [
         'user_id',
         'vendor_id',
-        'position'
+        'position',
     ];
 
     protected function casts(): array
@@ -20,11 +23,11 @@ class VendorStaff extends Model
 
     public function vendor()
     {
-       return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(Vendor::class);
     }
 
-    // public function user()
-    // {
-    //     $this->hasOne(User::class);
-    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

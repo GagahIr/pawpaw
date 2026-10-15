@@ -13,6 +13,7 @@ class Vendor extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'address',
         'contact',
         'email',
@@ -22,12 +23,22 @@ class Vendor extends Model
         'longitude',
         'status_verification',
         'status_subscription',
-        'join_at'
+        'join_at',
     ];
 
     public function vendorStaff()
     {
         return $this->hasMany(VendorStaff::class);
+    }
+
+    public function vendorServices()
+    {
+        return $this->hasMany(VendorService::class);
+    }
+
+    public function vendorOperatingHours()
+    {
+        return $this->hasMany(VendorOperatingHour::class);
     }
 
     protected function casts(): array

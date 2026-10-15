@@ -1,4 +1,4 @@
-<footer class="pawpaw-footer">
+<footer id="footer" class="pawpaw-footer">
 
     {{-- Decorative blob bottom-left --}}
     <div class="pawpaw-footer-blob-left" aria-hidden="true"></div>

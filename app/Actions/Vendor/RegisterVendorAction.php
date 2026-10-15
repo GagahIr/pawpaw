@@ -14,14 +14,24 @@ use App\Models\VendorService;
 use App\Models\VendorStaff;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class RegisterVendorAction
 {
     public function execute(RegisterVendorData $data): Vendor
     {
         return DB::transaction(function () use ($data) {
+            $baseSlug = Str::slug($data->vendorName);
+            $slug = $baseSlug;
+            $counter = 1;
+            while (Vendor::where('slug', $slug)->exists()) {
+                $slug = "{$baseSlug}-{$counter}";
+                $counter++;
+            }
+
             $vendor = Vendor::create([
                 'name' => $data->vendorName,
+                'slug' => $slug,
                 'address' => $data->address,
                 'contact' => $data->contact,
                 'email' => $data->emailVendor,
