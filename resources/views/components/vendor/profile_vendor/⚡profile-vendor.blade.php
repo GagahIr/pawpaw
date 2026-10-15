@@ -20,11 +20,14 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function rules(): array
     {
+        $vendorId = $this->vendor?->id;
+        $userId = auth()->id();
+        
         return [
             'formData.name' => 'required|string|max:255',
-            'formData.email' => 'required|email|max:255|unique:vendors,email|unique:users,email,' . $this->vendor?->id,
+            'formData.email' => 'required|email|max:255|unique:vendors,email,' . $vendorId . '|unique:users,email,' . $userId,
             'formData.address' => 'required|string|max:500',
-            'formData.contact' => 'required|string|max:20|unique:vendors,contact|unique:users,phone_number,' . $this->vendor?->id,
+            'formData.contact' => 'required|string|max:20|unique:vendors,contact,' . $vendorId . '|unique:users,phone_number,' . $userId,
             'formData.description' => 'nullable|string|max:1000',
             'logo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ];
