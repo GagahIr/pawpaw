@@ -23,6 +23,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public ?int $editingStaffId = null;
 
+    public ?int $deletingStaffId = null;
+
     public bool $showForm = false;
 
     public function rules(): array
@@ -82,10 +84,24 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->showForm = true;
     }
 
-    public function delete(int $staffId, DeleteManageStaffAction $deleteAction): void
+    public function confirmDelete(int $staffId): void
     {
+        $this->deletingStaffId = $staffId;
+        Flux::modal('confirm-delete')->show();
+    }
+
+    public function delete(DeleteManageStaffAction $deleteAction): void
+    {
+        if (!$this->deletingStaffId) {
+            return;
+        }
+
         try {
-            $deleteAction->delete($staffId);
+            $deleteAction->delete($this->deletingStaffId);
+
+            Flux::modal('confirm-delete')->close();
+            $this->reset('deletingStaffId');
+
             Flux::toast(SystemMessage::DATA_DELETED_SUCCESS->value, variant: 'success');
         } catch (\Exception $e) {
             Flux::toast($e->getMessage(), variant: 'danger');
@@ -199,7 +215,7 @@ new #[Layout('layouts::admin')] class extends Component {
                                 ?
                                 'Kosongkan jika tidak ingin mengubah' :
                                 'Minimal 8 karakter'"
-                            :required="!$editingStaffId" autocomplete="new-password" />
+                            :required="!$editingStaffId" viewable autocomplete="new-password" />
 
                         <flux:error name="formData.password" />
                     </flux:field>
@@ -210,7 +226,7 @@ new #[Layout('layouts::admin')] class extends Component {
                 <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 flex gap-2">
                     <flux:button type="submit" variant="primary">
                         <span wire:loading.remove wire:target="save">
-                            {{ $editingStaffId ? 'Update Staff' : 'Simpan Staff' }}
+                            {{ $editingStaffId ? 'Perbarui' : 'Simpan' }}
                         </span>
                         <span wire:loading wire:target="save">Menyimpan...</span>
                     </flux:button>
@@ -249,11 +265,16 @@ new #[Layout('layouts::admin')] class extends Component {
                         <flux:table.cell>
                             <div class="flex gap-2">
                                 <flux:button wire:click="edit({{ $staff->id }})" size="sm" variant="ghost">
-                                    Edit
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
                                 </flux:button>
-                                <flux:button wire:click="delete({{ $staff->id }})"
-                                    wire:confirm="Yakin ingin menghapus staff ini?" size="sm" variant="danger">
-                                    Hapus
+                                <flux:button wire:click="confirmDelete({{ $staff->id }})" size="sm" variant="danger">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
                                 </flux:button>
                             </div>
                         </flux:table.cell>
@@ -268,4 +289,25 @@ new #[Layout('layouts::admin')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </flux:card>
+    <flux:modal name="confirm-delete" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Hapus Data?</flux:heading>
+                <flux:text class="mt-2">
+                    Anda akan menghapus data ini. <br>
+                    Tindakan ini tidak dapat dibatalkan.
+                </flux:text>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Batal</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="delete" variant="danger">
+                    <span wire:loading.remove wire:target="delete">Ya, Hapus</span>
+                    <span wire:loading wire:target="delete">Menghapus...</span>
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>
