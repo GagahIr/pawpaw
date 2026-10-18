@@ -8,6 +8,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use App\Enums\SystemMessage;
 
 new #[Layout('layouts.app')] class extends Component {
     #[Validate('required|email')]
@@ -18,57 +19,66 @@ new #[Layout('layouts.app')] class extends Component {
 
     public bool $remember = false;
 
+    public int $retryAfter = 0;
+
+    public function mount(): void
+    {
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            $this->retryAfter = RateLimiter::availableIn($this->throttleKey());
+        }
+    }
+
     public function login()
     {
         $this->validate();
-        $this->ensureIsNotRateLimited();
+
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            event(new Lockout(request()));
+            $this->retryAfter = RateLimiter::availableIn($this->throttleKey());
+            return;
+        }
+        // $this->ensureIsNotRateLimited();
 
         $vendorId = app('vendor.context')->id();
 
         $credentials = [
             'email' => $this->email,
             'password' => $this->password,
-            fn ($query) => $query->whereHas(
-                'vendorStaff',
-                fn ($q) => $q->where('vendor_id', $vendorId)
-            ),
+            fn($query) => $query->whereHas('vendorStaff', fn($query) => $query->where('vendor_id', $vendorId)),
         ];
 
-        if (! Auth::attempt($credentials, $this->remember)) {
+        $authenticated = Auth::attempt($credentials, $this->remember);
+
+        if (!$authenticated) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => 'Email atau password salah, atau akun tidak terdaftar di vendor ini.',
+                'email' => SystemMessage::INVALID_CREDENTIALS->value,
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
-
         session()->regenerate();
 
-        return $this->redirectIntended(route('vendor.admin.dashboard'), navigate: true);
+        return $this->redirectIntended(route('vendor.admin.dashboard'));
     }
 
-    protected function ensureIsNotRateLimited(): void
-    {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
+    // protected function ensureIsNotRateLimited(): void
+    // {
+    //     if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+    //         return;
+    //     }
 
-        event(new Lockout(request()));
+    //     event(new Lockout(request()));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+    //     $this->retryAfter = RateLimiter::availableIn($this->throttleKey());
 
-        throw ValidationException::withMessages([
-            'email' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik.",
-        ]);
-    }
+    //     $this->addError('email', 'Terlalu banyak percobaan login.');
+    // }
 
     protected function throttleKey(): string
     {
-        return Str::transliterate(
-            Str::lower($this->email).'|'.request()->ip().'|'.app('vendor.context')->id()
-        );
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip() . '|' . app('vendor.context')->id());
     }
 };
 ?>
@@ -76,10 +86,24 @@ new #[Layout('layouts.app')] class extends Component {
 <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
     <div class="flex min-h-screen">
         <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-            <div class="w-full max-w-md space-y-6">
-                
-                {{-- Tombol Kembali (Opsional) --}}
-                <flux:link href="{{ route('landing_page') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
+            <div class="w-full max-w-md space-y-6" x-data="{
+                seconds: {{ $retryAfter }},
+                init() {
+                    if (this.seconds > 0) {
+                        const timer = setInterval(() => {
+                            this.seconds--;
+                            if (this.seconds <= 0) {
+                                clearInterval(timer);
+                                $wire.set('retryAfter', 0);
+                            }
+                        }, 1000);
+                    }
+                }
+            }">
+
+                {{-- Tombol Kembali --}}
+                <flux:link href="{{ route('landing_page') }}" variant="subtle"
+                    class="inline-flex items-center gap-1 text-sm">
                     <flux:icon.arrow-left variant="micro" />
                     Kembali ke Beranda
                 </flux:link>
@@ -89,52 +113,49 @@ new #[Layout('layouts.app')] class extends Component {
                     <flux:subheading>Dasbor {{ app('vendor.context')->get()->name }}</flux:subheading>
                 </div>
 
+                {{-- Callout Peringatan --}}
+                <template x-if="seconds > 0">
+                    <flux:callout variant="danger" icon="exclamation-triangle">
+                        <flux:callout.text>
+                            Terlalu banyak percobaan. Coba lagi dalam
+                            <span x-text="seconds" class="font-semibold"></span> detik.
+                        </flux:callout.text>
+                    </flux:callout>
+                </template>
+
                 <flux:card class="space-y-6">
                     <form wire:submit="login" class="space-y-5">
-                        <flux:input 
-                            wire:model="email" 
-                            label="Email" 
-                            type="email" 
-                            icon="envelope"
-                            placeholder="email@example.com"
-                            autofocus 
-                            autocomplete="email" 
-                            required />
-                            
-                        <flux:input 
-                            wire:model="password" 
-                            label="Password" 
-                            type="password" 
-                            icon="lock-closed"
-                            placeholder="Masukkan password Anda"
-                            viewable 
-                            autocomplete="current-password" 
-                            required />
-                        
+                        <flux:input wire:model="email" label="Email" type="email" icon="envelope"
+                            placeholder="email@example.com" autofocus autocomplete="email" />
+
+                        <flux:input wire:model="password" label="Password" type="password" icon="lock-closed"
+                            placeholder="Masukkan password Anda" viewable autocomplete="current-password" />
+
                         <div class="flex items-center justify-between">
                             <flux:checkbox wire:model="remember" label="Ingat saya" />
-                            
-                            {{-- Jika Anda punya route lupa password, Anda bisa menyesuaikan href di bawah --}}
+
                             <flux:link href="#" class="text-sm !text-[#1a5c40] dark:!text-[#25825a] font-medium">
                                 Lupa password?
                             </flux:link>
                         </div>
-                        
+
                         <div class="pt-2">
-                            <flux:button type="submit" variant="primary" class="w-full !bg-[#1a5c40]">
+                            <flux:button type="submit" variant="primary" class="w-full !bg-[#1a5c40]"
+                                x-bind:disabled="seconds > 0">
                                 Masuk
                             </flux:button>
                         </div>
                     </form>
                 </flux:card>
-
+            </div>
+            {{-- 
                 <flux:text class="text-center text-sm">
-                    Klinik Anda belum terdaftar? 
-                    <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium" href="{{ route('landing_page') }}">
+                    Klinik Anda belum terdaftar?
+                    <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium"
+                        href="{{ route('landing_page') }}">
                         Daftar sebagai Vendor
                     </flux:link>
-                </flux:text>
-            </div>
+                </flux:text> --}}
         </div>
 
         {{-- Gambar Background Sisi Kanan (Sesuai inspirasi, diaktifkan jika butuh) --}}
