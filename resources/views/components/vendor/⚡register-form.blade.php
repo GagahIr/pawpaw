@@ -80,8 +80,9 @@ new class extends Component {
         $data = new RegisterVendorData(vendorName: $this->vendor_name, address: $this->address, contact: $this->contact, emailVendor: $this->email_vendor, email: $this->email, description: $this->description, ownerName: $this->owner_name, phoneNumber: $this->phone_number, password: $this->password);
 
         try {
-            $vendor = $action->execute($data);
+            $action->execute($data);
             session()->flash('success', SystemMessage::VENDOR_REGISTER_SUCCESS->value);
+            notify('Success', SystemMessage::VENDOR_REGISTER_SUCCESS->value, 'success');
             return redirect()->route('vendor.admin.dashboard', ['subdomain' => $vendor->slug]);
         } catch (\Throwable $e) {
             report($e);
