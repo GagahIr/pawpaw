@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Http\Middleware\ResolveVendor;
+use App\Services\ClientUserProvider;
 use App\Supports\VendorContext;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -22,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Auth::provider('client-aware-eloquent', fn (Application $app, array $config): ClientUserProvider => new ClientUserProvider($app['hash'], $config['model']));
+
         Livewire::addPersistentMiddleware([ResolveVendor::class]);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Client\Auth;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;

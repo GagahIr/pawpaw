@@ -4,6 +4,7 @@ namespace App\Actions\Client;
 
 use App\DTOs\GoogleClientData;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,8 @@ class LoginGoogleClientAction
         ], ['email_verified.accepted' => 'Email Google belum terverifikasi.'])->validate();
 
         $user = DB::transaction(function () use ($data): User {
-            $user = User::where('google_id', $data->googleId)->lockForUpdate()->first();
+            $user = User::whereHas('userClient', fn (Builder $query): Builder => $query->where('google_id', $data->googleId))
+                ->lockForUpdate()->first();
 
             if (! $user) {
                 $authoritativeEmail = str_ends_with($data->email, '@gmail.com') || filled($data->hostedDomain);
@@ -42,13 +44,16 @@ class LoginGoogleClientAction
                 ]);
             }
 
-            if ($user->google_id !== null && $user->google_id !== $data->googleId) {
+            $client = $user->userClient()->firstOrCreate();
+
+            if ($client->google_id !== null && $client->google_id !== $data->googleId) {
                 throw ValidationException::withMessages([
                     'identifier' => 'Akun pelanggan ini sudah terhubung dengan akun Google lain.',
                 ]);
             }
 
-            $user->forceFill(['google_id' => $data->googleId])->save();
+            $client->forceFill(['google_id' => $data->googleId])->save();
+            $user->setRelation('userClient', $client);
 
             return $user;
         });

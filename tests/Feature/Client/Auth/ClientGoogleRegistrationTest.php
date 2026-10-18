@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Client\Auth;
 
 use App\Enums\SystemMessage;
 use App\Models\Role;
@@ -55,20 +55,26 @@ class ClientGoogleRegistrationTest extends TestCase
     private function existingUser(array $attributes = []): User
     {
         $role = Role::firstOrCreate(['name' => 'client']);
+        $clientAttributes = array_intersect_key($attributes, array_flip(['google_id', 'remember_token']));
+        $attributes = array_diff_key($attributes, $clientAttributes);
 
-        return User::factory()->afterMaking(function (User $user): void {
+        $user = User::factory()->afterMaking(function (User $user): void {
             unset($user->email_verified_at);
         })->create(array_replace([
             'email' => 'existing@example.com', 'username' => 'existing',
             'phone_number' => '081234567890', 'password' => 'password123', 'role_id' => $role->id,
         ], $attributes));
+
+        UserClient::create(['user_id' => $user->id])->forceFill($clientAttributes)->save();
+
+        return $user;
     }
 
     public function test_google_button_requires_terms_but_no_other_manual_fields(): void
     {
-        Livewire::test('client.client-register-form')->call('registerWithGoogle')
+        Livewire::test('client.auth.register')->call('registerWithGoogle')
             ->assertHasErrors(['terms' => 'accepted'])->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
-        Livewire::test('client.client-register-form')->set('terms', true)->call('registerWithGoogle')
+        Livewire::test('client.auth.register')->set('terms', true)->call('registerWithGoogle')
             ->assertHasNoErrors()->assertRedirect(route('client.google.redirect', ['intent' => 'register']));
         $this->get(route('client.google.redirect', ['intent' => 'register']))->assertRedirect();
         $this->assertTrue(session('client_google_oauth.terms_accepted'));
@@ -91,7 +97,7 @@ class ClientGoogleRegistrationTest extends TestCase
         $user = User::where('email', 'amanda@gmail.com')->firstOrFail();
         $this->assertSame('Amanda Dealova', $user->name);
         $this->assertSame('amanda', $user->username);
-        $this->assertSame('registration-google-id', $user->google_id);
+        $this->assertSame('registration-google-id', $user->userClient?->google_id);
         $this->assertSame('client', $user->role->name);
         $this->assertNull($user->phone_number);
         $this->assertNull($user->password);
@@ -108,7 +114,7 @@ class ClientGoogleRegistrationTest extends TestCase
         $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
         $user = User::where('email', 'amanda@gmail.com')->firstOrFail();
         $this->post(route('logout'))->assertRedirect('/');
-        Livewire::test('client.client-login-form')->set('identifier', $user->email)->set('password', 'password123')
+        Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'password123')
             ->call('login')->assertHasErrors(['identifier'])->assertSet('errorMessage', '');
         $this->assertGuest();
         $this->withSession(['client_google_oauth' => [
@@ -116,11 +122,11 @@ class ClientGoogleRegistrationTest extends TestCase
         ]])->get(route('client.google.callback', ['state' => 'login-state', 'code' => 'new-code']))->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
         $this->post(route('logout'))->assertRedirect('/');
-        Livewire::test('client.client-reset-password-form', ['token' => Password::createToken($user)])
+        Livewire::test('client.auth.reset-password', ['token' => Password::createToken($user)])
             ->set('email', $user->email)->set('password', 'newpassword123')->set('password_confirmation', 'newpassword123')
             ->call('resetPassword')->assertHasNoErrors()->assertRedirect(route('client.login'));
         $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
-        Livewire::test('client.client-login-form')->set('identifier', $user->email)->set('password', 'newpassword123')
+        Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'newpassword123')
             ->call('login')->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
     }

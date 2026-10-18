@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Client\Auth;
 
 use App\Models\Role;
 use App\Models\User;
@@ -24,7 +24,7 @@ class ClientRegistrationTest extends TestCase
 
     private function form(array $overrides = [])
     {
-        $component = Livewire::test('client.client-register-form');
+        $component = Livewire::test('client.auth.register');
 
         foreach (array_replace([
             'name' => 'Amanda Dealova',
@@ -81,7 +81,7 @@ class ClientRegistrationTest extends TestCase
 
     public function test_all_fields_are_required(): void
     {
-        Livewire::test('client.client-register-form')->call('register')->assertHasErrors([
+        Livewire::test('client.auth.register')->call('register')->assertHasErrors([
             'name' => 'required', 'username' => 'required', 'phone_number' => 'required',
             'email' => 'required', 'password' => 'required', 'password_confirmation' => 'required',
             'terms' => 'accepted',

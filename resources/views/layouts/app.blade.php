@@ -19,7 +19,7 @@
 
     @livewireScripts
     @fluxScripts
-    <x-client.registration-toast />
+    <x-client.auth.toast />
 </body>
 
 </html>
