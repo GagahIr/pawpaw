@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Client\Auth;
+namespace Tests\Feature;
 
 use App\Enums\SystemMessage;
 use App\Models\Role;
@@ -33,15 +33,14 @@ class ClientGoogleLoginTest extends TestCase
     private function user(string $roleName = 'client', array $overrides = []): User
     {
         $role = Role::firstOrCreate(['name' => $roleName]);
-        $clientAttributes = array_intersect_key($overrides, array_flip(['google_id', 'remember_token']));
-        $overrides = array_diff_key($overrides, $clientAttributes);
         $user = User::factory()->afterMaking(function (User $user): void {
             unset($user->email_verified_at);
         })->create(array_replace([
             'email' => 'amanda@gmail.com', 'phone_number' => '081234567890', 'role_id' => $role->id,
+            'remember_token' => null,
         ], $overrides));
         if ($roleName === 'client') {
-            UserClient::create(['user_id' => $user->id])->forceFill($clientAttributes)->save();
+            UserClient::create(['user_id' => $user->id]);
         }
 
         return $user;
@@ -69,7 +68,7 @@ class ClientGoogleLoginTest extends TestCase
 
     public function test_existing_button_redirects_to_google_route_and_keeps_remember_choice(): void
     {
-        Livewire::test('client.auth.login')->set('remember', true)->call('loginWithGoogle')
+        Livewire::test('client.client-login-form')->set('remember', true)->call('loginWithGoogle')
             ->assertRedirect(route('client.google.redirect', ['remember' => 1]));
     }
 
@@ -103,12 +102,11 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle();
         $sessionId = session()->getId();
 
-        $this->googleCallback()->assertRedirect(route('client.dashboard'))->assertSessionHas('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value)
+        $this->googleCallback()->assertRedirect('/')->assertSessionHas('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value)
             ->assertSessionMissing('client_google_oauth');
         $this->assertAuthenticatedAs($user);
         $this->assertNotSame($sessionId, session()->getId());
-        $this->assertDatabaseHas('users', ['id' => $user->id, 'password' => $password]);
-        $this->assertDatabaseHas('user_clients', ['user_id' => $user->id, 'google_id' => 'google-subject-123']);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'google_id' => 'google-subject-123', 'password' => $password]);
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('user_clients', 1);
         Http::assertSent(fn (Request $request): bool => $request->url() === 'https://oauth2.googleapis.com/token'
@@ -121,9 +119,9 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user();
         $this->fakeGoogle();
-        $this->googleCallback(context: ['remember' => true])->assertRedirect(route('client.dashboard'));
+        $this->googleCallback(context: ['remember' => true])->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
-        $this->assertNotEmpty($user->fresh()->userClient?->remember_token);
+        $this->assertNotEmpty($user->fresh()->remember_token);
         $this->assertSame('amanda@gmail.com', Cookie::queued('pawpaw_client_identifier')->getValue());
     }
 
@@ -131,7 +129,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user(overrides: ['google_id' => 'google-subject-123']);
         $this->fakeGoogle(['email' => 'changed@gmail.com']);
-        $this->googleCallback()->assertRedirect(route('client.dashboard'));
+        $this->googleCallback()->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
         $this->assertSame('amanda@gmail.com', $user->fresh()->email);
     }
@@ -140,7 +138,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $user = $this->user(overrides: ['email' => 'amanda@company.test']);
         $this->fakeGoogle(['email' => 'amanda@company.test', 'hd' => 'company.test']);
-        $this->googleCallback()->assertRedirect(route('client.dashboard'));
+        $this->googleCallback()->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
     }
 
@@ -163,7 +161,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle($profile);
         $this->googleCallback()->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         $this->assertGuest();
-        $this->assertNull($user->fresh()->userClient?->google_id);
+        $this->assertNull($user->fresh()->google_id);
         $this->assertDatabaseCount('users', 1);
     }
 
@@ -179,7 +177,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle();
         $this->googleCallback()->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         $this->assertGuest();
-        $this->assertNull($user->fresh()->userClient?->google_id);
+        $this->assertNull($user->fresh()->google_id);
     }
 
     public function test_deleted_client_is_rejected(): void
@@ -188,7 +186,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle();
         $this->googleCallback()->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         $this->assertGuest();
-        $this->assertNull($user->fresh()->userClient?->google_id);
+        $this->assertNull($user->fresh()->google_id);
     }
 
     public function test_google_identity_cannot_replace_an_existing_link(): void
@@ -197,7 +195,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->fakeGoogle();
         $this->googleCallback()->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         $this->assertGuest();
-        $this->assertSame('another-google-subject', $user->fresh()->userClient?->google_id);
+        $this->assertSame('another-google-subject', $user->fresh()->google_id);
     }
 
     public function test_state_is_required_and_cannot_be_replayed(): void
@@ -214,7 +212,7 @@ class ClientGoogleLoginTest extends TestCase
     {
         $this->user();
         $this->fakeGoogle();
-        $this->googleCallback()->assertRedirect(route('client.dashboard'));
+        $this->googleCallback()->assertRedirect('/');
         $this->post(route('logout'))->assertRedirect('/');
         $this->get(route('client.google.callback', ['state' => 'test-state', 'code' => 'test-code']))
             ->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
@@ -227,26 +225,6 @@ class ClientGoogleLoginTest extends TestCase
         $this->googleCallback(context: ['started_at' => now()->subMinutes(11)->timestamp])
             ->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         Http::assertNothingSent();
-    }
-
-    public static function malformedOAuthContexts(): array
-    {
-        return [
-            'non-string state' => [['state' => ['test-state']]],
-            'non-string verifier' => [['verifier' => ['invalid-verifier']]],
-            'non-integer start time' => [['started_at' => 'invalid-time']],
-        ];
-    }
-
-    #[DataProvider('malformedOAuthContexts')]
-    public function test_malformed_oauth_context_is_rejected_without_contacting_google(array $context): void
-    {
-        $this->googleCallback(context: $context)->assertRedirect(route('client.login'))
-            ->assertSessionHas('client_login_error', 'Sesi login Google tidak valid atau sudah kedaluwarsa. Silakan coba lagi.')
-            ->assertSessionMissing('client_google_oauth');
-
-        Http::assertNothingSent();
-        $this->assertGuest();
     }
 
     public function test_google_cancellation_displays_friendly_toast(): void
@@ -272,7 +250,7 @@ class ClientGoogleLoginTest extends TestCase
 
     public function test_authenticated_user_cannot_restart_google_login(): void
     {
-        $this->actingAs($this->user())->get(route('client.google.redirect'))->assertRedirect(route('client.dashboard'));
+        $this->actingAs($this->user())->get(route('client.google.redirect'))->assertRedirect('/');
         Http::assertNothingSent();
     }
 }

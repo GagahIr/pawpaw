@@ -3,7 +3,6 @@
 use App\Actions\Client\SendClientPasswordResetLinkAction;
 use App\DTOs\SendClientPasswordResetLinkData;
 use App\Enums\SystemMessage;
-use Flux\Flux;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -20,22 +19,24 @@ new class extends Component {
             ]);
             $action->execute(new SendClientPasswordResetLinkData($this->email));
         } catch (ValidationException $e) {
-            Flux::toast($e->validator->errors()->first(), variant: 'danger');
+            $this->dispatch('client-registration-notification', message: $e->validator->errors()->first(), type: 'error');
 
             throw $e;
         } catch (\Throwable $e) {
             report($e);
-            Flux::toast(SystemMessage::ERROR_SYSTEM->value, variant: 'danger');
+            $this->dispatch('client-registration-notification', message: SystemMessage::ERROR_SYSTEM->value, type: 'error');
 
             return;
         }
 
-        Flux::toast('Jika email terdaftar sebagai pelanggan, tautan reset password akan dikirim. Periksa email Anda.', variant: 'success');
+        $this->dispatch('client-registration-notification',
+            message: 'Jika email terdaftar sebagai pelanggan, tautan reset password akan dikirim. Periksa email Anda.', type: 'success');
     }
 };
 ?>
 
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <x-client.registration-toast />
     <div class="w-full max-w-xl space-y-6">
         <flux:link href="{{ route('client.login') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
             <flux:icon.arrow-left variant="micro" /> Kembali ke Login

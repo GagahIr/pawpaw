@@ -1,12 +1,11 @@
 <?php
 
-use App\Http\Controllers\Client\GoogleLoginController;
-use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureVendorStaff;
 use App\Http\Middleware\ResolveVendor;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Client\GoogleLoginController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,9 +25,6 @@ $domain = config('app.domain');
 Route::domain($domain)->group(function () {
     Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
-    Route::view('/client-dashboard', 'components.client.dashboard.dashboard')
-        ->middleware(['auth', EnsureClient::class])
-        ->name('client.dashboard');
 });
 Route::domain('{subdomain}.'.$domain)
     ->middleware(ResolveVendor::class)
@@ -57,11 +53,10 @@ Route::domain('{subdomain}.'.$domain)
             })->name('logout');
         });
     });
-
-Route::livewire('/client-register', 'client.auth.register')->middleware('guest')->name('client.register');
-Route::livewire('/client-login', 'client.auth.login')->middleware('guest')->name('client.login');
-Route::livewire('/client-forgot-password', 'client.auth.forgot-password')->middleware('guest')->name('client.password.request');
-Route::livewire('/client-reset-password/{token}', 'client.auth.reset-password')->middleware('guest')->name('client.password.reset');
+Route::livewire('/client-register', 'client.client-register-form')->middleware('guest')->name('client.register');
+Route::livewire('/client-login', 'client.client-login-form')->middleware('guest')->name('client.login');
+Route::livewire('/client-forgot-password', 'client.client-forgot-password-form')->middleware('guest')->name('client.password.request');
+Route::livewire('/client-reset-password/{token}', 'client.client-reset-password-form')->middleware('guest')->name('client.password.reset');
 
 Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('guest')->name('client.google.redirect');
 Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('guest')->name('client.google.callback');

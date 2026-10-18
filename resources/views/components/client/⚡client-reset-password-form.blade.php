@@ -3,7 +3,6 @@
 use App\Actions\Client\ResetClientPasswordAction;
 use App\DTOs\ResetClientPasswordData;
 use App\Enums\SystemMessage;
-use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -46,13 +45,13 @@ new class extends Component {
             $action->execute(new ResetClientPasswordData($this->email, $this->token, $this->password));
         } catch (ValidationException $e) {
             $this->reset('password', 'password_confirmation');
-            Flux::toast($e->validator->errors()->first(), variant: 'danger');
+            $this->dispatch('client-registration-notification', message: $e->validator->errors()->first(), type: 'error');
 
             throw $e;
         } catch (\Throwable $e) {
             report($e);
             $this->reset('password', 'password_confirmation');
-            Flux::toast(SystemMessage::ERROR_SYSTEM->value, variant: 'danger');
+            $this->dispatch('client-registration-notification', message: SystemMessage::ERROR_SYSTEM->value, type: 'error');
 
             return null;
         }
@@ -65,6 +64,7 @@ new class extends Component {
 ?>
 
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <x-client.registration-toast />
     <div class="w-full max-w-xl space-y-6">
         <flux:link href="{{ route('client.login') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
             <flux:icon.arrow-left variant="micro" /> Kembali ke Login
