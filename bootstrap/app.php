@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\ConfigureClientSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,8 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(prepend: [ConfigureClientSession::class]);
-
         $middleware->redirectGuestsTo(function (Request $request): string {
             if ($request->routeIs('vendor.*')) {
                 return route('vendor.login', [
