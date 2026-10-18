@@ -13,13 +13,33 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo(fn (Request $request) => route('vendor.login', [
-            'subdomain' => Str::before($request->getHost(), '.'.config('app.domain')),
-        ]));
+        $middleware->redirectGuestsTo(function (Request $request): string {
+            if ($request->routeIs('vendor.*')) {
+                return route('vendor.login', [
+                    'subdomain' => Str::before($request->getHost(), '.'.config('app.domain')),
+                ]);
+            }
 
-        $middleware->redirectUsersTo(fn (Request $request) => route('vendor.admin.dashboard', [
-            'subdomain' => Str::before($request->getHost(), '.'.config('app.domain')),
-        ]));
+            return route('client.login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request): string {
+            if ($request->user()?->role?->name === 'client') {
+                return route('client.dashboard');
+            }
+
+            if ($request->routeIs('vendor.*')) {
+                return route('vendor.admin.dashboard', [
+                    'subdomain' => Str::before($request->getHost(), '.'.config('app.domain')),
+                ]);
+            }
+
+            $vendor = $request->user()?->vendor;
+
+            return $vendor
+                ? route('vendor.admin.dashboard', ['subdomain' => $vendor->slug])
+                : route('landing_page');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

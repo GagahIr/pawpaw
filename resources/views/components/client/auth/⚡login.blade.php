@@ -3,6 +3,7 @@
 use App\Actions\Client\LoginClientAction;
 use App\DTOs\LoginClientData;
 use App\Enums\SystemMessage;
+use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -66,7 +67,7 @@ new class extends Component {
     public function login(LoginClientAction $action): ?RedirectResponse
     {
         if (Auth::check()) {
-            return redirect('/');
+            return redirect()->route('client.dashboard');
         }
 
         $this->errorMessage = '';
@@ -85,14 +86,14 @@ new class extends Component {
             ));
         } catch (ValidationException $e) {
             $this->reset('password');
-            $this->dispatch('client-registration-notification', message: $e->validator->errors()->first(), type: 'error');
+            Flux::toast($e->validator->errors()->first(), variant: 'danger');
 
             throw $e;
         } catch (\Throwable $e) {
             report($e);
             $this->reset('password');
             $this->errorMessage = SystemMessage::ERROR_SYSTEM->value;
-            $this->dispatch('client-registration-notification', message: $this->errorMessage, type: 'error');
+            Flux::toast($this->errorMessage, variant: 'danger');
 
             return null;
         }
@@ -100,7 +101,7 @@ new class extends Component {
         $this->reset('password');
         session()->flash('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value);
 
-        return redirect('/');
+        return redirect()->route('client.dashboard');
     }
 };
 
@@ -109,9 +110,6 @@ new class extends Component {
 <div x-data="{
     notice: '',
 }">
-    <x-client.registration-toast
-        :message="session('client_login_error') ?? session('client_password_reset_success', '')"
-        :type="session('client_login_error') ? 'error' : 'success'" />
     <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
         <div class="flex min-h-screen">
             <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">

@@ -10,5 +10,6 @@ readonly class GoogleClientData
         public bool $emailVerified,
         public ?string $hostedDomain = null,
         public bool $remember = false,
+        public string $name = '',
     ) {}
 }

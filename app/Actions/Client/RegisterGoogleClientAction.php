@@ -17,7 +17,7 @@ class RegisterGoogleClientAction
             'google_id' => $data->googleId, 'email' => $data->email, 'email_verified' => $data->emailVerified,
             'terms' => $termsAccepted,
         ], [
-            'google_id' => ['required', 'string', 'max:255', 'unique:users,google_id'],
+            'google_id' => ['required', 'string', 'max:255', 'unique:user_clients,google_id'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:vendors,email'],
             'email_verified' => ['accepted'],
             'terms' => ['accepted'],
