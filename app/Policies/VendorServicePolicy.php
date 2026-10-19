@@ -35,7 +35,7 @@ class VendorServicePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, VendorService $vendorService): bool
+    public function update(User $user, ?VendorService $vendorService = null): bool
     {
         return $user->staffPosition() === StaffPosition::Owner;
     }
@@ -45,7 +45,7 @@ class VendorServicePolicy
      */
     public function delete(User $user, VendorService $vendorService): bool
     {
-        return false;
+        return $user->staffPosition() === StaffPosition::Owner;
     }
 
     /**

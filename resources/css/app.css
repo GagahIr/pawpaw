@@ -26,3 +26,17 @@
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 }
+
+@theme {
+    --color-accent: #1a5c40;          
+}
+/* --color-accent-content: var(--color-amber-600); 
+--color-accent-foreground: var(--color-white);    */
+
+@layer theme {
+    .dark {
+        --color-accent: #1a5c40;
+    }
+}
+/* --color-accent-content: var(--color-amber-400);
+--color-accent-foreground: var(--color-black); */

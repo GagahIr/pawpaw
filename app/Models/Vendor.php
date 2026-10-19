@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Enums\VendorSubscriptionStatus;
 use App\Enums\VendorVerificationStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
