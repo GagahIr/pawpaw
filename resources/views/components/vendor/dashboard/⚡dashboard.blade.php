@@ -8,7 +8,14 @@ new #[Layout('layouts::admin')] class extends Component {
 };
 ?>
 
-<div>
-   WOIii
-    {{-- I begin to speak only when I am certain what I will say is not better left unsaid. - Cato the Younger --}}
+<div class="p-6">
+    <div class="mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    Selamat Datang {{ auth()->user()->role->name }}, {{ auth()->user()->name }}!
+                </h1>
+            </div>
+        </div>
+    </div>
 </div>

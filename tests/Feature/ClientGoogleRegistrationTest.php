@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Client\Auth;
+namespace Tests\Feature;
 
 use App\Enums\SystemMessage;
 use App\Models\Role;
@@ -55,26 +55,20 @@ class ClientGoogleRegistrationTest extends TestCase
     private function existingUser(array $attributes = []): User
     {
         $role = Role::firstOrCreate(['name' => 'client']);
-        $clientAttributes = array_intersect_key($attributes, array_flip(['google_id', 'remember_token']));
-        $attributes = array_diff_key($attributes, $clientAttributes);
 
-        $user = User::factory()->afterMaking(function (User $user): void {
+        return User::factory()->afterMaking(function (User $user): void {
             unset($user->email_verified_at);
         })->create(array_replace([
             'email' => 'existing@example.com', 'username' => 'existing',
             'phone_number' => '081234567890', 'password' => 'password123', 'role_id' => $role->id,
         ], $attributes));
-
-        UserClient::create(['user_id' => $user->id])->forceFill($clientAttributes)->save();
-
-        return $user;
     }
 
     public function test_google_button_requires_terms_but_no_other_manual_fields(): void
     {
-        Livewire::test('client.auth.register')->call('registerWithGoogle')
-            ->assertHasErrors(['terms' => 'accepted'])->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
-        Livewire::test('client.auth.register')->set('terms', true)->call('registerWithGoogle')
+        Livewire::test('client.client-register-form')->call('registerWithGoogle')
+            ->assertHasErrors(['terms' => 'accepted'])->assertDispatched('client-registration-notification', type: 'error');
+        Livewire::test('client.client-register-form')->set('terms', true)->call('registerWithGoogle')
             ->assertHasNoErrors()->assertRedirect(route('client.google.redirect', ['intent' => 'register']));
         $this->get(route('client.google.redirect', ['intent' => 'register']))->assertRedirect();
         $this->assertTrue(session('client_google_oauth.terms_accepted'));
@@ -93,11 +87,11 @@ class ClientGoogleRegistrationTest extends TestCase
     public function test_google_registration_directly_creates_client_and_logs_in(): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle()->assertRedirect(route('client.dashboard'))->assertSessionHas('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+        $this->verifyGoogle()->assertRedirect('/')->assertSessionHas('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
         $user = User::where('email', 'amanda@gmail.com')->firstOrFail();
         $this->assertSame('Amanda Dealova', $user->name);
         $this->assertSame('amanda', $user->username);
-        $this->assertSame('registration-google-id', $user->userClient?->google_id);
+        $this->assertSame('registration-google-id', $user->google_id);
         $this->assertSame('client', $user->role->name);
         $this->assertNull($user->phone_number);
         $this->assertNull($user->password);
@@ -111,30 +105,30 @@ class ClientGoogleRegistrationTest extends TestCase
     public function test_google_account_can_login_with_google_and_later_create_local_password(): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle()->assertRedirect('/');
         $user = User::where('email', 'amanda@gmail.com')->firstOrFail();
         $this->post(route('logout'))->assertRedirect('/');
-        Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'password123')
+        Livewire::test('client.client-login-form')->set('identifier', $user->email)->set('password', 'password123')
             ->call('login')->assertHasErrors(['identifier'])->assertSet('errorMessage', '');
         $this->assertGuest();
         $this->withSession(['client_google_oauth' => [
             'state' => 'login-state', 'verifier' => str_repeat('b', 64), 'started_at' => now()->timestamp,
-        ]])->get(route('client.google.callback', ['state' => 'login-state', 'code' => 'new-code']))->assertRedirect(route('client.dashboard'));
+        ]])->get(route('client.google.callback', ['state' => 'login-state', 'code' => 'new-code']))->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
         $this->post(route('logout'))->assertRedirect('/');
-        Livewire::test('client.auth.reset-password', ['token' => Password::createToken($user)])
+        Livewire::test('client.client-reset-password-form', ['token' => Password::createToken($user)])
             ->set('email', $user->email)->set('password', 'newpassword123')->set('password_confirmation', 'newpassword123')
             ->call('resetPassword')->assertHasNoErrors()->assertRedirect(route('client.login'));
         $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
-        Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'newpassword123')
-            ->call('login')->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
+        Livewire::test('client.client-login-form')->set('identifier', $user->email)->set('password', 'newpassword123')
+            ->call('login')->assertHasNoErrors()->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
     }
 
     public function test_generated_username_is_unique_when_email_prefix_is_already_used(): void
     {
         $this->existingUser(['username' => 'amanda']);
-        $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle()->assertRedirect('/');
         $username = User::where('email', 'amanda@gmail.com')->firstOrFail()->username;
         $this->assertMatchesRegularExpression('/\Aamanda_[a-z0-9]{10}\z/', $username);
         $this->assertDatabaseCount('users', 2);
@@ -152,16 +146,16 @@ class ClientGoogleRegistrationTest extends TestCase
     public function test_unusual_profiles_generate_valid_usernames(array $profile, string $username, string $name): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle($profile)->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle($profile)->assertRedirect('/');
         $this->assertDatabaseHas('users', ['email' => $profile['email'], 'username' => $username, 'name' => $name]);
     }
 
     public function test_multiple_google_accounts_can_have_null_phone_numbers(): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle()->assertRedirect('/');
         $this->post(route('logout'))->assertRedirect('/');
-        $this->verifyGoogle(['sub' => 'second-google-id', 'email' => 'second@gmail.com'])->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle(['sub' => 'second-google-id', 'email' => 'second@gmail.com'])->assertRedirect('/');
         $this->assertSame(2, User::whereNull('phone_number')->whereNull('password')->count());
     }
 
@@ -199,7 +193,7 @@ class ClientGoogleRegistrationTest extends TestCase
     public function test_callback_intent_cannot_override_session_intent(): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle(query: ['intent' => 'login'])->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle(query: ['intent' => 'login'])->assertRedirect('/');
         $this->assertDatabaseCount('users', 1);
     }
 
@@ -244,7 +238,7 @@ class ClientGoogleRegistrationTest extends TestCase
     public function test_migration_rollback_refuses_to_discard_google_account_data(): void
     {
         Role::create(['name' => 'client']);
-        $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
+        $this->verifyGoogle()->assertRedirect('/');
         $migration = require database_path('migrations/2026_10_15_033717_allow_google_accounts_without_phone_or_password.php');
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Rollback dibatalkan');

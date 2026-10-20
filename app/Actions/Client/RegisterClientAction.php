@@ -25,7 +25,11 @@ class RegisterClientAction
                 'role_id' => $role->id,
             ]);
 
-            UserClient::create(['user_id' => $user->id, 'google_id' => $data->googleId]);
+            UserClient::create(['user_id' => $user->id]);
+
+            if ($data->googleId !== null) {
+                $user->forceFill(['google_id' => $data->googleId])->save();
+            }
 
             return $user;
         });

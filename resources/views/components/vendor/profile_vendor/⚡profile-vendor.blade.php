@@ -42,7 +42,7 @@ new #[Layout('layouts::admin')] class extends Component {
             'formData.email.unique' => 'Email sudah terdaftar',
             'formData.contact.unique' => 'Nomor kontak sudah terdaftar',
             'formData.address.required' => 'Alamat harus diisi',
-            'formData.contact.required' => 'Nomor kontak harus diisi',
+            'formData.contact.required' => 'Kontak harus diisi',
             'logo.image' => 'File harus berupa gambar',
             'logo.max' => 'Ukuran gambar maksimal 2 MB',
         ];
@@ -170,27 +170,28 @@ new #[Layout('layouts::admin')] class extends Component {
                     <form wire:submit="save" class="space-y-4">
                         <flux:field>
                             <flux:label>Nama Vendor <span class="text-red-600">*</span></flux:label>
-                            <flux:input wire:model.blur="formData.name" placeholder="Contoh: PawPaw Grooming Studio" />
+                            <flux:input wire:model.blur="formData.name" placeholder="Contoh: PawPaw Grooming Studio"
+                                required />
                             <flux:error name="formData.name" />
                         </flux:field>
 
                         <flux:field>
                             <flux:label>Email <span class="text-red-600">*</span></flux:label>
-                            <flux:input wire:model.blur="formData.email" type="email"
-                                placeholder="vendor@example.com" />
+                            <flux:input wire:model.blur="formData.email" type="email" placeholder="vendor@example.com"
+                                required />
                             <flux:error name="formData.email" />
                         </flux:field>
 
                         <flux:field>
                             <flux:label>Alamat <span class="text-red-600">*</span></flux:label>
                             <flux:textarea wire:model.blur="formData.address"
-                                placeholder="Jln. Sudirman No. 123, Jakarta Selatan" rows="3" />
+                                placeholder="Jln. Sudirman No. 123, Jakarta Selatan" rows="3" required />
                             <flux:error name="formData.address" />
                         </flux:field>
 
                         <flux:field>
                             <flux:label>Nomor Kontak <span class="text-red-600">*</span></flux:label>
-                            <flux:input wire:model.blur="formData.contact" placeholder="+62812345678" />
+                            <flux:input wire:model.blur="formData.contact" placeholder="+62812345678" required />
                             <flux:error name="formData.contact" />
                         </flux:field>
 

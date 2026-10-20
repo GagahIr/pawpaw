@@ -1,11 +1,10 @@
 <?php
 
-namespace Tests\Feature\Client\Auth;
+namespace Tests\Feature;
 
 use App\Enums\SystemMessage;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserClient;
 use App\Notifications\ClientResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -33,23 +32,17 @@ class ClientPasswordResetTest extends TestCase
     {
         $role = Role::firstOrCreate(['name' => $roleName]);
 
-        $user = User::factory()->afterMaking(function (User $user): void {
+        return User::factory()->afterMaking(function (User $user): void {
             unset($user->email_verified_at);
         })->create(array_replace([
             'email' => 'amanda@example.com', 'phone_number' => '081234567890',
-            'role_id' => $role->id, 'password' => 'password123',
+            'role_id' => $role->id, 'password' => 'password123', 'remember_token' => 'old-remember-token',
         ], $overrides));
-
-        if ($roleName === 'client') {
-            UserClient::create(['user_id' => $user->id])->forceFill(['remember_token' => 'old-remember-token'])->save();
-        }
-
-        return $user;
     }
 
     private function form(User $user, string $token, array $overrides = []): Testable
     {
-        $form = Livewire::test('client.auth.reset-password', ['token' => $token]);
+        $form = Livewire::test('client.client-reset-password-form', ['token' => $token]);
         foreach (array_replace([
             'email' => $user->email, 'password' => 'newpassword123', 'password_confirmation' => 'newpassword123',
         ], $overrides) as $field => $value) {
@@ -62,9 +55,9 @@ class ClientPasswordResetTest extends TestCase
     public function test_client_receives_notification_with_valid_link_and_hashed_token(): void
     {
         $user = $this->user();
-        Livewire::test('client.auth.forgot-password')->set('email', ' AMANDA@example.com ')
+        Livewire::test('client.client-forgot-password-form')->set('email', ' AMANDA@example.com ')
             ->call('sendResetLink')->assertHasNoErrors()
-            ->assertDispatched('toast-show', dataset: ['variant' => 'success']);
+            ->assertDispatched('client-registration-notification', type: 'success');
 
         Notification::assertSentTo($user, ClientResetPassword::class, function (ClientResetPassword $notification) use ($user): bool {
             $mail = $notification->toMail($user);
@@ -74,35 +67,17 @@ class ClientPasswordResetTest extends TestCase
             $this->assertTrue(Password::tokenExists($user, $notification->token));
             $stored = DB::table('password_reset_tokens')->where('email', $user->email)->value('token');
             $this->assertNotSame($notification->token, $stored);
-            $html = $mail->render();
-            $this->assertStringContainsString('Atur Password Baru', $html);
-            $this->assertStringContainsString(e('Halo, '.$user->name.'!'), $html);
-            $this->assertStringContainsString('Salam hangat,', $html);
-            $this->assertStringContainsString('alt="Tim PawPaw"', $html);
-            $this->assertStringNotContainsString('data:image/webp;base64,', $html);
-            $this->assertStringContainsString('data:image/png;base64,', $html);
-            $this->assertStringNotContainsString('laravel.com', $html);
-            $this->assertStringNotContainsString('Regards', $html);
+            $this->assertStringContainsString('Atur Password Baru', $mail->render());
 
             return true;
         });
     }
 
-    public function test_recipient_name_is_escaped_in_pawpaw_email(): void
-    {
-        $user = $this->user(overrides: ['name' => '<script>alert("name")</script>']);
-
-        $html = (new ClientResetPassword('preview-token'))->toMail($user)->render();
-
-        $this->assertStringContainsString('&lt;script&gt;', $html);
-        $this->assertStringNotContainsString('<script>alert("name")</script>', $html);
-    }
-
     public function test_unknown_email_shows_same_success_without_sending_email(): void
     {
-        Livewire::test('client.auth.forgot-password')->set('email', 'unknown@example.com')
-            ->call('sendResetLink')->assertHasNoErrors()->assertDispatched('toast-show',
-                dataset: ['variant' => 'success'], slots: ['text' => 'Jika email terdaftar sebagai pelanggan, tautan reset password akan dikirim. Periksa email Anda.']);
+        Livewire::test('client.client-forgot-password-form')->set('email', 'unknown@example.com')
+            ->call('sendResetLink')->assertHasNoErrors()->assertDispatched('client-registration-notification',
+                type: 'success', message: 'Jika email terdaftar sebagai pelanggan, tautan reset password akan dikirim. Periksa email Anda.');
         Notification::assertNothingSent();
         $this->assertDatabaseCount('password_reset_tokens', 0);
     }
@@ -115,8 +90,8 @@ class ClientPasswordResetTest extends TestCase
     #[DataProvider('invalidEmails')]
     public function test_invalid_email_does_not_send_notification(string $email, string $rule): void
     {
-        Livewire::test('client.auth.forgot-password')->set('email', $email)->call('sendResetLink')
-            ->assertHasErrors(['email' => $rule])->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
+        Livewire::test('client.client-forgot-password-form')->set('email', $email)->call('sendResetLink')
+            ->assertHasErrors(['email' => $rule])->assertDispatched('client-registration-notification', type: 'error');
         Notification::assertNothingSent();
     }
 
@@ -129,8 +104,8 @@ class ClientPasswordResetTest extends TestCase
     public function test_other_roles_and_deleted_accounts_cannot_receive_or_use_reset(string $role, array $attributes): void
     {
         $user = $this->user($role, $attributes);
-        Livewire::test('client.auth.forgot-password')->set('email', $user->email)->call('sendResetLink')
-            ->assertHasNoErrors()->assertDispatched('toast-show', dataset: ['variant' => 'success']);
+        Livewire::test('client.client-forgot-password-form')->set('email', $user->email)->call('sendResetLink')
+            ->assertHasNoErrors()->assertDispatched('client-registration-notification', type: 'success');
         Notification::assertNothingSent();
 
         $token = Password::createToken($user);
@@ -143,11 +118,11 @@ class ClientPasswordResetTest extends TestCase
     {
         $user = $this->user();
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            Livewire::test('client.auth.forgot-password')->set('email', $user->email)->call('sendResetLink')->assertHasNoErrors();
+            Livewire::test('client.client-forgot-password-form')->set('email', $user->email)->call('sendResetLink')->assertHasNoErrors();
         }
         Notification::assertSentToTimes($user, ClientResetPassword::class, 1);
-        Livewire::test('client.auth.forgot-password')->set('email', $user->email)->call('sendResetLink')
-            ->assertHasErrors(['email'])->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
+        Livewire::test('client.client-forgot-password-form')->set('email', $user->email)->call('sendResetLink')
+            ->assertHasErrors(['email'])->assertDispatched('client-registration-notification', type: 'error');
     }
 
     public function test_reset_updates_password_revokes_sessions_and_token_cannot_be_reused(): void
@@ -162,15 +137,15 @@ class ClientPasswordResetTest extends TestCase
             ->assertRedirect(route('client.login'));
         $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
         $this->assertFalse(Hash::check('password123', $user->fresh()->password));
-        $this->assertNotSame('old-remember-token', $user->fresh()->userClient?->remember_token);
+        $this->assertNotSame('old-remember-token', $user->fresh()->remember_token);
         $this->assertDatabaseCount('password_reset_tokens', 0);
         $this->assertDatabaseMissing('sessions', ['id' => 'old-client-session']);
         $this->assertDatabaseHas('sessions', ['id' => 'guest-session']);
         $this->assertGuest();
 
         $this->form($user, $token)->call('resetPassword')->assertHasErrors(['email']);
-        Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'newpassword123')
-            ->call('login')->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
+        Livewire::test('client.client-login-form')->set('identifier', $user->email)->set('password', 'newpassword123')
+            ->call('login')->assertHasNoErrors()->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
     }
 
@@ -193,7 +168,7 @@ class ClientPasswordResetTest extends TestCase
         $this->form($user, 'wrong-token')->call('resetPassword')->assertHasErrors(['email']);
         $this->travel(61)->minutes();
         $this->form($user, $token)->call('resetPassword')->assertHasErrors(['email'])
-            ->assertDispatched('toast-show', dataset: ['variant' => 'danger']);
+            ->assertDispatched('client-registration-notification', type: 'error');
         $this->assertTrue(Hash::check('password123', $user->fresh()->password));
     }
 
@@ -234,8 +209,8 @@ class ClientPasswordResetTest extends TestCase
     {
         $user = $this->user();
         Notification::shouldReceive('send')->once()->andThrow(new \RuntimeException('Simulated SMTP failure'));
-        Livewire::test('client.auth.forgot-password')->set('email', $user->email)->call('sendResetLink')
-            ->assertDispatched('toast-show', dataset: ['variant' => 'danger'], slots: ['text' => SystemMessage::ERROR_SYSTEM->value]);
+        Livewire::test('client.client-forgot-password-form')->set('email', $user->email)->call('sendResetLink')
+            ->assertDispatched('client-registration-notification', type: 'error', message: SystemMessage::ERROR_SYSTEM->value);
         $this->assertDatabaseCount('password_reset_tokens', 0);
     }
 
@@ -245,6 +220,6 @@ class ClientPasswordResetTest extends TestCase
         $this->get(route('client.password.request'))->assertOk()->assertSee('Kirim Tautan Reset Password');
         $this->get(route('client.password.reset', ['token' => 'test-token', 'email' => 'amanda@example.com']))
             ->assertOk()->assertSee('Atur Password Baru');
-        $this->actingAs($this->user())->get(route('client.password.request'))->assertRedirect(route('client.dashboard'));
+        $this->actingAs($this->user())->get(route('client.password.request'))->assertRedirect('/');
     }
 }

@@ -25,10 +25,6 @@
                     </form>
                 @endauth
                 @guest
-                <a href="{{ route('client.login') }}"
-                    class="py-2.5 px-3.5 text-sm font-medium text-gray-700 hover:text-[#EE6D52]">
-                    Masuk
-                </a>
                 <a href="{{ route('client.register') }}"
                     class="py-2.5 px-3.5 lg:px-5 text-sm font-medium text-gray-700 hover:text-[#EE6D52] hover:bg-white/60 rounded-full transition-all whitespace-nowrap">
                     Daftar Pelanggan

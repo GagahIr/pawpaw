@@ -10,7 +10,6 @@ class UserClient extends Model
     protected $fillable = [
         'user_id',
         'count_fake_booking',
-        'google_id',
     ];
 
     public function user(): BelongsTo

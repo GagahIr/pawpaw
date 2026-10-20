@@ -28,6 +28,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function toggleService($categoryId)
     {
+        $this->authorize('update', VendorService::class);
+        
         $vendorService = VendorService::where('category_service_id', $categoryId)->first();
 
         if ($vendorService) {
@@ -60,8 +62,11 @@ new #[Layout('layouts::admin')] class extends Component {
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                             {{ $service['category_name'] }}
                         </h3>
-                        <flux:switch wire:click="toggleService({{ $service['category_id'] }})"
-                            :checked="$service['status']" />
+
+                        @can('update', App\Models\VendorService::class)
+                            <flux:switch wire:click="toggleService({{ $service['category_id'] }})"
+                                :checked="$service['status']" />
+                        @endcan
                     </div>
 
                     <flux:badge size="sm" :color="$service['status'] ? 'green' : 'zinc'" class="mt-2">
@@ -74,7 +79,7 @@ new #[Layout('layouts::admin')] class extends Component {
                 @if ($service['status'])
                     <flux:button
                         href="{{ route('vendor.admin.services.manage', ['categoryServiceId' => $service['category_id']]) }}"
-                        variant="ghost" class="w-full">
+                        variant="primary" class="w-full">
                         Kelola Item Service
                     </flux:button>
                 @else
