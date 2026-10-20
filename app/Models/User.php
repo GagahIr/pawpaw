@@ -48,16 +48,6 @@ class User extends Authenticatable
         return $this->hasOne(UserClient::class);
     }
 
-    public function getRememberToken(): ?string
-    {
-        return $this->userClient?->remember_token;
-    }
-
-    public function setRememberToken(mixed $value): void
-    {
-        $this->userClient?->setAttribute('remember_token', $value);
-    }
-
     public function staffPosition(): ?StaffPosition
     {
         return $this->vendorStaff()

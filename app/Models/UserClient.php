@@ -13,8 +13,6 @@ class UserClient extends Model
         'google_id',
     ];
 
-    protected $hidden = ['remember_token'];
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
