@@ -8,6 +8,7 @@ use App\DTOs\GoogleOAuthContextData;
 use App\Enums\SystemMessage;
 use App\Http\Controllers\Controller;
 use App\Services\GoogleOAuthService;
+use App\Support\ClientFlash;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -63,10 +64,17 @@ class GoogleLoginController extends Controller
             if ($registration) {
                 $registrationAction->execute($data, $data->name, $context->termsAccepted);
 
-                return redirect()->route('client.dashboard')->with('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+                ClientFlash::registrationSuccess(SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+
+                return redirect()->route('client.dashboard');
             }
 
             $action->execute($data);
+            if ($action->registered) {
+                ClientFlash::registrationSuccess(SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+
+                return redirect()->route('client.dashboard');
+            }
         } catch (ValidationException $e) {
             return $this->failure($e->validator->errors()->first(), $registration);
         } catch (\Throwable $e) {
@@ -75,15 +83,21 @@ class GoogleLoginController extends Controller
             return $this->failure(SystemMessage::ERROR_SYSTEM->value, $registration);
         }
 
-        return redirect()->route('client.dashboard')->with('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value);
+        ClientFlash::loginSuccess(SystemMessage::CLIENT_LOGIN_SUCCESS->value);
+
+        return redirect()->route('client.dashboard');
     }
 
     private function failure(string $message, bool $registration = false): RedirectResponse
     {
         if ($registration) {
-            return redirect()->route('client.register')->with('client_register_error', $message);
+            ClientFlash::registrationError($message);
+
+            return redirect()->route('client.register');
         }
 
-        return redirect()->route('client.login')->with('client_login_error', $message);
+        ClientFlash::loginError($message);
+
+        return redirect()->route('client.login');
     }
 }

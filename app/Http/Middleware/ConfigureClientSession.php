@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class ConfigureClientSession
@@ -13,20 +14,21 @@ class ConfigureClientSession
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        $host = $request->getHost();
+        $domain = config('app.domain');
+        $subdomain = str_ends_with($host, '.'.$domain)
+            ? Str::before($host, '.'.$domain)
+            : null;
+        $isVendor = $subdomain !== null;
+        $cookie = $isVendor
+            ? 'pawpaw-vendor-session-'.$subdomain
+            : 'pawpaw-client-session';
 
-        if ($request->user()?->role?->name !== 'client') {
-            return $response;
-        }
+        config([
+            'session.cookie' => $cookie,
+            'auth.defaults.guard' => $isVendor ? 'vendor' : 'client',
+        ]);
 
-        foreach ($response->headers->getCookies() as $cookie) {
-            if ($cookie->getName() === config('session.cookie')
-                && $cookie->getPath() === config('session.path')
-                && $cookie->getDomain() === config('session.domain')) {
-                $response->headers->setCookie($cookie->withExpires(0));
-            }
-        }
-
-        return $response;
+        return $next($request);
     }
 }
