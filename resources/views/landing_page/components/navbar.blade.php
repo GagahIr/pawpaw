@@ -10,7 +10,13 @@
         <div class="flex items-center gap-3 ms-auto lg:ms-0 lg:order-3">
             <div class="hidden sm:flex items-center gap-2 lg:gap-3">
                 @auth
-                    <form method="POST" action="{{ route('logout') }}">
+                    @if (auth()->user()->role?->name === 'client')
+                        <a href="{{ route('client.dashboard') }}"
+                            class="py-2.5 px-3.5 text-sm font-medium text-gray-700 hover:text-[#EE6D52]">
+                            Dashboard
+                        </a>
+                    @endif
+                    <form method="POST" action="{{ route('client.logout') }}">
                         @csrf
                         <button type="submit"
                             class="py-2.5 lg:py-3 px-4 lg:px-6 inline-flex justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs whitespace-nowrap">

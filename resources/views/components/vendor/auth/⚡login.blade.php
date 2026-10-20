@@ -47,7 +47,7 @@ new #[Layout('layouts.app')] class extends Component {
             fn($query) => $query->whereHas('vendorStaff', fn($query) => $query->where('vendor_id', $vendorId)),
         ];
 
-        $authenticated = Auth::attempt($credentials, $this->remember);
+        $authenticated = Auth::guard('vendor')->attempt($credentials, $this->remember);
 
         if (!$authenticated) {
             RateLimiter::hit($this->throttleKey());

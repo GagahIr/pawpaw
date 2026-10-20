@@ -12,8 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class LoginGoogleClientAction
 {
+    public bool $registered = false;
+
     public function execute(GoogleClientData $data): User
     {
+        $this->registered = false;
+
         Validator::make([
             'google_id' => $data->googleId, 'email' => $data->email, 'email_verified' => $data->emailVerified,
         ], [
@@ -36,9 +40,19 @@ class LoginGoogleClientAction
                 $user = User::where('email', $data->email)->lockForUpdate()->first();
             }
 
-            if (! $user || $user->deleted_at !== null || $user->role?->name !== 'client') {
+            if (! $user) {
+                $this->registered = true;
+
+                return app(RegisterGoogleClientAction::class)->execute(
+                    $data,
+                    $data->name,
+                    termsAccepted: true,
+                );
+            }
+
+            if ($user->deleted_at !== null || $user->role?->name !== 'client') {
                 throw ValidationException::withMessages([
-                    'identifier' => 'Akun pelanggan dengan email Google ini belum tersedia. Daftar terlebih dahulu atau gunakan akun Google lain.',
+                    'identifier' => 'Akun Google ini sudah terhubung dengan akun yang tidak dapat digunakan sebagai pelanggan.',
                 ]);
             }
 
@@ -53,7 +67,7 @@ class LoginGoogleClientAction
             return $user;
         });
 
-        Auth::login($user, $data->remember);
+        Auth::guard('client')->login($user, $data->remember);
         session()->regenerate();
 
         if ($data->remember) {

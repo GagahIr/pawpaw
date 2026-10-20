@@ -28,7 +28,9 @@ class ResetClientPasswordAction
                 'deleted_at' => null,
                 'client' => fn (Builder $query): Builder => $query->whereHas('role', fn (Builder $role): Builder => $role->where('name', 'client')),
             ], function (User $user, string $password): void {
-                $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+                $user->forceFill(['password' => $password])->save();
+                $user->setRememberToken(Str::random(60));
+                $user->save();
                 DB::table('sessions')->where('user_id', $user->getAuthIdentifier())->delete();
                 event(new PasswordReset($user));
             });

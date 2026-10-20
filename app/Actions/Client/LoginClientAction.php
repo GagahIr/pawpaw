@@ -22,7 +22,7 @@ class LoginClientAction
         }
 
         $field = str_contains($data->identifier, '@') ? 'email' : 'phone_number';
-        $authenticated = Auth::attemptWhen(
+        $authenticated = Auth::guard('client')->attemptWhen(
             [$field => $data->identifier, 'password' => $data->password, 'deleted_at' => null],
             fn (User $user): bool => $user->role?->name === 'client',
             $data->remember,
@@ -45,6 +45,6 @@ class LoginClientAction
             Cookie::queue(Cookie::forget('pawpaw_client_identifier'));
         }
 
-        return Auth::user();
+        return Auth::guard('client')->user();
     }
 }

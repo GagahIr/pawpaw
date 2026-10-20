@@ -3,6 +3,8 @@
 use App\Actions\Client\RegisterClientAction;
 use App\DTOs\RegisterClientData;
 use App\Enums\SystemMessage;
+use App\Support\ClientFlash;
+use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -122,7 +124,7 @@ new class extends Component {
         }
 
         session()->forget('google_client_registration');
-        session()->flash('client_registered', SystemMessage::CLIENT_REGISTER_SUCCESS->value);
+        ClientFlash::registrationSuccess(SystemMessage::CLIENT_REGISTER_SUCCESS->value);
 
         return redirect('/');
     }

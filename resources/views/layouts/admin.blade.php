@@ -84,7 +84,7 @@
                         <flux:menu.separator />
 
                         <flux:menu.item icon="arrow-right-start-on-rectangle">
-                            <form method="POST" action="{{ route('vendor.logout') }}">
+                            <form method="POST" action="{{ route('vendor.admin.logout') }}">
                                 @csrf
                                 <flux:button type="submit" variant="ghost" icon="arrow-right-start-on-rectangle">Logout
                                 </flux:button>
