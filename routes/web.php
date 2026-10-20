@@ -26,8 +26,8 @@ $domain = config('app.domain');
 Route::domain($domain)->group(function () {
     Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
-    Route::view('/client-dashboard', 'components.client.dashboard.dashboard')
-        ->middleware(['auth', EnsureClient::class])
+    Route::livewire('/client-dashboard', 'client.dashboard.dashboard')
+        ->middleware(['auth:client', EnsureClient::class])
         ->name('client.dashboard');
 });
 Route::domain('{subdomain}.'.$domain)
@@ -36,11 +36,11 @@ Route::domain('{subdomain}.'.$domain)
     ->group(function () {
         Route::redirect('/', '/admin');
 
-        Route::middleware('guest')->group(function () {
+        Route::middleware('guest:vendor')->group(function () {
             Route::livewire('/login', 'vendor.auth.login')->name('login');
         });
 
-        Route::middleware(['auth', EnsureVendorStaff::class])->group(function () {
+        Route::middleware(['auth:vendor', EnsureVendorStaff::class])->group(function () {
             Route::livewire('/admin', 'vendor.dashboard.dashboard')->name('admin.dashboard');
             Route::livewire('/admin/operations', 'vendor.operation_hours.form')->name('admin.operations');
             Route::livewire('/admin/services', 'vendor.services.services')->name('admin.services');
@@ -49,29 +49,27 @@ Route::domain('{subdomain}.'.$domain)
             Route::livewire('/admin/manage-staff', 'vendor.manage_staff.manage')->name('admin.manage_staff');
 
             Route::post('/logout', function (Request $request) {
-                Auth::logout();
+                Auth::guard('vendor')->logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
                 return redirect()->route('vendor.login');
-            })->name('logout');
+            })->name('admin.logout');
         });
     });
 
-Route::livewire('/client-register', 'client.auth.register')->middleware('guest')->name('client.register');
-Route::livewire('/client-login', 'client.auth.login')->middleware('guest')->name('client.login');
-Route::livewire('/client-forgot-password', 'client.auth.forgot-password')->middleware('guest')->name('client.password.request');
-Route::livewire('/client-reset-password/{token}', 'client.auth.reset-password')->middleware('guest')->name('client.password.reset');
+Route::livewire('/client-register', 'client.auth.register')->middleware('guest:client')->name('client.register');
+Route::livewire('/client-login', 'client.auth.login')->middleware('guest:client')->name('client.login');
+Route::livewire('/client-forgot-password', 'client.auth.forgot-password')->middleware('guest:client')->name('client.password.request');
+Route::livewire('/client-reset-password/{token}', 'client.auth.reset-password')->middleware('guest:client')->name('client.password.reset');
 
-Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('guest')->name('client.google.redirect');
-Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('guest')->name('client.google.callback');
+Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('guest:client')->name('client.google.redirect');
+Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('guest:client')->name('client.google.callback');
 
 Route::post('/logout', function (Request $request): RedirectResponse {
-    Auth::logout();
+    Auth::guard('client')->logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
     return redirect('/');
-})->middleware('auth')->name('logout');
-// Route::view('/client-register', 'client-register-form')
-//     ->name('client.register');
+})->middleware('auth:client')->name('client.logout');

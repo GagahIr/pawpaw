@@ -3,6 +3,7 @@
 use App\Actions\Client\LoginClientAction;
 use App\DTOs\LoginClientData;
 use App\Enums\SystemMessage;
+use App\Support\ClientFlash;
 use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,6 @@ new class extends Component {
         $identifier = request()->cookie('pawpaw_client_identifier');
         if (is_string($identifier) && $identifier !== '' && strlen($identifier) <= 255) {
             $this->identifier = $identifier;
-            $this->remember = true;
         }
     }
 
@@ -66,7 +66,7 @@ new class extends Component {
 
     public function login(LoginClientAction $action): ?RedirectResponse
     {
-        if (Auth::check()) {
+        if (Auth::guard('client')->check()) {
             return redirect()->route('client.dashboard');
         }
 
@@ -99,7 +99,7 @@ new class extends Component {
         }
 
         $this->reset('password');
-        session()->flash('client_logged_in', SystemMessage::CLIENT_LOGIN_SUCCESS->value);
+        ClientFlash::loginSuccess(SystemMessage::CLIENT_LOGIN_SUCCESS->value);
 
         return redirect()->route('client.dashboard');
     }
