@@ -65,7 +65,7 @@ class RegisterVendorAction
                 ]);
             }
 
-            Auth::login($owner);
+            Auth::guard('vendor')->login($owner);
 
             return $vendor;
         });

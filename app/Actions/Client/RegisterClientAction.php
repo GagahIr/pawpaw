@@ -30,7 +30,7 @@ class RegisterClientAction
             return $user;
         });
 
-        Auth::login($user);
+        Auth::guard('client')->login($user);
         session()->regenerate();
 
         return $user;

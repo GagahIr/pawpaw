@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
+        Schema::table('user_clients', function (Blueprint $table): void {
             $table->string('google_id')->nullable()->unique();
         });
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
+        Schema::table('user_clients', function (Blueprint $table): void {
             $table->dropUnique(['google_id']);
             $table->dropColumn('google_id');
         });

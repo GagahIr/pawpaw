@@ -19,12 +19,12 @@
                 <flux:sidebar.header>
                     <flux:dropdown class="min-w-0 flex-1">
                         <flux:sidebar.brand as="button" logo="https://fluxui.dev/img/demo/logo.png"
-                            logo:dark="https://fluxui.dev/img/demo/dark-mode-logo.png" name="acme.co"
-                            icon:trailing="chevron-down" class="w-full" />
+                            logo:dark="https://fluxui.dev/img/demo/dark-mode-logo.png" name="{{ auth()->user()->vendor->name }}"
+                             class="w-full" />
 
                         <flux:menu class="min-w-56">
                             <flux:menu.radio.group>
-                                <flux:menu.radio value="acme.co" checked>acme.co</flux:menu.radio>
+                                <flux:menu.radio value="acme.co" checked>{{ auth()->user()->vendor->name }}</flux:menu.radio>
                                 {{-- <flux:menu.radio value="shop.acme.co">shop.acme.co</flux:menu.radio>
                                 <flux:menu.radio value="docs.acme.co">docs.acme.co</flux:menu.radio> --}}
                             </flux:menu.radio.group>
@@ -84,7 +84,7 @@
                         <flux:menu.separator />
 
                         <flux:menu.item icon="arrow-right-start-on-rectangle">
-                            <form method="POST" action="{{ route('vendor.logout') }}">
+                            <form method="POST" action="{{ route('vendor.admin.logout') }}">
                                 @csrf
                                 <flux:button type="submit" variant="ghost" icon="arrow-right-start-on-rectangle">Logout
                                 </flux:button>

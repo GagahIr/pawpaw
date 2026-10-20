@@ -16,7 +16,7 @@
                             Dashboard
                         </a>
                     @endif
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('client.logout') }}">
                         @csrf
                         <button type="submit"
                             class="py-2.5 lg:py-3 px-4 lg:px-6 inline-flex justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs whitespace-nowrap">
