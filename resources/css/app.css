@@ -28,15 +28,71 @@
 }
 
 @theme {
-    --color-accent: #1a5c40;          
+    --color-accent: #1B5E43;          
 }
 /* --color-accent-content: var(--color-amber-600); 
 --color-accent-foreground: var(--color-white);    */
 
 @layer theme {
     .dark {
-        --color-accent: #1a5c40;
+        --color-accent: #1B5E43;
     }
 }
 /* --color-accent-content: var(--color-amber-400);
 --color-accent-foreground: var(--color-black); */
+
+/* ── Custom Sidebar Brand ──────────────────────────────────── */
+
+/* Custom brand hover state */
+.sidebar-brand-custom:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Inactive: text & icon colors */
+[data-flux-sidebar-item]:not([data-current]) {
+    color: #57534E !important;
+}
+[data-flux-sidebar-item]:not([data-current]) svg {
+    color: #A8A29E !important;
+}
+
+/* Active (current): green bg, white text & icon */
+[data-flux-sidebar-item][data-current] {
+    background-color: #1B5E43 !important;
+    border-color: transparent !important;
+    border-radius: 0.5rem !important;
+    color: #ffffff !important;
+}
+[data-flux-sidebar-item][data-current] svg {
+    color: #ffffff !important;
+}
+
+/* Hover (non-active): subtle green tint */
+[data-flux-sidebar-item]:not([data-current]):hover {
+    background-color: rgba(27, 94, 67, 0.1) !important;
+    color: #1B5E43 !important;
+    border-radius: 0.5rem !important;
+}
+[data-flux-sidebar-item]:not([data-current]):hover svg {
+    color: #1B5E43 !important;
+}
+
+/* Sidebar nav items spacing */
+[data-flux-sidebar-nav] > * {
+    margin-bottom: 0.25rem;
+}
+[data-flux-sidebar-nav] [data-flux-sidebar-item] {
+    height: 2.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+/* Ensure sidebar fills full height and doesn't clip */
+[data-flux-sidebar] {
+    min-height: 100dvh;
+}
+
+/* Sidebar group spacing */
+[data-flux-sidebar] > [data-flux-sidebar-nav] + * {
+    margin-top: 0.5rem;
+}

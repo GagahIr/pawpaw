@@ -10,43 +10,59 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#FFFF]">
+<body class="bg-[#FBF8F2]">
 
-    <main>
-        <div>
+    <main class="flex min-h-screen">
+        <div class="flex w-full">
+
             <flux:sidebar sticky collapsible
-                class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                <flux:sidebar.header>
-                    <flux:dropdown class="min-w-0 flex-1">
-                        <flux:sidebar.brand as="button" logo="https://fluxui.dev/img/demo/logo.png"
-                            logo:dark="https://fluxui.dev/img/demo/dark-mode-logo.png" name="{{ auth()->user()->vendor->name }}"
-                             class="w-full" />
+                class="border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:sidebar.header class="py-3 overflow-hidden">
+                    @php
+                        $vendorLogoUrl = auth()->user()->vendor->logo
+                            ? Storage::url(auth()->user()->vendor->logo)
+                            : '';
+                        $vendorInitial = strtoupper(substr(auth()->user()->vendor->name ?? 'V', 0, 1));
+                        $vendorName = auth()->user()->vendor->name ?? '';
+                    @endphp
 
-                        <flux:menu class="min-w-56">
-                            <flux:menu.radio.group>
-                                <flux:menu.radio value="acme.co" checked>{{ auth()->user()->vendor->name }}</flux:menu.radio>
-                                {{-- <flux:menu.radio value="shop.acme.co">shop.acme.co</flux:menu.radio>
-                                <flux:menu.radio value="docs.acme.co">docs.acme.co</flux:menu.radio> --}}
-                            </flux:menu.radio.group>
+                    {{-- Brand: logo + name, collapses cleanly --}}
+                    <div
+                        x-data="{ logoSrc: '{{ $vendorLogoUrl }}' }"
+                        x-on:vendor-logo-updated.window="logoSrc = $event.detail.url"
+                        class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden"
+                    >
+                        {{-- Logo icon — always visible, fixed 36×36 --}}
+                        <div class="relative h-9 w-9 shrink-0 rounded-md overflow-hidden border border-zinc-200 bg-zinc-100">
+                            <template x-if="logoSrc">
+                                <img
+                                    :src="logoSrc"
+                                    alt="Vendor Logo"
+                                    class="absolute inset-0 h-full w-full object-cover"
+                                />
+                            </template>
+                            <span
+                                x-show="!logoSrc"
+                                class="absolute inset-0 flex items-center justify-center text-white font-bold text-sm bg-[#1B5E43]"
+                            >{{ $vendorInitial }}</span>
+                        </div>
 
-                            <flux:menu.separator />
+                        {{-- Text — hidden when sidebar is collapsed --}}
+                        <div class="min-w-0 flex-1 in-data-flux-sidebar-collapsed-desktop:hidden">
+                            <p class="truncate text-sm font-semibold text-zinc-800 leading-tight">{{ $vendorName }}</p>
+                            <p class="text-[0.6rem] font-bold tracking-widest text-[#1B5E43] uppercase leading-tight mt-0.5">PARTNER PORTAL</p>
+                        </div>
+                    </div>
 
-                            {{-- <flux:menu.item icon="plus">Add property</flux:menu.item> --}}
-                        </flux:menu>
-                    </flux:dropdown>
-
-                    <flux:sidebar.collapse
-                        class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+                    <flux:sidebar.collapse class="shrink-0 in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
                 </flux:sidebar.header>
 
-                {{-- <flux:sidebar.search placeholder="Search..." /> --}}
-
                 <flux:sidebar.nav>
-                    <flux:sidebar.item icon="squares-2x2" href="{{ route('vendor.admin.dashboard') }}" current>Dashboard</flux:sidebar.item>
-                    <flux:sidebar.item icon="cog-6-tooth" href="{{ route('vendor.admin.operations') }}">Vendor Operations</flux:sidebar.item>
-                    <flux:sidebar.item icon="rectangle-stack" href="{{ route('vendor.admin.services') }}">Vendor Services</flux:sidebar.item>
-                    <flux:sidebar.item icon="building-storefront" href="{{ route('vendor.admin.profile.profile-vendor') }}"> Profile Vendor</flux:sidebar.item>
-                    <flux:sidebar.item icon="user-group" href="{{ route('vendor.admin.manage_staff') }}">Manage Staff</flux:sidebar.item>
+                    <flux:sidebar.item icon="squares-2x2" href="{{ route('vendor.admin.dashboard') }}" :current="request()->routeIs('vendor.admin.dashboard')">Dashboard</flux:sidebar.item>
+                    <flux:sidebar.item icon="cog-6-tooth" href="{{ route('vendor.admin.operations') }}" :current="request()->routeIs('vendor.admin.operations*')">Vendor Operations</flux:sidebar.item>
+                    <flux:sidebar.item icon="rectangle-stack" href="{{ route('vendor.admin.services') }}" :current="request()->routeIs('vendor.admin.services*')">Vendor Services</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-storefront" href="{{ route('vendor.admin.profile.profile-vendor') }}" :current="request()->routeIs('vendor.admin.profile*')">Profile Vendor</flux:sidebar.item>
+                    <flux:sidebar.item icon="user-group" href="{{ route('vendor.admin.manage_staff') }}" :current="request()->routeIs('vendor.admin.manage_staff*')">Manage Staff</flux:sidebar.item>
                 </flux:sidebar.nav>
 
                 <flux:sidebar.group expandable heading="Favorites" class="grid">
@@ -57,12 +73,30 @@
             </flux:sidebar>
 
             <flux:header container
-                class="border-b border-zinc-200 bg-white lg:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+                class="border-b border-zinc-200 bg-white lg:bg-white dark:border-zinc-700 dark:bg-zinc-900">
                 <flux:sidebar.toggle class="me-4 lg:hidden" icon="bars-2" inset="left" />
 
+                {{-- Dynamic breadcrumb based on current route --}}
+                @php
+                    $breadcrumbs = match(true) {
+                        request()->routeIs('vendor.admin.dashboard')              => [['label' => 'Dashboard']],
+                        request()->routeIs('vendor.admin.operations')             => [['label' => 'Vendor Operations']],
+                        request()->routeIs('vendor.admin.services.manage')        => [['label' => 'Vendor Services', 'href' => route('vendor.admin.services')], ['label' => 'Kelola Layanan']],
+                        request()->routeIs('vendor.admin.services')               => [['label' => 'Vendor Services']],
+                        request()->routeIs('vendor.admin.profile.profile-vendor') => [['label' => 'Profile Vendor']],
+                        request()->routeIs('vendor.admin.manage_staff')           => [['label' => 'Manage Staff']],
+                        default                                                   => [['label' => 'Dashboard']],
+                    };
+                @endphp
                 <flux:breadcrumbs class="max-sm:hidden">
-                    <flux:breadcrumbs.item href="#">Analytics</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item>Overview</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item href="{{ route('vendor.admin.dashboard') }}">Vendor Portal</flux:breadcrumbs.item>
+                    @foreach ($breadcrumbs as $crumb)
+                        @if (isset($crumb['href']))
+                            <flux:breadcrumbs.item href="{{ $crumb['href'] }}">{{ $crumb['label'] }}</flux:breadcrumbs.item>
+                        @else
+                            <flux:breadcrumbs.item>{{ $crumb['label'] }}</flux:breadcrumbs.item>
+                        @endif
+                    @endforeach
                 </flux:breadcrumbs>
 
                 <flux:spacer />
@@ -77,19 +111,18 @@
 
                     <flux:menu>
                         <flux:menu.radio.group>
-                            <flux:menu.radio checked>Olivia Martin</flux:menu.radio>
-                            <flux:menu.radio>Truly Delta</flux:menu.radio>
+                            <flux:menu.radio checked>{{ auth()->user()->name }}</flux:menu.radio>
                         </flux:menu.radio.group>
 
                         <flux:menu.separator />
 
-                        <flux:menu.item icon="arrow-right-start-on-rectangle">
-                            <form method="POST" action="{{ route('vendor.admin.logout') }}">
-                                @csrf
-                                <flux:button type="submit" variant="ghost" icon="arrow-right-start-on-rectangle">Logout
-                                </flux:button>
-                            </form>
-                        </flux:menu.item>
+                        <form method="POST" action="{{ route('vendor.admin.logout') }}">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle">
+                                Logout
+                            </flux:menu.item>
+                        </form>
+
                     </flux:menu>
                 </flux:dropdown>
             </flux:header>

@@ -80,6 +80,13 @@ new #[Layout('layouts::admin')] class extends Component {
 
         $this->vendor->refresh();
         $this->logo = null;
+
+        // Fire a native browser event so Alpine.js in the sidebar can update the logo reactively
+        $newLogoUrl = $this->vendor->logo
+            ? \Illuminate\Support\Facades\Storage::url($this->vendor->logo)
+            : '';
+        $this->js("window.dispatchEvent(new CustomEvent('vendor-logo-updated', { detail: { url: " . json_encode($newLogoUrl) . " } }))");
+
         Flux::toast(SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
     }
 
