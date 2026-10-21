@@ -25,6 +25,7 @@
 
     @livewireScripts
     @fluxScripts
+    <x-client.auth.toast />
 </body>
 
 </html>

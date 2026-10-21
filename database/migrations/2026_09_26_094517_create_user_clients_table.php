@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->integer('count_fake_booking')->default(0);
-            $table->string('google_id')->nullable()->unique();
             $table->timestamps();
         });
     }
