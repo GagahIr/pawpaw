@@ -22,10 +22,15 @@ class ClientResetPassword extends Notification
 
         return (new MailMessage)
             ->subject('Reset Password Akun Pelanggan PawPaw')
-            ->greeting('Halo!')
+            ->greeting('Halo, '.$notifiable->name.'!')
             ->line('Kami menerima permintaan untuk mengatur ulang password akun pelanggan PawPaw Anda.')
             ->action('Atur Password Baru', $url)
             ->line('Tautan ini berlaku selama '.config('auth.passwords.'.config('auth.defaults.passwords').'.expire').' menit dan hanya dapat digunakan sekali.')
-            ->line('Jika Anda tidak meminta reset password, abaikan email ini.');
+            ->line('Jika Anda tidak meminta reset password, abaikan email ini. Password akun Anda tetap aman dan tidak berubah.')
+            ->salutation('Salam hangat,')
+            ->view([
+                'html' => 'template_emails.reset-password-email',
+                'text' => 'template_emails.reset-password-email-text',
+            ]);
     }
 }

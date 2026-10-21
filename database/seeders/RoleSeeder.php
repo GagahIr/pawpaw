@@ -14,9 +14,9 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            ['name' => 'Owner'],
-            ['name' => 'Front Office'],
-            ['name' => 'Client'],
+            ['name' => 'owner'],
+            ['name' => 'front_office'],
+            ['name' => 'client'],
         ];
 
         foreach ($roles as $role) {

@@ -4,24 +4,24 @@ namespace App\Http\Controllers\Client;
 
 use App\Actions\Client\LoginGoogleClientAction;
 use App\Actions\Client\RegisterGoogleClientAction;
-use App\DTOs\GoogleClientData;
+use App\DTOs\GoogleOAuthContextData;
 use App\Enums\SystemMessage;
 use App\Http\Controllers\Controller;
+use App\Services\GoogleOAuthService;
 use App\Support\ClientFlash;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GoogleLoginController extends Controller
 {
+    public function __construct(private GoogleOAuthService $googleOAuthService) {}
+
     public function redirect(Request $request): RedirectResponse
     {
         $registration = $request->query('intent') === 'register';
-        if (! $this->configured()) {
+        if (! $this->googleOAuthService->configured()) {
             return $this->failure('Login Google belum dikonfigurasi. Silakan gunakan email/nomor telepon dan password.', $registration);
         }
 
@@ -32,33 +32,20 @@ class GoogleLoginController extends Controller
             }
         }
 
-        $state = Str::random(64);
-        $verifier = Str::random(64);
-        $request->session()->put('client_google_oauth', [
-            'state' => $state, 'verifier' => $verifier,
-            'remember' => $request->boolean('remember'), 'started_at' => now()->timestamp,
-            'intent' => $registration ? 'register' : 'login',
-            'terms_accepted' => $registration,
-        ]);
+        $context = $this->googleOAuthService->createContext($registration, $request->boolean('remember'));
+        $request->session()->put('client_google_oauth', $context->toArray());
 
-        return redirect()->away('https://accounts.google.com/o/oauth2/v2/auth?'.http_build_query([
-            'client_id' => config('services.google.client_id'),
-            'redirect_uri' => config('services.google.redirect'),
-            'response_type' => 'code', 'scope' => 'openid email profile',
-            'state' => $state, 'prompt' => 'select_account',
-            'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='),
-            'code_challenge_method' => 'S256',
-        ], '', '&', PHP_QUERY_RFC3986));
+        return redirect()->away($this->googleOAuthService->authorizationUrl($context));
     }
 
     public function callback(Request $request, LoginGoogleClientAction $action, RegisterGoogleClientAction $registrationAction): RedirectResponse
     {
-        $context = $request->session()->pull('client_google_oauth');
+        $context = GoogleOAuthContextData::fromSession($request->session()->pull('client_google_oauth'));
         $state = $request->query('state');
-        $registration = is_array($context) && ($context['intent'] ?? null) === 'register';
+        $registration = $context?->registration ?? false;
 
-        if (! is_array($context) || ! is_string($state) || ! isset($context['state'], $context['verifier'], $context['started_at'])
-            || ! hash_equals($context['state'], $state) || now()->timestamp - $context['started_at'] > 600) {
+        if ($context === null || ! is_string($state)
+            || ! hash_equals($context->state, $state) || now()->timestamp - $context->startedAt > 600) {
             return $this->failure('Sesi login Google tidak valid atau sudah kedaluwarsa. Silakan coba lagi.', $registration);
         }
 
@@ -66,38 +53,16 @@ class GoogleLoginController extends Controller
             return $this->failure('Login Google dibatalkan atau izin akses tidak diberikan.', $registration);
         }
 
-        if (! $this->configured()) {
+        if (! $this->googleOAuthService->configured()) {
             return $this->failure('Login Google belum dikonfigurasi. Silakan gunakan email/nomor telepon dan password.', $registration);
         }
 
         try {
-            $request->validate(['code' => ['required', 'string', 'max:4096']]);
-            $token = Http::asForm()->timeout(15)->withOptions(['allow_redirects' => false])
-                ->post('https://oauth2.googleapis.com/token', [
-                    'client_id' => config('services.google.client_id'),
-                    'client_secret' => config('services.google.client_secret'),
-                    'redirect_uri' => config('services.google.redirect'),
-                    'grant_type' => 'authorization_code', 'code' => $request->query('code'),
-                    'code_verifier' => $context['verifier'],
-                ])->throw()->json();
-            Validator::make($token, ['access_token' => ['required', 'string']])->validate();
-
-            $profile = Http::withToken($token['access_token'])->timeout(15)->withOptions(['allow_redirects' => false])
-                ->get('https://openidconnect.googleapis.com/v1/userinfo')->throw()->json();
-            Validator::make($profile, [
-                'sub' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255'],
-                'email_verified' => ['required', 'boolean'], 'hd' => ['nullable', 'string', 'max:255'],
-                'name' => ['nullable', 'string', 'max:255'],
-            ])->validate();
-
-            $data = new GoogleClientData(
-                googleId: $profile['sub'], email: strtolower(trim($profile['email'])),
-                emailVerified: (bool) $profile['email_verified'], hostedDomain: $profile['hd'] ?? null,
-                remember: (bool) ($context['remember'] ?? false),
-            );
+            $validated = $request->validate(['code' => ['required', 'string', 'max:4096']]);
+            $data = $this->googleOAuthService->clientData($validated['code'], $context);
 
             if ($registration) {
-                $registrationAction->execute($data, $profile['name'] ?? '', (bool) ($context['terms_accepted'] ?? false));
+                $registrationAction->execute($data, $data->name, $context->termsAccepted);
 
                 ClientFlash::registrationSuccess(SystemMessage::CLIENT_REGISTER_SUCCESS->value);
 
