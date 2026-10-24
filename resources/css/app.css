@@ -79,10 +79,10 @@
 
 /* Sidebar nav items spacing */
 [data-flux-sidebar-nav] > * {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.0rem;
 }
 [data-flux-sidebar-nav] [data-flux-sidebar-item] {
-    height: 2.5rem !important;
+    height: 2.3rem !important;
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
 }

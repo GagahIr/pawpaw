@@ -21,6 +21,7 @@ new class extends Component {
         $identifier = request()->cookie('pawpaw_client_identifier');
         if (is_string($identifier) && $identifier !== '' && strlen($identifier) <= 255) {
             $this->identifier = $identifier;
+            $this->remember = true;
         }
     }
 

@@ -13,24 +13,17 @@ Route::get('/', function () {
     return view('landing_page.pages.home');
 })->name('landing_page');
 
-// Route::get('/admin', function () {
-//     return view('layouts.admin');
-// })->name('admin');
-
-// Route::livewire('/admin/operations', 'vendor.operation_hours.form')->name('admin.operations');
-
-// Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
-
 $domain = config('app.domain');
 
 Route::domain($domain)->group(function () {
-    Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
+    Route::get('/', fn() => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
-    Route::livewire('/client-dashboard', 'client.dashboard.dashboard')
-        ->middleware(['auth:client', EnsureClient::class])
-        ->name('client.dashboard');
+    Route::livewire('/client-dashboard', 'client.dashboard.dashboard')->middleware(['auth:client', EnsureClient::class])->name('client.dashboard');
+    Route::livewire('/clinic', 'client.list_clinic.list-clinic2')->middleware('auth:client', EnsureClient::class)->name('client.clinic');
+    Route::livewire('/vendor/{slug}', 'client.vendor_detail.vendor-detail')->middleware('auth:client', EnsureClient::class)->name('client.vendor.detail');
 });
-Route::domain('{subdomain}.'.$domain)
+
+Route::domain('{subdomain}.' . $domain)
     ->middleware(ResolveVendor::class)
     ->name('vendor.')
     ->group(function () {
