@@ -5,20 +5,23 @@ namespace Database\Factories;
 use App\Enums\VendorSubscriptionStatus;
 use App\Enums\VendorVerificationStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class VendorFactory extends Factory
 {
     public function definition(): array
     {
+        $name = $this->faker->company();
         return [
-            'name' => fake()->company(),
-            'slug' => fake()->unique()->slug(),
-            'address' => fake()->address(),
-            'contact' => fake()->phoneNumber(),
-            'email' => fake()->unique()->safeEmail(),
-            'description' => fake()->sentence(),
-            'latitude' => '-7.983908', // Contoh latitude statis
-            'longitude' => '112.621391',
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'address' => $this->faker->address(),
+            'contact' => $this->faker->phoneNumber(),
+            'email' => $this->faker->unique()->companyEmail(),
+            'description' => $this->faker->paragraph(),
+            'logo' => null,
+            'latitude' => $this->faker->latitude(),
+            'longitude' => $this->faker->longitude(),
             'status_verification' => VendorVerificationStatus::Pending,
             'status_subscription' => VendorSubscriptionStatus::Inactive,
             'join_at' => now(),

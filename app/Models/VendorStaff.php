@@ -4,11 +4,12 @@ namespace App\Models;
 
 use App\Enums\StaffPosition;
 use App\Models\Concerns\BelongsToVendor;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class VendorStaff extends Model
 {
-    use BelongsToVendor;
+    use HasFactory, BelongsToVendor;
 
     protected $fillable = [
         'user_id',

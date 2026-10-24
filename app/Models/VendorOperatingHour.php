@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\DayOfWeek;
 use App\Models\Concerns\BelongsToVendor;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class VendorOperatingHour extends Model
 {
-    use BelongsToVendor;
+    use HasFactory, BelongsToVendor;
 
     protected $fillable = [
         'vendor_id',
@@ -20,6 +22,7 @@ class VendorOperatingHour extends Model
     protected function casts(): array
     {
         return [
+            'day_of_week' => DayOfWeek::class,
             'is_closed' => 'boolean',
         ];
     }
