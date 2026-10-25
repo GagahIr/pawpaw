@@ -395,7 +395,7 @@ new class extends Component {
 
                     <flux:text class="text-center">
                         Sudah memiliki akun? <flux:link class="!text-[#1a5c40]"
-                            href="{{ route('landing_page') }}">Masuk melalui domain klinik Anda</flux:link>
+                            href="{{ route('vendor.domain') }}">Masuk melalui domain klinik Anda</flux:link>
                     </flux:text>
                 </div>
             </div>
