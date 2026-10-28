@@ -153,7 +153,7 @@ new #[Layout('layouts.app')] class extends Component {
                     Klinik Anda belum terdaftar?
                     <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium"
                         href="{{ route('landing_page') }}">
-                        Daftar sebagai Vendor
+                        Daftar sebagai Mitra
                     </flux:link>
                 </flux:text> --}}
         </div>

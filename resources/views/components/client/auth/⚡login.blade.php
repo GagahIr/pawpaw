@@ -201,7 +201,7 @@ new class extends Component {
                             <flux:icon.building-storefront variant="micro" class="size-3.5" />
                             Punya klinik atau salon hewan?
                             <flux:link href="{{ url('/vendor-register') }}" class="!text-[#777E77]">Daftar sebagai
-                                Vendor</flux:link>
+                                Mitra</flux:link>
                         </flux:text>
                     </div>
                 </div>

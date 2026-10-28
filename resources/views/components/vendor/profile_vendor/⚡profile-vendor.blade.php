@@ -36,7 +36,7 @@ new #[Layout('layouts::admin')] class extends Component {
     public function messages(): array
     {
         return [
-            'formData.name.required' => 'Nama vendor harus diisi',
+            'formData.name.required' => 'Nama mitra harus diisi',
             'formData.email.required' => 'Email harus diisi',
             'formData.email.email' => 'Format email tidak valid',
             'formData.email.unique' => 'Email sudah terdaftar',
@@ -107,7 +107,7 @@ new #[Layout('layouts::admin')] class extends Component {
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div>
                 <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    Profil Vendor
+                    Profil Mitra
                 </h1>
                 <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                     Kelola informasi dasar {{ $vendor?->name }}
@@ -134,7 +134,7 @@ new #[Layout('layouts::admin')] class extends Component {
             <flux:card class="space-y-6">
                 <fieldset @cannot('update', App\Models\Vendor::class) disabled @endcannot class="space-y-4">
                     <div>
-                        <flux:label class="block mb-4">Logo Vendor</flux:label>
+                        <flux:label class="block mb-4">Logo Mitra</flux:label>
 
                         <div class="flex items-center gap-6">
                             <div class="relative">
@@ -176,7 +176,7 @@ new #[Layout('layouts::admin')] class extends Component {
 
                     <form wire:submit="save" class="space-y-4">
                         <flux:field>
-                            <flux:label>Nama Vendor <span class="text-red-600">*</span></flux:label>
+                            <flux:label>Nama Mitra <span class="text-red-600">*</span></flux:label>
                             <flux:input wire:model.blur="formData.name" placeholder="Contoh: PawPaw Grooming Studio"
                                 required />
                             <flux:error name="formData.name" />
@@ -205,7 +205,7 @@ new #[Layout('layouts::admin')] class extends Component {
                         <flux:field>
                             <flux:label>Deskripsi (opsional)</flux:label>
                             <flux:textarea wire:model.blur="formData.description"
-                                placeholder="Deskripsi singkat tentang vendor Anda" rows="4" />
+                                placeholder="Deskripsi singkat tentang mitra Anda" rows="4" />
                             <flux:error name="formData.description" />
                         </flux:field>
 
@@ -251,7 +251,7 @@ new #[Layout('layouts::admin')] class extends Component {
 
                     <div>
                         <flux:text class="text-xs text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                            Vendor ID
+                            ID Mitra
                         </flux:text>
                         <flux:heading size="xs" class="mt-2 font-mono">
                             #{{ $vendor?->id ?? '-' }}

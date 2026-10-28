@@ -162,7 +162,7 @@ new #[Layout('layouts::admin')] class extends Component {
                     Kelola Staff
                 </h1>
                 <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                    Kelola staff vendor Anda
+                    Kelola staff mitra Anda
                 </p>
             </div>
 

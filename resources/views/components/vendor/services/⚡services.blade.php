@@ -50,8 +50,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
 <div class="p-6">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Vendor Services</h1>
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Kelola layanan yang tersedia untuk vendor Anda</p>
+        <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Mitra Services</h1>
+        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Kelola layanan yang tersedia untuk mitra Anda</p>
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">
