@@ -31,12 +31,26 @@
                 <flux:navbar.item icon="bell" href="#" label="Notifications" aria-label="Notifications" />
             </flux:navbar>
             <flux:dropdown position="bottom" align="end">
-                <flux:profile avatar="https://fluxui.dev/img/demo/user.png" aria-label="Account menu" />
+                @php
+                    $clientUser = auth()->user();
+                    $clientAvatar = $clientUser?->avatar ? asset('storage/' . $clientUser->avatar) : null;
+                    $clientUsername = $clientUser?->username ?? $clientUser?->name ?? 'User';
+                    $clientInitials = null;
+                    if ($clientUser && ! $clientAvatar) {
+                        $nameParts = explode(' ', trim($clientUser->name ?? ''));
+                        $clientInitials = strtoupper(substr($nameParts[0] ?? '', 0, 1));
+                        if (isset($nameParts[1]) && ! empty($nameParts[1])) {
+                            $clientInitials .= strtoupper(substr($nameParts[1], 0, 1));
+                        }
+                    }
+                @endphp
+                <flux:profile :avatar="$clientAvatar" :initials="$clientInitials" aria-label="Account menu" />
                 <flux:menu>
                     <flux:menu.radio.group>
-                        <flux:menu.radio>Gagah</flux:menu.radio>
+                        <flux:menu.radio>{{ $clientUsername }}</flux:menu.radio>
                     </flux:menu.radio.group>
                     <flux:menu.separator />
+                    <flux:menu.item icon="user" href="{{ route('client.profile') }}">Profil Saya</flux:menu.item>
                     <flux:menu.item class="max-lg:hidden" icon="cog-6-tooth">Settings</flux:menu.item>
                     <flux:menu.item>
                         <form method="POST" action="{{ route('client.logout') }}">
@@ -63,6 +77,7 @@
             </flux:sidebar.nav>
             <flux:sidebar.spacer />
             <flux:sidebar.nav>
+                <flux:sidebar.item icon="user" href="{{ route('client.profile') }}">Profil Saya</flux:sidebar.item>
                 <flux:sidebar.item icon="cog-6-tooth" href="#">Settings</flux:sidebar.item>
                 <flux:sidebar.item icon="information-circle" href="#">Help</flux:sidebar.item>
             </flux:sidebar.nav>
