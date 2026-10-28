@@ -19,7 +19,7 @@ new class extends Component {
     public int $currentStep = 1;
 
     public array $steps = [
-        1 => 'Vendor',
+        1 => 'Mitra',
         2 => 'Pemilik & Akun',
         3 => 'Konfirmasi',
     ];
@@ -144,7 +144,7 @@ new class extends Component {
                             alt="PawPaw">
                     </div> --}}
                     <div class="text-center">
-                        <flux:heading size="xl">Pendaftaran Vendor</flux:heading>
+                        <flux:heading size="xl">Pendaftaran Mitra</flux:heading>
                         <flux:subheading
                             x-text="step === 1 ? 'Ceritakan tentang bisnis pet care Anda.' : step === 2 ? 'Lengkapi data pemilik dan akun untuk masuk.' : 'Periksa kembali data sebelum menyelesaikan pendaftaran.'">
                             Ceritakan tentang bisnis pet care Anda.
@@ -211,21 +211,21 @@ new class extends Component {
                             x-on:submit.capture="if (hasConflict) { $event.stopImmediatePropagation(); $event.preventDefault(); }"
                             class="space-y-8">
 
-                            {{-- Langkah 1: Informasi Vendor --}}
+                            {{-- Langkah 1: Informasi Mitra --}}
                             <div class="space-y-5" x-show="step === 1"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0">
                                 <flux:heading size="lg" class="flex items-center gap-2">
                                     <flux:icon.building-storefront variant="micro" class="text-zinc-400" />
-                                    Informasi Vendor
+                                    Informasi Mitra
                                 </flux:heading>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="space-y-1">
                                         <flux:input wire:model.blur="vendor_name" 
                                             x-on:input="vendorName = $event.target.value"
-                                            label="Nama Vendor" required
+                                            label="Nama Mitra" required
                                             maxlength="100" placeholder="Contoh: Pawtner Pet Grooming"
                                             icon="building-storefront" />
                                         
@@ -234,12 +234,12 @@ new class extends Component {
                                         </div>
                                     </div>
 
-                                    <flux:input wire:model.blur="contact" x-model="f.contact" label="Kontak Vendor"
+                                    <flux:input wire:model.blur="contact" x-model="f.contact" label="Kontak Mitra"
                                         required minlength="10" maxlength="13" placeholder="08xxxxxxxxxx"
                                         icon="phone" />
                                 </div>
 
-                                <flux:input wire:model.blur="email_vendor" x-model="f.email_vendor" label="Email Vendor"
+                                <flux:input wire:model.blur="email_vendor" x-model="f.email_vendor" label="Email Mitra"
                                     required type="email" placeholder="example@vendor.com" icon="envelope" />
 
                                 <flux:textarea wire:model.blur="address" label="Alamat" rows="3" required
@@ -247,7 +247,7 @@ new class extends Component {
                                     description="Alamat lengkap memudahkan pelanggan menemukan lokasi Anda" />
 
                                 <flux:textarea wire:model.blur="description" label="Deskripsi (Opsional)" rows="3"
-                                    placeholder="Ceritakan keunggulan layanan, jam operasional, atau spesialisasi vendor Anda" />
+                                    placeholder="Ceritakan keunggulan layanan, jam operasional, atau spesialisasi mitra Anda" />
                             </div>
 
                             {{-- Langkah 2: Informasi Pemilik & Akun --}}
@@ -270,14 +270,14 @@ new class extends Component {
                                 </div>
 
                                 <p x-show="phoneConflict" x-cloak class="text-sm text-red-600">
-                                    Nomor telepon pemilik tidak boleh sama dengan kontak vendor.
+                                    Nomor telepon pemilik tidak boleh sama dengan kontak mitra.
                                 </p>
 
                                 <flux:input wire:model.blur="email" x-model="f.email" type="email" label="Email"
                                     required placeholder="email@example.com" icon="envelope" autocomplete="email" />
 
                                 <p x-show="emailConflict" x-cloak class="text-sm text-red-600">
-                                    Email pemilik tidak boleh sama dengan email vendor.
+                                    Email pemilik tidak boleh sama dengan email mitra.
                                 </p>
 
                                 <flux:input wire:model.blur="password" type="password" label="Password" required
@@ -300,13 +300,13 @@ new class extends Component {
                                     class="rounded-lg border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 overflow-hidden">
                                     <div class="p-4 space-y-3">
                                         <div class="flex items-center justify-between">
-                                            <flux:text class="font-medium">Informasi Vendor</flux:text>
+                                            <flux:text class="font-medium">Informasi Mitra</flux:text>
                                             <flux:link href="#" x-on:click.prevent="step = 1" variant="subtle"
                                                 class="text-sm">Ubah</flux:link>
                                         </div>
                                         <dl class="space-y-2">
                                             <div class="grid grid-cols-3 gap-4">
-                                                <dt class="text-sm text-zinc-500 col-span-1">Nama Vendor</dt>
+                                                <dt class="text-sm text-zinc-500 col-span-1">Nama Mitra</dt>
                                                 <dd class="text-sm text-zinc-800 dark:text-zinc-100 col-span-2">
                                                     {{ $vendor_name ?: '-' }}</dd>
                                             </div>
@@ -316,7 +316,7 @@ new class extends Component {
                                                     {{ $contact ?: '-' }}</dd>
                                             </div>
                                             <div class="grid grid-cols-3 gap-4">
-                                                <dt class="text-sm text-zinc-500 col-span-1">Vendor Email</dt>
+                                                <dt class="text-sm text-zinc-500 col-span-1">Email Mitra</dt>
                                                 <dd class="text-sm text-zinc-800 dark:text-zinc-100 col-span-2">
                                                     {{ $email_vendor ?: '-' }}</dd>
                                             </div>

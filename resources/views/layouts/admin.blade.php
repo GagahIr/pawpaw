@@ -37,7 +37,7 @@
                             <template x-if="logoSrc">
                                 <img
                                     :src="logoSrc"
-                                    alt="Vendor Logo"
+                                    alt="Mitra Logo"
                                     class="absolute inset-0 h-full w-full object-cover"
                                 />
                             </template>
@@ -59,9 +59,9 @@
 
                 <flux:sidebar.nav>
                     <flux:sidebar.item icon="squares-2x2" href="{{ route('vendor.admin.dashboard') }}" :current="request()->routeIs('vendor.admin.dashboard')">Dashboard</flux:sidebar.item>
-                    <flux:sidebar.item icon="cog-6-tooth" href="{{ route('vendor.admin.operations') }}" :current="request()->routeIs('vendor.admin.operations*')">Vendor Operations</flux:sidebar.item>
-                    <flux:sidebar.item icon="rectangle-stack" href="{{ route('vendor.admin.services') }}" :current="request()->routeIs('vendor.admin.services*')">Vendor Services</flux:sidebar.item>
-                    <flux:sidebar.item icon="building-storefront" href="{{ route('vendor.admin.profile.profile-vendor') }}" :current="request()->routeIs('vendor.admin.profile*')">Profile Vendor</flux:sidebar.item>
+                    <flux:sidebar.item icon="cog-6-tooth" href="{{ route('vendor.admin.operations') }}" :current="request()->routeIs('vendor.admin.operations*')">Mitra Operations</flux:sidebar.item>
+                    <flux:sidebar.item icon="rectangle-stack" href="{{ route('vendor.admin.services') }}" :current="request()->routeIs('vendor.admin.services*')">Mitra Services</flux:sidebar.item>
+                    <flux:sidebar.item icon="building-storefront" href="{{ route('vendor.admin.profile.profile-vendor') }}" :current="request()->routeIs('vendor.admin.profile*')">Profile Mitra</flux:sidebar.item>
                     <flux:sidebar.item icon="user-group" href="{{ route('vendor.admin.manage_staff') }}" :current="request()->routeIs('vendor.admin.manage_staff*')">Manage Staff</flux:sidebar.item>
                 </flux:sidebar.nav>
 
@@ -80,16 +80,16 @@
                 @php
                     $breadcrumbs = match(true) {
                         request()->routeIs('vendor.admin.dashboard')              => [['label' => 'Dashboard']],
-                        request()->routeIs('vendor.admin.operations')             => [['label' => 'Vendor Operations']],
-                        request()->routeIs('vendor.admin.services.manage')        => [['label' => 'Vendor Services', 'href' => route('vendor.admin.services')], ['label' => 'Kelola Layanan']],
-                        request()->routeIs('vendor.admin.services')               => [['label' => 'Vendor Services']],
-                        request()->routeIs('vendor.admin.profile.profile-vendor') => [['label' => 'Profile Vendor']],
+                        request()->routeIs('vendor.admin.operations')             => [['label' => 'Mitra Operations']],
+                        request()->routeIs('vendor.admin.services.manage')        => [['label' => 'Mitra Services', 'href' => route('vendor.admin.services')], ['label' => 'Kelola Layanan']],
+                        request()->routeIs('vendor.admin.services')               => [['label' => 'Mitra Services']],
+                        request()->routeIs('vendor.admin.profile.profile-vendor') => [['label' => 'Profile Mitra']],
                         request()->routeIs('vendor.admin.manage_staff')           => [['label' => 'Manage Staff']],
                         default                                                   => [['label' => 'Dashboard']],
                     };
                 @endphp
                 <flux:breadcrumbs class="max-sm:hidden">
-                    <flux:breadcrumbs.item href="{{ route('vendor.admin.dashboard') }}">Vendor Portal</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item href="{{ route('vendor.admin.dashboard') }}">Mitra Portal</flux:breadcrumbs.item>
                     @foreach ($breadcrumbs as $crumb)
                         @if (isset($crumb['href']))
                             <flux:breadcrumbs.item href="{{ $crumb['href'] }}">{{ $crumb['label'] }}</flux:breadcrumbs.item>

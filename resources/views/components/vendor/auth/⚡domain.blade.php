@@ -7,7 +7,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new #[Layout('layouts.app')] class extends Component {
-    #[Validate('required', message: 'Nama vendor wajib diisi.')]
+    #[Validate('required', message: 'Nama mitra wajib diisi.')]
     public string $vendor_name = '';
 
     /**
@@ -103,10 +103,10 @@ new #[Layout('layouts.app')] class extends Component {
                     <form wire:submit="submit" class="space-y-5">
                         <div>
                             <flux:input wire:model.live.debounce.150ms="vendor_name"
-                                label="Nama Vendor"
+                                label="Nama Mitra"
                                 type="text"
                                 icon="building-storefront"
-                                placeholder="Masukkan nama vendor (contoh: klinik-gagah)"
+                                placeholder="Masukkan nama mitra (contoh: klinik-gagah)"
                                 autofocus
                                 autocomplete="off" />
 
@@ -127,7 +127,7 @@ new #[Layout('layouts.app')] class extends Component {
                     Klinik Anda belum terdaftar?
                     <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium"
                         href="{{ route('vendor.register') }}">
-                        Daftar sebagai Vendor
+                        Daftar sebagai Mitra
                     </flux:link>
                 </flux:text>
             </div>
