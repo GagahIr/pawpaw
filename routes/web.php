@@ -21,6 +21,8 @@ Route::domain($domain)->group(function () {
     Route::livewire('/client-dashboard', 'client.dashboard.dashboard')->middleware(['auth:client', EnsureClient::class])->name('client.dashboard');
     Route::livewire('/clinic', 'client.list_clinic.list-clinic2')->middleware('auth:client', EnsureClient::class)->name('client.clinic');
     Route::livewire('/vendor/{slug}', 'client.vendor_detail.vendor-detail')->middleware('auth:client', EnsureClient::class)->name('client.vendor.detail');
+    Route::livewire('/profile', 'client.profile_client.profile-client')->middleware(['auth:client', EnsureClient::class])->name('client.profile');
+    Route::redirect('/akun/profil', '/profile');
 });
 
 Route::domain('{subdomain}.' . $domain)
