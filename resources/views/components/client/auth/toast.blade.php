@@ -4,6 +4,7 @@
         ?? session('client_registered')
         ?? session('client_logged_in')
         ?? session('client_password_reset_success')
+        ?? session('vendor_password_reset_success')
         ?? session('client_register_notice');
 @endphp
 

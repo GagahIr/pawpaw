@@ -134,7 +134,7 @@ new #[Layout('layouts.app')] class extends Component {
                         <div class="flex items-center justify-between">
                             <flux:checkbox wire:model="remember" label="Ingat saya" />
 
-                            <flux:link href="#" class="text-sm !text-[#1a5c40] dark:!text-[#25825a] font-medium">
+                            <flux:link href="{{ route('vendor.password.request') }}" class="text-sm !text-[#1a5c40] dark:!text-[#25825a] font-medium">
                                 Lupa password?
                             </flux:link>
                         </div>
