@@ -79,7 +79,7 @@ class ClientLoginTest extends TestCase
         $this->assertNotSame($oldSession, session()->getId());
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseCount('user_clients', 1);
-        $this->assertNull($user->fresh()->userClient?->remember_token);
+        $this->assertNull($user->fresh()->remember_token);
         $this->withoutVite()->get(route('client.dashboard'))->assertOk()->assertSee(SystemMessage::CLIENT_LOGIN_SUCCESS->value);
     }
 
@@ -167,7 +167,7 @@ class ClientLoginTest extends TestCase
         $user = $this->user();
         $this->form(['remember' => true])->call('login')->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
-        $this->assertNotEmpty($user->fresh()->userClient?->remember_token);
+        $this->assertNotEmpty($user->fresh()->remember_token);
 
         $guard = Auth::guard();
         $cookieName = $guard->getRecallerName();
@@ -215,7 +215,7 @@ class ClientLoginTest extends TestCase
         $this->assertTrue($cookie->isHttpOnly());
         $this->assertGreaterThan(now()->addDays(29)->timestamp, $cookie->getExpiresTime());
 
-        $this->post(route('logout'))->assertRedirect('/');
+        $this->post(route('client.logout'))->assertRedirect('/');
         $this->assertGuest();
         Livewire::withCookie('pawpaw_client_identifier', $cookie->getValue())
             ->test('client.auth.login')->assertSet('identifier', 'amanda@example.com')
@@ -227,7 +227,7 @@ class ClientLoginTest extends TestCase
         $this->user();
         $this->form(['identifier' => '(0812) 3456-7890', 'remember' => true])->call('login')->assertHasNoErrors();
         $this->assertSame('081234567890', Cookie::queued('pawpaw_client_identifier')->getValue());
-        $this->post(route('logout'));
+        $this->post(route('client.logout'));
         $this->form(['remember' => false])->call('login')->assertHasNoErrors();
         $cookie = Cookie::queued('pawpaw_client_identifier');
         $this->assertLessThan(now()->timestamp, $cookie->getExpiresTime());

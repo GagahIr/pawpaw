@@ -63,7 +63,7 @@ new #[Layout('layouts.client')] class extends Component {
                         Buka di Google Maps
                     </a>
                 @endif --}}
-                <a href="{{ route("landing_page") }}">
+                <a href="{{ route('client.clinic.booking', $vendor->slug) }}">
                     <flux:button variant="primary">Reservasi Sekarang</flux:button>
                 </a>
             </div>

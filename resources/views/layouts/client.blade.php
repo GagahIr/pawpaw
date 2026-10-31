@@ -10,7 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#FFF8F5]">
+<body class="bg-[#FFF]">
 
     <div>
         <flux:header container
@@ -21,9 +21,17 @@
             {{-- <flux:brand href="#" logo="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Acme Bank"
                 class="max-lg:hidden! hidden dark:flex" /> --}}
             <flux:navbar class="max-lg:hidden">
-                <flux:navbar.item href="{{ route('client.clinic') }}" current>Klinik</flux:navbar.item>
+                <flux:navbar.item href="{{ route('client.clinic') }}"
+                    :current="request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking')">
+                    Klinik
+                </flux:navbar.item>
+                <flux:navbar.item href="{{ route('client.my-bookings') }}"
+                    :current="request()->routeIs('client.my-bookings')">
+                    Reservasi saya
+                </flux:navbar.item>
                 {{-- <flux:navbar.item href="#">Transfers</flux:navbar.item> --}}
-                <flux:navbar.item href="#">Riwayat</flux:navbar.item>
+                <flux:navbar.item href="{{ route('client.history') }}"
+                    :current="request()->routeIs('client.history')">Riwayat</flux:navbar.item>
                 {{-- <flux:navbar.item href="#">Statements</flux:navbar.item> --}}
             </flux:navbar>
             <flux:spacer />
@@ -34,12 +42,12 @@
                 @php
                     $clientUser = auth()->user();
                     $clientAvatar = $clientUser?->avatar ? asset('storage/' . $clientUser->avatar) : null;
-                    $clientUsername = $clientUser?->username ?? $clientUser?->name ?? 'User';
+                    $clientUsername = $clientUser?->username ?? ($clientUser?->name ?? 'User');
                     $clientInitials = null;
-                    if ($clientUser && ! $clientAvatar) {
+                    if ($clientUser && !$clientAvatar) {
                         $nameParts = explode(' ', trim($clientUser->name ?? ''));
                         $clientInitials = strtoupper(substr($nameParts[0] ?? '', 0, 1));
-                        if (isset($nameParts[1]) && ! empty($nameParts[1])) {
+                        if (isset($nameParts[1]) && !empty($nameParts[1])) {
                             $clientInitials .= strtoupper(substr($nameParts[1], 0, 1));
                         }
                     }
@@ -80,9 +88,17 @@
                 <flux:sidebar.collapse />
             </flux:sidebar.header>
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="wallet" href="{{ route('client.clinic') }}" current>Klinik</flux:sidebar.item>
+                <flux:sidebar.item icon="wallet" href="{{ route('client.clinic') }}"
+                    :current="request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking')">
+                    Klinik
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="wallet" href="{{ route('client.my-bookings') }}"
+                    :current="request()->routeIs('client.my-bookings')">
+                    Reservasi saya
+                </flux:sidebar.item>
                 {{-- <flux:sidebar.item icon="arrows-right-left" href="#">Transfers</flux:sidebar.item> --}}
-                <flux:sidebar.item icon="calendar-days" href="#">Riwayat</flux:sidebar.item>
+                <flux:sidebar.item icon="calendar-days" href="{{ route('client.history') }}"
+                    :current="request()->routeIs('client.history')">Riwayat</flux:sidebar.item>
                 {{-- <flux:sidebar.item icon="document-text" href="#">Statements</flux:sidebar.item> --}}
             </flux:sidebar.nav>
             <flux:sidebar.spacer />
