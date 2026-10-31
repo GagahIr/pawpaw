@@ -324,14 +324,6 @@ new #[Layout('layouts::admin')] class extends Component {
                         <span>Informasi pribadi</span>
                     </a>
 
-                    <a href="#keamanan-akun"
-                        @click="activeSection = 'security'"
-                        :class="activeSection === 'security' ? 'bg-[#EAF1EC] text-[#1B3C2A] font-semibold' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 font-medium'"
-                        class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition cursor-pointer">
-                        <flux:icon icon="shield-check" class="size-5" />
-                        <span>Keamanan akun</span>
-                    </a>
-
                     <form method="POST" action="{{ route('vendor.admin.logout') }}">
                         @csrf
                         <button type="submit"
