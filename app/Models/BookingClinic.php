@@ -48,9 +48,9 @@ class BookingClinic extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('vendor', function (Builder $query) {
-            if (app('vendor.context')->check()) {
-                $query->whereHas('vendorServiceItem');
+        static::addGlobalScope('vendor', function (Builder $query): void {
+            if ($vendorId = app('vendor.context')->id()) {
+                $query->whereHas('vendorServiceItem.vendorService', fn (Builder $query) => $query->where('vendor_id', $vendorId));
             }
         });
     }
