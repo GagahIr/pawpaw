@@ -16,6 +16,7 @@
 
 import { HSStaticMethods } from "preline/non-auto";
 import './pawpaw-animations';
+import flatpickr from "flatpickr";
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid';
 
 if (document.readyState === "loading") {
