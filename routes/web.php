@@ -35,6 +35,8 @@ Route::domain('{subdomain}.'.$domain)
 
         Route::middleware('guest:vendor')->group(function () {
             Route::livewire('/login', 'vendor.auth.login')->name('login');
+            Route::livewire('/forgot-password', 'vendor.auth.forgot-password')->name('password.request');
+            Route::livewire('/reset-password/{token}', 'vendor.auth.reset-password')->name('password.reset');
         });
 
         Route::middleware(['auth:vendor', EnsureVendorStaff::class])->group(function () {
