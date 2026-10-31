@@ -44,6 +44,7 @@ Route::domain('{subdomain}.'.$domain)
             Route::livewire('/admin/services/{categoryServiceId}/manage', 'vendor.services.manage-service')->name('admin.services.manage');
             Route::livewire('/admin/profile-vendor', 'vendor.profile_vendor.profile-vendor')->name('admin.profile.profile-vendor');
             Route::livewire('/admin/manage-staff', 'vendor.manage_staff.manage')->name('admin.manage_staff');
+            Route::livewire('/admin/my-profile', 'vendor.owner_profile.owner-profile')->name('admin.my_profile');
 
             Route::post('/logout', function (Request $request) {
                 Auth::guard('vendor')->logout();
