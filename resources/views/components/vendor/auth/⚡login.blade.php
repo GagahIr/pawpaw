@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,12 @@ new #[Layout('layouts.app')] class extends Component {
 
     public function mount(): void
     {
+        $email = request()->cookie('pawpaw_vendor_identifier');
+        if (is_string($email) && $email !== '' && strlen($email) <= 255) {
+            $this->email = $email;
+            $this->remember = true;
+        }
+
         if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             $this->retryAfter = RateLimiter::availableIn($this->throttleKey());
         }
@@ -59,6 +66,12 @@ new #[Layout('layouts.app')] class extends Component {
 
         RateLimiter::clear($this->throttleKey());
         session()->regenerate();
+
+        if ($this->remember) {
+            Cookie::queue('pawpaw_vendor_identifier', $this->email, 60 * 24 * 30);
+        } else {
+            Cookie::queue(Cookie::forget('pawpaw_vendor_identifier'));
+        }
 
         return $this->redirectIntended(route('vendor.admin.dashboard'));
     }

@@ -71,7 +71,7 @@ return [
             'model' => env('AUTH_MODEL', User::class),
         ],
         'vendors' => [
-            'driver' => 'eloquent',
+            'driver' => 'vendor-aware-eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
     ],
