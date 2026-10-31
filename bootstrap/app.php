@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [ConfigureClientSession::class]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {
+            if ($request->routeIs('super_admin.*')) {
+                return route('super_admin.login');
+            }
+
             if ($request->routeIs('vendor.*')) {
                 return route('vendor.login', [
                     'subdomain' => $request->route('subdomain')
@@ -28,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->redirectUsersTo(function (Request $request): string {
+            if ($request->routeIs('super_admin.*')) {
+                return route('super_admin.dashboard');
+            }
+
             if ($request->routeIs('vendor.*')) {
                 $subdomain = $request->route('subdomain')
                     ?? Str::before($request->getHost(), '.'.config('app.domain'));
