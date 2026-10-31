@@ -116,7 +116,7 @@
                         ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
                         ->implode('') ?: 'P';
                 @endphp
-                <flux:dropdown position="top" align="start">
+                <flux:dropdown position="bottom" align="end">
                     <button type="button" aria-label="Account menu"
                         x-data="{ avatarUrl: @js($accountAvatarUrl) }"
                         x-on:owner-avatar-updated.window="avatarUrl = $event.detail.url"
@@ -131,24 +131,16 @@
 
                     <flux:menu>
                         <flux:menu.radio.group>
-                            <flux:menu.radio checked>{{ $accountUser->name }}</flux:menu.radio>
+                            <flux:menu.radio>{{ $accountUser->username ?? $accountUser->name }}</flux:menu.radio>
                         </flux:menu.radio.group>
-
                         <flux:menu.separator />
-
-                        <flux:menu.item href="{{ route('vendor.admin.my_profile') }}" icon="user">
-                            Profil Saya
+                        <flux:menu.item icon="user" href="{{ route('vendor.admin.my_profile') }}">Profil Saya</flux:menu.item>
+                        <flux:menu.item>
+                            <form method="POST" action="{{ route('vendor.admin.logout') }}">
+                                @csrf
+                                <flux:button type="submit" class="w-full" variant="primary">Logout</flux:button>
+                            </form>
                         </flux:menu.item>
-
-                        <flux:menu.separator />
-
-                        <form method="POST" action="{{ route('vendor.admin.logout') }}">
-                            @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle">
-                                Logout
-                            </flux:menu.item>
-                        </form>
-
                     </flux:menu>
                 </flux:dropdown>
             </flux:header>
