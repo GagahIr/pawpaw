@@ -85,6 +85,7 @@
                         request()->routeIs('vendor.admin.services')               => [['label' => 'Mitra Services']],
                         request()->routeIs('vendor.admin.profile.profile-vendor') => [['label' => 'Profile Mitra']],
                         request()->routeIs('vendor.admin.manage_staff')           => [['label' => 'Manage Staff']],
+                        request()->routeIs('vendor.admin.my_profile')             => [['label' => 'Profil Saya']],
                         default                                                   => [['label' => 'Dashboard']],
                     };
                 @endphp
@@ -106,23 +107,40 @@
                     <flux:navbar.item icon="bell" href="#" label="Notifications" aria-label="Notifications" />
                 </flux:navbar>
 
-                <flux:dropdown position="top" align="start">
-                    <flux:profile avatar="https://fluxui.dev/img/demo/user.png" aria-label="Account menu" />
+                @php
+                    $accountUser = auth()->user();
+                    $accountAvatarUrl = $accountUser->avatar ? \Illuminate\Support\Facades\Storage::url($accountUser->avatar) : '';
+                    $accountInitials = collect(explode(' ', trim($accountUser->name)))
+                        ->filter()
+                        ->take(2)
+                        ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
+                        ->implode('') ?: 'P';
+                @endphp
+                <flux:dropdown position="bottom" align="end">
+                    <button type="button" aria-label="Account menu"
+                        x-data="{ avatarUrl: @js($accountAvatarUrl) }"
+                        x-on:owner-avatar-updated.window="avatarUrl = $event.detail.url"
+                        class="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[#FCECE5] text-xs font-bold text-[#1B3C2A] cursor-pointer">
+                        <template x-if="avatarUrl">
+                            <img x-bind:src="avatarUrl" alt="{{ $accountUser->name }}" class="size-full object-cover" />
+                        </template>
+                        <template x-if="!avatarUrl">
+                            <span>{{ $accountInitials }}</span>
+                        </template>
+                    </button>
 
                     <flux:menu>
                         <flux:menu.radio.group>
-                            <flux:menu.radio checked>{{ auth()->user()->name }}</flux:menu.radio>
+                            <flux:menu.radio>{{ $accountUser->username ?? $accountUser->name }}</flux:menu.radio>
                         </flux:menu.radio.group>
-
                         <flux:menu.separator />
-
-                        <form method="POST" action="{{ route('vendor.admin.logout') }}">
-                            @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle">
-                                Logout
-                            </flux:menu.item>
-                        </form>
-
+                        <flux:menu.item icon="user" href="{{ route('vendor.admin.my_profile') }}">Profil Saya</flux:menu.item>
+                        <flux:menu.item>
+                            <form method="POST" action="{{ route('vendor.admin.logout') }}">
+                                @csrf
+                                <flux:button type="submit" class="w-full" variant="primary">Logout</flux:button>
+                            </form>
+                        </flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
             </flux:header>

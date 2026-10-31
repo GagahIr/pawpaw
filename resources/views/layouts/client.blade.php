@@ -44,7 +44,17 @@
                         }
                     }
                 @endphp
-                <flux:profile :avatar="$clientAvatar" :initials="$clientInitials" aria-label="Account menu" />
+                <button type="button" aria-label="Account menu"
+                    x-data="{ avatarUrl: @js($clientAvatar ?? '') }"
+                    x-on:client-avatar-updated.window="avatarUrl = $event.detail.url"
+                    class="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[#FCECE5] text-xs font-bold text-[#1B3C2A] cursor-pointer">
+                    <template x-if="avatarUrl">
+                        <img x-bind:src="avatarUrl" alt="{{ $clientUsername }}" class="size-full object-cover" />
+                    </template>
+                    <template x-if="!avatarUrl">
+                        <span>{{ $clientInitials ?: 'P' }}</span>
+                    </template>
+                </button>
                 <flux:menu>
                     <flux:menu.radio.group>
                         <flux:menu.radio>{{ $clientUsername }}</flux:menu.radio>
