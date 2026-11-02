@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\GoogleLoginController;
+use App\Http\Controllers\EmailChangeController;
 use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureVendorStaff;
@@ -17,6 +18,10 @@ Route::get('/', function () {
 $domain = config('app.domain');
 
 Route::domain($domain)->group(function () {
+    Route::get('/account/email-change/{user}/{token}', [EmailChangeController::class, 'show'])
+        ->middleware('throttle:20,1')->name('account.email-change.show');
+    Route::post('/account/email-change/{user}/{token}', [EmailChangeController::class, 'confirm'])
+        ->middleware('throttle:10,1')->name('account.email-change.confirm');
     Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
     Route::livewire('/vendor-domain', 'vendor.auth.domain')->name('vendor.domain');

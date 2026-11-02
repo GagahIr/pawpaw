@@ -7,7 +7,10 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
-/tests
+/tests/*
+!/tests/Feature/
+/tests/Feature/*
+!/tests/Feature/EmailChangeTest.php
 /.cursor/
 /.idea
 /.nova

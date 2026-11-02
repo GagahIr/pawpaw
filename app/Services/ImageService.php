@@ -5,12 +5,17 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Format;
+use Intervention\Image\ImageManager;
 
 class ImageService
 {
+    public function delete(string $path): void
+    {
+        Storage::disk('public')->delete($path);
+    }
+
     public function uploadAndConvertToWebp(UploadedFile $file, string $folder, int $quality = 80): string
     {
         $manager = ImageManager::usingDriver(Driver::class);
@@ -19,7 +24,7 @@ class ImageService
 
         $encodedImage = $image->encodeUsingFormat(Format::WEBP, $quality);
 
-        $filename = $folder . '/' . Str::random(40) . '.webp';
+        $filename = $folder.'/'.Str::random(40).'.webp';
 
         Storage::disk('public')->put($filename, (string) $encodedImage);
 

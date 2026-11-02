@@ -10,8 +10,11 @@ use App\Models\VendorStaff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class OwnerProfileTest extends TestCase
@@ -25,11 +28,13 @@ class OwnerProfileTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Notification::fake();
 
         config(['app.key' => 'base64:'.base64_encode(str_repeat('a', 32)), 'app.domain' => 'localhost']);
 
         $this->vendor = Vendor::factory()->create();
         app('vendor.context')->set($this->vendor);
+        URL::defaults(['subdomain' => $this->vendor->slug]);
 
         $this->owner = $this->staff('owner', StaffPosition::Owner, [
             'name' => 'Drh. Rani Pratiwi',
@@ -57,7 +62,7 @@ class OwnerProfileTest extends TestCase
         return $user;
     }
 
-    private function component()
+    private function profileComponent()
     {
         return Livewire::actingAs($this->owner, 'vendor')->test('vendor.owner_profile.owner-profile');
     }
@@ -85,7 +90,7 @@ class OwnerProfileTest extends TestCase
 
     public function test_form_is_prefilled_with_owner_data(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->assertSet('formData.name', 'Drh. Rani Pratiwi')
             ->assertSet('formData.username', 'rani')
             ->assertSet('formData.email', 'rani@klinik.test')
@@ -97,12 +102,13 @@ class OwnerProfileTest extends TestCase
 
     public function test_owner_can_update_profile_information(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->call('startEditing')
             ->set('formData.name', 'Rani Pratiwi Putri')
             ->set('formData.username', 'Rani_Putri')
             ->set('formData.email', 'RANI.BARU@klinik.test')
-            ->set('formData.phone_number', '0812 3456 7891')
+            ->set('formData.phone_number', '081234567891')
+            ->set('emailChangePassword', 'password-lama')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('isEditing', false);
@@ -111,13 +117,14 @@ class OwnerProfileTest extends TestCase
 
         $this->assertSame('Rani Pratiwi Putri', $this->owner->name);
         $this->assertSame('rani_putri', $this->owner->username);
-        $this->assertSame('rani.baru@klinik.test', $this->owner->email);
+        $this->assertSame('rani@klinik.test', $this->owner->email);
+        $this->assertSame('rani.baru@klinik.test', $this->owner->pending_email);
         $this->assertSame('081234567891', $this->owner->phone_number);
     }
 
     public function test_username_is_optional(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->set('formData.username', '')
             ->call('save')
             ->assertHasNoErrors();
@@ -127,7 +134,7 @@ class OwnerProfileTest extends TestCase
 
     public function test_required_fields_are_validated(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->set('formData.name', '')
             ->set('formData.email', 'bukan-email')
             ->set('formData.phone_number', '123')
@@ -145,7 +152,7 @@ class OwnerProfileTest extends TestCase
             'phone_number' => '089999999999',
         ]);
 
-        $this->component()
+        $this->profileComponent()
             ->set('formData.email', 'fo@klinik.test')
             ->set('formData.username', 'frontoffice')
             ->set('formData.phone_number', '089999999999')
@@ -157,7 +164,7 @@ class OwnerProfileTest extends TestCase
     {
         $this->vendor->update(['email' => 'rani@klinik.test']);
 
-        $this->component()
+        $this->profileComponent()
             ->set('formData.name', 'Nama Baru Owner')
             ->call('save')
             ->assertHasNoErrors();
@@ -170,7 +177,7 @@ class OwnerProfileTest extends TestCase
         $other = Vendor::factory()->create(['email' => 'lain@mitra.test']);
         $this->assertNotSame($other->id, $this->vendor->id);
 
-        $this->component()
+        $this->profileComponent()
             ->set('formData.email', 'lain@mitra.test')
             ->call('save')
             ->assertHasErrors(['formData.email']);
@@ -178,7 +185,7 @@ class OwnerProfileTest extends TestCase
 
     public function test_cancel_editing_restores_original_values(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->call('startEditing')
             ->set('formData.name', 'Nama Sementara')
             ->call('cancelEditing')
@@ -190,7 +197,7 @@ class OwnerProfileTest extends TestCase
     {
         Storage::fake('public');
 
-        $this->component()
+        $this->profileComponent()
             ->set('avatar', UploadedFile::fake()->image('foto.png', 200, 200))
             ->assertHasNoErrors()
             ->call('save')
@@ -206,14 +213,14 @@ class OwnerProfileTest extends TestCase
     {
         Storage::fake('public');
 
-        $this->component()
+        $this->profileComponent()
             ->set('avatar', UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'))
             ->assertHasErrors(['avatar']);
     }
 
     public function test_owner_can_change_password(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->call('startChangingPassword')
             ->set('currentPassword', 'password-lama')
             ->set('newPassword', 'password-baru-123')
@@ -227,7 +234,7 @@ class OwnerProfileTest extends TestCase
 
     public function test_password_change_rejects_wrong_current_password(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->set('currentPassword', 'salah-total')
             ->set('newPassword', 'password-baru-123')
             ->set('newPasswordConfirmation', 'password-baru-123')
@@ -239,11 +246,87 @@ class OwnerProfileTest extends TestCase
 
     public function test_password_change_requires_matching_confirmation_and_minimum_length(): void
     {
-        $this->component()
+        $this->profileComponent()
             ->set('currentPassword', 'password-lama')
             ->set('newPassword', 'pendek')
             ->set('newPasswordConfirmation', 'beda')
             ->call('updatePassword')
             ->assertHasErrors(['newPassword', 'newPasswordConfirmation']);
+    }
+
+    public function test_owner_profile_has_one_action_pair_in_each_section_header(): void
+    {
+        $page = $this->profileComponent()->call('startEditing')->call('startChangingPassword');
+        $html = $page->html();
+        $this->assertSame(1, substr_count($html, 'wire:click="cancelEditing"'));
+        $this->assertSame(1, substr_count($html, 'wire:click="cancelChangingPassword"'));
+        $this->assertStringContainsString('form="owner-profile-form"', $html);
+        $this->assertStringContainsString('form="owner-password-form"', $html);
+    }
+
+    public function test_owner_password_remains_available_for_resending_email(): void
+    {
+        $page = $this->profileComponent()->call('startEditing')->set('formData.email', 'baru@owner.test')
+            ->set('emailChangePassword', 'password-lama')->call('save')->assertHasNoErrors()
+            ->assertSet('emailChangePassword', 'password-lama');
+        $this->travel(61)->seconds();
+        $page->call('resendEmailChange')->assertHasNoErrors()->assertSet('emailChangePassword', 'password-lama');
+        $page->call('cancelEmailChange')->assertHasNoErrors()->assertSet('emailChangePassword', '');
+    }
+
+    public function test_owner_pending_email_notice_uses_full_width_and_restores_countdown(): void
+    {
+        $this->freezeTime();
+        $this->profileComponent()->set('formData.email', 'baru@owner.test')
+            ->set('emailChangePassword', 'password-lama')->call('save')->assertHasNoErrors()
+            ->assertSee('data-email-change-countdown="60"', false);
+        $this->travel(30)->seconds();
+        $this->owner->refresh();
+        $this->profileComponent()->assertSee('data-email-change-countdown="30"', false);
+        $html = $this->profileComponent()->html();
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $this->assertSame(0, $xpath->query('//div[@data-email-change-countdown]/ancestor::div[contains(@class, "sm:grid-cols-2")]')->length);
+    }
+
+    public static function invalidPhones(): array
+    {
+        return [
+            'empty' => [''],
+            'letters' => ['abcdefgh'],
+            'short' => ['1234567'],
+            'long' => ['1234567890123456'],
+            'prefix' => ['+62812345678'],
+            'spaces' => ['0812 3456 7891'],
+        ];
+    }
+
+    #[DataProvider('invalidPhones')]
+    public function test_owner_phone_requires_eight_to_fifteen_digits(string $phone): void
+    {
+        $this->profileComponent()->set('formData.phone_number', $phone)->call('save')
+            ->assertHasErrors(['formData.phone_number']);
+        $this->assertSame('081234567890', $this->owner->fresh()->phone_number);
+    }
+
+    public function test_owner_phone_accepts_eight_and_fifteen_digits(): void
+    {
+        foreach (['12345678', '123456789012345'] as $phone) {
+            $this->profileComponent()->set('formData.phone_number', $phone)->call('save')->assertHasNoErrors();
+            $this->assertSame($phone, $this->owner->fresh()->phone_number);
+        }
+    }
+
+    public function test_owner_password_navigation_preserves_draft_and_exposes_accessible_fields(): void
+    {
+        $this->profileComponent()->set('formData.email', 'baru@owner.test')
+            ->call('startChangingPassword')->assertSet('isChangingPassword', true)
+            ->assertSet('formData.email', 'baru@owner.test')
+            ->assertDispatched('owner-password-form-opened')
+            ->assertSee('for="owner-current-password"', false)
+            ->assertSee('id="owner-current-password"', false)
+            ->assertSee('id="owner-new-password"', false)
+            ->assertSee('id="owner-password-confirmation"', false);
     }
 }
