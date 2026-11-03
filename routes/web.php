@@ -11,10 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('landing_page.pages.home');
-})->name('landing_page');
-
 $domain = config('app.domain');
 
 Route::domain($domain)->group(function () {
