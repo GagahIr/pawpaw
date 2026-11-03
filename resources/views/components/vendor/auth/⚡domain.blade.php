@@ -33,7 +33,7 @@ new #[Layout('layouts.app')] class extends Component {
         $slug = Str::slug($cleaned);
 
         if (empty($slug)) {
-            $this->addError('vendor_name', 'Format nama vendor tidak valid.');
+            $this->addError('vendor_name', 'Domain mitra tidak ditemukan');
 
             return null;
         }
@@ -43,15 +43,17 @@ new #[Layout('layouts.app')] class extends Component {
                 ->orWhereRaw('LOWER(name) = ?', [strtolower($cleaned)])
                 ->orWhere('name', $cleaned)
                 ->first();
-
-            if ($vendor) {
-                $slug = $vendor->slug;
-            }
         } catch (\Throwable) {
-            // Keep derived slug if database query fails
+            $vendor = null;
         }
 
-        $url = route('vendor.login', ['subdomain' => $slug]);
+        if (! $vendor) {
+            $this->addError('vendor_name', 'Domain mitra tidak ditemukan');
+
+            return null;
+        }
+
+        $url = route('vendor.login', ['subdomain' => $vendor->slug]);
 
         return redirect()->away($url);
     }
