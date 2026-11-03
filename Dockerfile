@@ -18,7 +18,9 @@ RUN npm run build
 # ---- Stage 3: aplikasi (PHP-FPM) ----
 FROM php:8.4-fpm-alpine AS app
 RUN apk add --no-cache postgresql-dev libzip-dev icu-dev \
- && docker-php-ext-install pdo_pgsql opcache zip intl bcmath
+      freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+ && docker-php-ext-install -j"$(nproc)" pdo_pgsql opcache zip intl bcmath gd
 RUN printf 'upload_max_filesize=20M\npost_max_size=25M\nmemory_limit=256M\n' > /usr/local/etc/php/conf.d/uploads.ini
 WORKDIR /var/www/html
 COPY . .
