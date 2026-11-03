@@ -41,7 +41,8 @@ class ClientPasswordResetTest extends TestCase
         ], $overrides));
 
         if ($roleName === 'client') {
-            UserClient::create(['user_id' => $user->id])->forceFill(['remember_token' => 'old-remember-token'])->save();
+            UserClient::create(['user_id' => $user->id]);
+            $user->forceFill(['remember_token' => 'old-remember-token'])->save();
         }
 
         return $user;
@@ -162,7 +163,7 @@ class ClientPasswordResetTest extends TestCase
             ->assertRedirect(route('client.login'));
         $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
         $this->assertFalse(Hash::check('password123', $user->fresh()->password));
-        $this->assertNotSame('old-remember-token', $user->fresh()->userClient?->remember_token);
+        $this->assertNotSame('old-remember-token', $user->fresh()->remember_token);
         $this->assertDatabaseCount('password_reset_tokens', 0);
         $this->assertDatabaseMissing('sessions', ['id' => 'old-client-session']);
         $this->assertDatabaseHas('sessions', ['id' => 'guest-session']);

@@ -113,7 +113,7 @@ class ClientGoogleRegistrationTest extends TestCase
         Role::create(['name' => 'client']);
         $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
         $user = User::where('email', 'amanda@gmail.com')->firstOrFail();
-        $this->post(route('logout'))->assertRedirect('/');
+        $this->post(route('client.logout'))->assertRedirect('/');
         Livewire::test('client.auth.login')->set('identifier', $user->email)->set('password', 'password123')
             ->call('login')->assertHasErrors(['identifier'])->assertSet('errorMessage', '');
         $this->assertGuest();
@@ -121,7 +121,7 @@ class ClientGoogleRegistrationTest extends TestCase
             'state' => 'login-state', 'verifier' => str_repeat('b', 64), 'started_at' => now()->timestamp,
         ]])->get(route('client.google.callback', ['state' => 'login-state', 'code' => 'new-code']))->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
-        $this->post(route('logout'))->assertRedirect('/');
+        $this->post(route('client.logout'))->assertRedirect('/');
         Livewire::test('client.auth.reset-password', ['token' => Password::createToken($user)])
             ->set('email', $user->email)->set('password', 'newpassword123')->set('password_confirmation', 'newpassword123')
             ->call('resetPassword')->assertHasNoErrors()->assertRedirect(route('client.login'));
@@ -160,7 +160,7 @@ class ClientGoogleRegistrationTest extends TestCase
     {
         Role::create(['name' => 'client']);
         $this->verifyGoogle()->assertRedirect(route('client.dashboard'));
-        $this->post(route('logout'))->assertRedirect('/');
+        $this->post(route('client.logout'))->assertRedirect('/');
         $this->verifyGoogle(['sub' => 'second-google-id', 'email' => 'second@gmail.com'])->assertRedirect(route('client.dashboard'));
         $this->assertSame(2, User::whereNull('phone_number')->whereNull('password')->count());
     }

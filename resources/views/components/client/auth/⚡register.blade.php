@@ -46,9 +46,9 @@ new class extends Component {
         return [
             'name' => ['required', 'string', 'min:4', 'max:100'],
             'username' => ['required', 'string', 'min:5', 'max:50', 'alpha_dash:ascii', 'unique:users,username'],
-            'phone_number' => ['required', 'string', 'min:10', 'max:15', 'regex:/\A\+?[0-9]{10,20}\z/', 'unique:users,phone_number', 'unique:vendors,contact'],
+            'phone_number' => ['required', 'string', 'min:10', 'max:15', 'regex:/\A[0-9]{10,15}\z/', 'unique:users,phone_number', 'unique:vendors,contact'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email', 'unique:vendors,email'],
-            'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed', function (string $attribute, mixed $value, \Closure $fail) {
+            'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (strlen($value) > 72) {
                     $fail('Password terlalu panjang. Maksimal 72 byte; emoji atau huruf beraksen dapat memakai lebih dari satu byte.');
                 }
@@ -67,7 +67,9 @@ new class extends Component {
             'max' => ':attribute maksimal :max karakter.',
             'unique' => ':attribute sudah digunakan.',
             'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
-            'phone_number.regex' => 'Nomor telepon harus berisi minimal 10 angka, dengan tanda + hanya di awal jika diperlukan.',
+            'phone_number.min' => 'Nomor telepon minimal 10 digit.',
+            'phone_number.max' => 'Nomor telepon maksimal 15 digit.',
+            'phone_number.regex' => 'Nomor telepon hanya boleh berisi 10–15 digit angka.',
             'email.email' => 'Format email tidak valid.',
             'password.confirmed' => 'Konfirmasi password harus sama dengan password.',
             'password_confirmation.same' => 'Konfirmasi password harus sama dengan password.',
@@ -87,7 +89,7 @@ new class extends Component {
         ];
     }
 
-    public function register(RegisterClientAction $action)
+    public function register(RegisterClientAction $action): ?RedirectResponse
     {
         $this->errorMessage = '';
         $this->username = strtolower(trim($this->username));
@@ -95,6 +97,7 @@ new class extends Component {
         $this->name = trim($this->name);
         $this->phone_number = preg_replace('/[\s()-]+/', '', trim($this->phone_number));
         try {
+            $action->recordRegistrationAttempt((string) request()->ip());
             $this->validate();
         } catch (ValidationException $e) {
             Flux::toast($e->validator->errors()->first(), variant: 'danger');
@@ -112,12 +115,16 @@ new class extends Component {
 
         try {
             $action->execute($data);
+        } catch (ValidationException $e) {
+            Flux::toast($e->validator->errors()->first(), variant: 'danger');
+
+            throw $e;
         } catch (\Throwable $e) {
             report($e);
             $this->errorMessage = SystemMessage::ERROR_SYSTEM->value;
             Flux::toast($this->errorMessage, variant: 'danger');
 
-            return;
+            return null;
         }
 
         session()->forget('google_client_registration');
@@ -153,7 +160,7 @@ new class extends Component {
                             <flux:callout variant="danger" icon="x-circle" heading="{{ $errorMessage }}" />
                         @endif
                         <form class="space-y-8"
-                            wire:submit.prevent="register">
+                            wire:submit.prevent="register" novalidate>
                             <div class="space-y-5">
                                 <header class="flex items-center gap-3">
                                     <div
@@ -195,7 +202,8 @@ new class extends Component {
                                         icon="at-symbol" autocomplete="username" />
 
                                     <flux:input id="client-phone" name="phone_number" wire:model.blur="phone_number"
-                                        type="tel" label="No. WhatsApp/Telepon" required minlength="10" maxlength="20" placeholder="08xxxxxxxxxx"
+                                        type="tel" inputmode="numeric" label="No. WhatsApp/Telepon" required minlength="10" maxlength="15" placeholder="08xxxxxxxxxx"
+                                        x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 15)"
                                         icon="device-phone-mobile" autocomplete="tel" />
                                 </div>
 

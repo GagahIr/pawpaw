@@ -47,7 +47,7 @@ new #[Layout('layouts.client')] class extends Component {
         ];
 
         if (filled($this->formData['phone_number'])) {
-            $rules['formData.phone_number'] = ['string', 'min:8', 'max:15', 'regex:/\A[0-9]{8,15}\z/', 'unique:users,phone_number,' . $userId, 'unique:vendors,contact'];
+            $rules['formData.phone_number'] = ['string', 'min:10', 'max:15', 'regex:/\A[0-9]{10,15}\z/', 'unique:users,phone_number,' . $userId, 'unique:vendors,contact'];
         } else {
             $rules['formData.phone_number'] = ['nullable'];
         }
@@ -74,9 +74,9 @@ new #[Layout('layouts.client')] class extends Component {
             'formData.email.email' => 'Format email tidak valid',
             'formData.email.unique' => 'Email sudah terdaftar',
             'formData.phone_number.string' => 'Nomor WhatsApp / telepon harus berupa teks',
-            'formData.phone_number.min' => 'Nomor WhatsApp / telepon minimal 8 digit',
+            'formData.phone_number.min' => 'Nomor WhatsApp / telepon minimal 10 digit',
             'formData.phone_number.max' => 'Nomor WhatsApp / telepon maksimal 15 digit',
-            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon hanya boleh berisi 8–15 digit angka',
+            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon hanya boleh berisi 10–15 digit angka',
             'formData.phone_number.unique' => 'Nomor WhatsApp / telepon sudah terdaftar',
             'avatar.image' => 'File harus berupa gambar',
             'avatar.mimes' => 'Format gambar harus JPEG, PNG, atau WebP',
@@ -426,7 +426,7 @@ new #[Layout('layouts.client')] class extends Component {
                                 <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                     Nomor WhatsApp / telepon
                                 </label>
-                                <input type="tel" inputmode="numeric" maxlength="15" wire:model.blur="formData.phone_number"
+                                <input type="tel" inputmode="numeric" minlength="10" maxlength="15" wire:model.blur="formData.phone_number"
                                     x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 15)"
                                     @disabled(! $isEditing)
                                     placeholder="0812 3456 7890"

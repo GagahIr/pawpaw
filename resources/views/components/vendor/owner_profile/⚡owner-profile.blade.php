@@ -47,7 +47,7 @@ new #[Layout('layouts::admin')] class extends Component {
             'formData.name' => ['required', 'string', 'min:3', 'max:100'],
             'formData.username' => ['nullable', 'string', 'min:4', 'max:50', 'alpha_dash:ascii', Rule::unique('users', 'username')->ignore($userId)],
             'formData.email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId), Rule::unique('vendors', 'email')->ignore($vendorId)],
-            'formData.phone_number' => ['required', 'string', 'min:8', 'max:15', 'regex:/\A[0-9]{8,15}\z/', Rule::unique('users', 'phone_number')->ignore($userId), Rule::unique('vendors', 'contact')->ignore($vendorId)],
+            'formData.phone_number' => ['required', 'string', 'min:10', 'max:15', 'regex:/\A[0-9]{10,15}\z/', Rule::unique('users', 'phone_number')->ignore($userId), Rule::unique('vendors', 'contact')->ignore($vendorId)],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
@@ -71,9 +71,9 @@ new #[Layout('layouts::admin')] class extends Component {
             'formData.email.unique' => 'Email sudah terdaftar',
             'formData.phone_number.string' => 'Nomor WhatsApp / telepon harus berupa teks',
             'formData.phone_number.required' => 'Nomor WhatsApp / telepon harus diisi',
-            'formData.phone_number.min' => 'Nomor WhatsApp / telepon minimal 8 digit',
+            'formData.phone_number.min' => 'Nomor WhatsApp / telepon minimal 10 digit',
             'formData.phone_number.max' => 'Nomor WhatsApp / telepon maksimal 15 digit',
-            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon hanya boleh berisi 8–15 digit angka',
+            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon hanya boleh berisi 10–15 digit angka',
             'formData.phone_number.unique' => 'Nomor WhatsApp / telepon sudah terdaftar',
             'avatar.image' => 'File harus berupa gambar',
             'avatar.mimes' => 'Format gambar harus JPEG, PNG, atau WebP',
@@ -396,7 +396,7 @@ new #[Layout('layouts::admin')] class extends Component {
                                 <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                     Nomor WhatsApp / telepon <span class="text-red-500">*</span>
                                 </label>
-                                <input type="tel" inputmode="numeric" maxlength="15" wire:model.blur="formData.phone_number"
+                                <input type="tel" inputmode="numeric" minlength="10" maxlength="15" wire:model.blur="formData.phone_number"
                                     x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 15)"
                                     @disabled(! $isEditing)
                                     placeholder="0812 3456 7890"

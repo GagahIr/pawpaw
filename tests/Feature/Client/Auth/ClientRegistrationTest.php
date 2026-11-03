@@ -2,18 +2,73 @@
 
 namespace Tests\Feature\Client\Auth;
 
+use App\Actions\Client\RegisterClientAction;
+use App\DTOs\RegisterClientData;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserClient;
 use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ClientRegistrationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public static function phoneBoundaries(): array
+    {
+        return ['nine' => ['123456789', false], 'ten' => ['1234567890', true], 'fifteen' => ['123456789012345', true], 'sixteen' => ['1234567890123456', false], 'plus' => ['+628123456789', false]];
+    }
+
+    #[DataProvider('phoneBoundaries')]
+    public function test_phone_numbers_must_have_ten_to_fifteen_digits(string $phone, bool $valid): void
+    {
+        $form = $this->form(['phone_number' => $phone])->call('register');
+        if ($valid) {
+            $form->assertHasNoErrors()->assertRedirect(route('client.dashboard'));
+            $this->assertDatabaseHas('users', ['phone_number' => $phone]);
+        } else {
+            $form->assertHasErrors(['phone_number']);
+            $this->assertDatabaseCount('users', 0);
+        }
+    }
+
+    public function test_registration_is_throttled_and_recovers_after_one_minute(): void
+    {
+        $this->freezeTime();
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            Livewire::test('client.auth.register')->call('register')->assertHasErrors(['name']);
+        }
+        $this->form()->call('register')->assertHasErrors(['email'])
+            ->assertSee('Terlalu banyak percobaan pendaftaran.');
+        $this->assertDatabaseCount('users', 0);
+        $this->travel(61)->seconds();
+        $this->form()->call('register')->assertHasNoErrors();
+        $this->assertDatabaseCount('users', 1);
+    }
+
+    public function test_duplicate_identifiers_are_rejected_by_the_action_without_partial_registration(): void
+    {
+        User::factory()->create(['username' => 'amandadealova', 'email' => 'amanda@example.com',
+            'phone_number' => '081234567890', 'role_id' => Role::firstOrFail()->id]);
+        try {
+            app(RegisterClientAction::class)->execute(new RegisterClientData(
+                'Amanda Dealova', 'amandadealova', '081234567890', 'amanda@example.com', 'password123',
+            ));
+            $this->fail('Duplicate identifiers must be rejected.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('email', $exception->errors());
+            $this->assertArrayHasKey('username', $exception->errors());
+            $this->assertArrayHasKey('phone_number', $exception->errors());
+        }
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('user_clients', 0);
+        $this->assertGuest('client');
+    }
 
     protected function setUp(): void
     {
@@ -160,7 +215,7 @@ class ClientRegistrationTest extends TestCase
             ->assertSee('Logout')->assertDontSee('Daftar Pelanggan')->assertDontSee('Daftar Mitra');
 
         $this->withSession(['logout_test_marker' => 'old session'])
-            ->post(route('logout'))->assertRedirect('/')
+            ->post(route('client.logout'))->assertRedirect('/')
             ->assertSessionMissing('logout_test_marker');
         $this->assertGuest();
         $this->withoutVite()->get(route('client.register'))->assertOk();
@@ -168,7 +223,7 @@ class ClientRegistrationTest extends TestCase
 
     public function test_guests_are_redirected_to_client_login_when_attempting_logout(): void
     {
-        $this->post(route('logout'))->assertRedirect(route('client.login'));
+        $this->post(route('client.logout'))->assertRedirect(route('client.login'));
         $this->assertGuest();
     }
 

@@ -98,6 +98,15 @@ class ClientProfileTest extends TestCase
         $this->assertNull($this->client->refresh()->phone_number);
     }
 
+    public function test_existing_short_phone_is_preserved_until_the_client_corrects_it(): void
+    {
+        $this->client->update(['phone_number' => '12345678']);
+        $this->profileComponent()->set('formData.name', 'Updated Client Name')->call('save')
+            ->assertHasErrors(['formData.phone_number']);
+        $this->assertSame('12345678', $this->client->fresh()->phone_number);
+        $this->assertNotSame('Updated Client Name', $this->client->fresh()->name);
+    }
+
     public function test_required_fields_are_validated(): void
     {
         $this->profileComponent()
@@ -224,6 +233,8 @@ class ClientProfileTest extends TestCase
     {
         return [
             'letters' => ['abcdefgh'],
+            'eight digits' => ['12345678'],
+            'nine digits' => ['123456789'],
             'too short' => ['1234567'],
             'zero' => ['0'],
             'too long' => ['1234567890123456'],
@@ -240,9 +251,9 @@ class ClientProfileTest extends TestCase
         $this->assertSame('081234567890', $this->client->fresh()->phone_number);
     }
 
-    public function test_client_profile_005_accepts_eight_and_fifteen_digits(): void
+    public function test_client_profile_005_accepts_ten_and_fifteen_digits(): void
     {
-        foreach (['12345678', '123456789012345'] as $phone) {
+        foreach (['1234567890', '123456789012345'] as $phone) {
             $this->profileComponent()->set('formData.phone_number', $phone)->call('save')->assertHasNoErrors();
             $this->assertSame($phone, $this->client->fresh()->phone_number);
         }

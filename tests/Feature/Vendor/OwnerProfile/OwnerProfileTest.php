@@ -295,6 +295,8 @@ class OwnerProfileTest extends TestCase
         return [
             'empty' => [''],
             'letters' => ['abcdefgh'],
+            'eight digits' => ['12345678'],
+            'nine digits' => ['123456789'],
             'short' => ['1234567'],
             'long' => ['1234567890123456'],
             'prefix' => ['+62812345678'],
@@ -303,19 +305,28 @@ class OwnerProfileTest extends TestCase
     }
 
     #[DataProvider('invalidPhones')]
-    public function test_owner_phone_requires_eight_to_fifteen_digits(string $phone): void
+    public function test_owner_phone_requires_ten_to_fifteen_digits(string $phone): void
     {
         $this->profileComponent()->set('formData.phone_number', $phone)->call('save')
             ->assertHasErrors(['formData.phone_number']);
         $this->assertSame('081234567890', $this->owner->fresh()->phone_number);
     }
 
-    public function test_owner_phone_accepts_eight_and_fifteen_digits(): void
+    public function test_owner_phone_accepts_ten_and_fifteen_digits(): void
     {
-        foreach (['12345678', '123456789012345'] as $phone) {
+        foreach (['1234567890', '123456789012345'] as $phone) {
             $this->profileComponent()->set('formData.phone_number', $phone)->call('save')->assertHasNoErrors();
             $this->assertSame($phone, $this->owner->fresh()->phone_number);
         }
+    }
+
+    public function test_existing_short_phone_is_preserved_until_the_owner_corrects_it(): void
+    {
+        $this->owner->update(['phone_number' => '123456789']);
+        $this->profileComponent()->set('formData.name', 'Updated Owner Name')->call('save')
+            ->assertHasErrors(['formData.phone_number']);
+        $this->assertSame('123456789', $this->owner->fresh()->phone_number);
+        $this->assertNotSame('Updated Owner Name', $this->owner->fresh()->name);
     }
 
     public function test_owner_password_navigation_preserves_draft_and_exposes_accessible_fields(): void

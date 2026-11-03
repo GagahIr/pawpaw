@@ -11,6 +11,7 @@
 !/tests/Feature/
 /tests/Feature/*
 !/tests/Feature/EmailChangeTest.php
+!/tests/Feature/AuthenticationSessionTest.php
 /.cursor/
 /.idea
 /.nova
