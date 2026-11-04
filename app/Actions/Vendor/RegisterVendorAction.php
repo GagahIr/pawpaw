@@ -3,6 +3,7 @@
 namespace App\Actions\Vendor;
 
 use App\DTOs\RegisterVendorData;
+use App\Enums\DayOfWeek;
 use App\Enums\StaffPosition;
 use App\Enums\VendorSubscriptionStatus;
 use App\Enums\VendorVerificationStatus;
@@ -10,6 +11,7 @@ use App\Models\CategoryService;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorOperatingHour;
 use App\Models\VendorService;
 use App\Models\VendorStaff;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,10 @@ use Illuminate\Support\Str;
 
 class RegisterVendorAction
 {
+    private const DEFAULT_OPEN_TIME = '09:00:00';
+
+    private const DEFAULT_CLOSE_TIME = '17:00:00';
+
     public function execute(RegisterVendorData $data): Vendor
     {
         return DB::transaction(function () use ($data) {
@@ -62,6 +68,16 @@ class RegisterVendorAction
                     'vendor_id' => $vendor->id,
                     'category_service_id' => $categoryService->id,
                     'status_service' => false,
+                ]);
+            }
+
+            foreach (DayOfWeek::cases() as $day) {
+                VendorOperatingHour::create([
+                    'vendor_id' => $vendor->id,
+                    'day_of_week' => $day,
+                    'open_time' => self::DEFAULT_OPEN_TIME,
+                    'close_time' => self::DEFAULT_CLOSE_TIME,
+                    'is_closed' => false,
                 ]);
             }
 
