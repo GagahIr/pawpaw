@@ -35,7 +35,7 @@ new #[Layout('layouts.app')] class extends Component {
             return;
         }
 
-        Flux::toast('Jika email terdaftar sebagai mitra, tautan reset password akan dikirim. Periksa email Anda.', variant: 'success');
+        Flux::toast('Jika email terdaftar sebagai pemilik mitra, tautan reset password akan dikirim. Periksa email Anda.', variant: 'success');
     }
 };
 ?>
@@ -52,7 +52,7 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <div class="text-center">
                     <flux:heading size="xl" level="1">Lupa Password?</flux:heading>
-                    <flux:subheading>Masukkan email akun mitra untuk menerima tautan reset password.</flux:subheading>
+                    <flux:subheading>Masukkan email pemilik mitra untuk menerima tautan reset password.</flux:subheading>
                 </div>
 
                 <flux:card class="space-y-6">
