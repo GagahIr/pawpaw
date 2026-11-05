@@ -27,15 +27,15 @@
                 @guest
                 <a href="{{ route('client.login') }}"
                     class="py-2.5 px-3.5 text-sm font-medium text-gray-700 hover:text-[#EE6D52]">
-                    Masuk
+                    Masuk Pelanggan
                 </a>
-                <a href="{{ route('client.register') }}"
+                {{-- <a href="{{ route('client.register') }}"
                     class="py-2.5 px-3.5 lg:px-5 text-sm font-medium text-gray-700 hover:text-[#EE6D52] hover:bg-white/60 rounded-full transition-all whitespace-nowrap">
                     Daftar Pelanggan
-                </a>
+                </a> --}}
                 <a href="{{ route('vendor.register') }}"
                     class="py-2.5 lg:py-3 px-4 lg:px-6 inline-flex justify-center items-center text-sm font-medium rounded-full border border-transparent bg-[#EE6D52] text-white hover:bg-[#d95b42] focus:outline-none focus:bg-[#d95b42] transition-colors shadow-xs whitespace-nowrap">
-                    Daftar Mitra
+                    Gabung Jadi Mitra
                 </a>
                 @endguest
             </div>
