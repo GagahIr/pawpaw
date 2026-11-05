@@ -3,11 +3,15 @@
 namespace App\Providers;
 
 use App\Http\Middleware\ResolveVendor;
+use App\Services\ClientSessionGuard;
 use App\Services\ClientUserProvider;
 use App\Services\VendorUserProvider;
 use App\Supports\VendorContext;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -26,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Auth::extend('client-session', fn (Application $app, string $name, array $config): ClientSessionGuard => ClientSessionGuard::create($app, $name, $config));
+
+        URL::defaults(['sessionContext' => 'site']);
+        Livewire::setUpdateRoute(fn (array $handle, string $path): RoutingRoute => Route::post($path.'/{sessionContext}', $handle)
+            ->where('sessionContext', 'site|super-admin'));
+
         Auth::provider('client-aware-eloquent', fn (Application $app, array $config): ClientUserProvider => new ClientUserProvider($app['hash'], $config['model']));
 
         Auth::provider('vendor-aware-eloquent', fn (Application $app, array $config): VendorUserProvider => new VendorUserProvider($app['hash'], $config['model']));

@@ -2,12 +2,15 @@
 
 use App\Actions\Admin\OwnerProfile\OwnerProfileAction;
 use App\Enums\StaffPosition;
+use App\Actions\Account\CancelEmailChangeAction;
+use App\Actions\Account\ResendEmailChangeAction;
+use App\Actions\Account\UpdatePasswordAction;
+use App\DTOs\UpdatePasswordData;
+use App\DTOs\UpdateProfileData;
 use App\Enums\SystemMessage;
 use App\Models\User;
-use App\Services\ImageService;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -29,6 +32,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public string $currentPassword = '';
 
+    public string $emailChangePassword = '';
+
     public string $newPassword = '';
 
     public string $newPasswordConfirmation = '';
@@ -42,7 +47,7 @@ new #[Layout('layouts::admin')] class extends Component {
             'formData.name' => ['required', 'string', 'min:3', 'max:100'],
             'formData.username' => ['nullable', 'string', 'min:4', 'max:50', 'alpha_dash:ascii', Rule::unique('users', 'username')->ignore($userId)],
             'formData.email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId), Rule::unique('vendors', 'email')->ignore($vendorId)],
-            'formData.phone_number' => ['required', 'string', 'min:10', 'max:20', 'regex:/\A\+?[0-9]{10,20}\z/', Rule::unique('users', 'phone_number')->ignore($userId), Rule::unique('vendors', 'contact')->ignore($vendorId)],
+            'formData.phone_number' => ['required', 'string', 'min:10', 'max:15', 'regex:/\A[0-9]{10,15}\z/', Rule::unique('users', 'phone_number')->ignore($userId), Rule::unique('vendors', 'contact')->ignore($vendorId)],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
@@ -50,20 +55,25 @@ new #[Layout('layouts::admin')] class extends Component {
     public function messages(): array
     {
         return [
+            'formData.name.string' => 'Nama lengkap harus berupa teks',
             'formData.name.required' => 'Nama lengkap harus diisi',
             'formData.name.min' => 'Nama lengkap minimal 3 karakter',
             'formData.name.max' => 'Nama lengkap maksimal 100 karakter',
+            'formData.username.string' => 'Username harus berupa teks',
             'formData.username.min' => 'Username minimal 4 karakter',
             'formData.username.max' => 'Username maksimal 50 karakter',
             'formData.username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_)',
             'formData.username.unique' => 'Username sudah digunakan',
+            'formData.email.string' => 'Email harus berupa teks',
             'formData.email.required' => 'Email harus diisi',
             'formData.email.email' => 'Format email tidak valid',
+            'formData.email.max' => 'Email maksimal 255 karakter',
             'formData.email.unique' => 'Email sudah terdaftar',
+            'formData.phone_number.string' => 'Nomor WhatsApp / telepon harus berupa teks',
             'formData.phone_number.required' => 'Nomor WhatsApp / telepon harus diisi',
             'formData.phone_number.min' => 'Nomor WhatsApp / telepon minimal 10 digit',
-            'formData.phone_number.max' => 'Nomor WhatsApp / telepon maksimal 20 digit',
-            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon harus berisi 10-20 digit angka, dapat diawali +',
+            'formData.phone_number.max' => 'Nomor WhatsApp / telepon maksimal 15 digit',
+            'formData.phone_number.regex' => 'Nomor WhatsApp / telepon hanya boleh berisi 10–15 digit angka',
             'formData.phone_number.unique' => 'Nomor WhatsApp / telepon sudah terdaftar',
             'avatar.image' => 'File harus berupa gambar',
             'avatar.mimes' => 'Format gambar harus JPEG, PNG, atau WebP',
@@ -74,6 +84,7 @@ new #[Layout('layouts::admin')] class extends Component {
     public function mount(): void
     {
         $this->user = Auth::guard('vendor')->user();
+        abort_unless($this->user?->canManageProfile(app('vendor.context')->id()), 403);
         $this->fillFormData();
     }
 
@@ -101,13 +112,15 @@ new #[Layout('layouts::admin')] class extends Component {
     public function cancelEditing(): void
     {
         $this->avatar = null;
+        $this->emailChangePassword = '';
         $this->fillFormData();
         $this->resetErrorBag();
         $this->isEditing = false;
     }
 
-    public function save(OwnerProfileAction $action, ImageService $imageService): void
+    public function save(OwnerProfileAction $action): void
     {
+        $this->formData['email'] = strtolower(trim($this->formData['email']));
         $this->validate();
 
         $data = [
@@ -116,18 +129,25 @@ new #[Layout('layouts::admin')] class extends Component {
                 ? strtolower(trim($this->formData['username']))
                 : null,
             'email' => strtolower(trim($this->formData['email'])),
-            'phone_number' => preg_replace('/[\s()-]+/', '', trim($this->formData['phone_number'])),
+            'phone_number' => $this->formData['phone_number'],
         ];
 
-        if ($this->avatar) {
-            if ($this->user->avatar) {
-                Storage::disk('public')->delete($this->user->avatar);
-            }
-
-            $data['avatar'] = $imageService->uploadAndConvertToWebp($this->avatar, 'avatars');
+        if ($data['email'] !== $this->user->email && blank($this->user->password)) {
+            $this->startChangingPassword();
+            $this->addError('formData.email', 'Buat kata sandi PawPaw di bagian Keamanan Akun terlebih dahulu sebelum mengganti email.');
+            Flux::toast('Buat kata sandi PawPaw terlebih dahulu sebelum mengganti email.', variant: 'warning');
+            return;
         }
 
-        $this->user = $action->execute($this->user, $data);
+        $this->user = $action->execute($this->user, new UpdateProfileData(
+            name: $data['name'],
+            username: $data['username'],
+            email: $data['email'],
+            phoneNumber: $data['phone_number'],
+            emailChangePassword: $this->emailChangePassword,
+            avatar: $this->avatar,
+            vendorId: app('vendor.context')->id(),
+        ));
         $this->avatar = null;
         $this->fillFormData();
         $this->isEditing = false;
@@ -135,7 +155,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $newAvatarUrl = $this->user->avatar ? Storage::url($this->user->avatar) : '';
         $this->js("window.dispatchEvent(new CustomEvent('owner-avatar-updated', { detail: { url: " . json_encode($newAvatarUrl) . " } }))");
 
-        Flux::toast(SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
+        Flux::toast($this->user->pending_email ? 'Profil disimpan. Periksa email baru untuk mengonfirmasi perubahan email.' : SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
     }
 
     public function getInitials(): string
@@ -165,6 +185,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation']);
         $this->resetErrorBag();
         $this->isChangingPassword = true;
+        $this->dispatch('owner-password-form-opened');
     }
 
     public function cancelChangingPassword(): void
@@ -174,71 +195,44 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->isChangingPassword = false;
     }
 
-    public function updatePassword(): void
+    public function updatePassword(UpdatePasswordAction $action): void
     {
-        $hasPassword = ! empty($this->user?->password);
-
-        $rules = [
-            'newPassword' => [
-                'required',
-                'string',
-                'min:8',
-                'max:72',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (strlen($value) > 72) {
-                        $fail('Kata sandi terlalu panjang. Maksimal 72 byte.');
-                    }
-                },
-            ],
-            'newPasswordConfirmation' => ['required', 'string', 'min:8', 'same:newPassword'],
-        ];
-
-        if ($hasPassword) {
-            $rules['currentPassword'] = ['required', 'string'];
-        }
-
-        $messages = [
-            'currentPassword.required' => 'Kata sandi saat ini wajib diisi.',
-            'newPassword.required' => 'Kata sandi baru wajib diisi.',
-            'newPassword.min' => 'Kata sandi baru minimal 8 karakter.',
-            'newPassword.max' => 'Kata sandi baru maksimal 72 karakter.',
-            'newPasswordConfirmation.required' => 'Konfirmasi kata sandi wajib diisi.',
-            'newPasswordConfirmation.same' => 'Konfirmasi kata sandi tidak cocok dengan kata sandi baru.',
-        ];
-
-        $this->validate($rules, $messages, [
-            'currentPassword' => 'Kata sandi saat ini',
-            'newPassword' => 'Kata sandi baru',
-            'newPasswordConfirmation' => 'Konfirmasi kata sandi baru',
-        ]);
-
-        if ($hasPassword) {
-            if (! Hash::check($this->currentPassword, $this->user->password)) {
-                $this->addError('currentPassword', 'Kata sandi saat ini tidak sesuai.');
-
-                return;
-            }
-
-            if (Hash::check($this->newPassword, $this->user->password)) {
-                $this->addError('newPassword', 'Kata sandi baru tidak boleh sama dengan kata sandi saat ini.');
-
-                return;
-            }
-        }
-
-        $this->user->update(['password' => $this->newPassword]);
-
-        $this->user->refresh();
-        $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation']);
+        $action->execute($this->user, new UpdatePasswordData(
+            $this->currentPassword, $this->newPassword, $this->newPasswordConfirmation,
+        ), app('vendor.context')->id());
+        $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation', 'emailChangePassword']);
         $this->resetErrorBag();
         $this->isChangingPassword = false;
-
         Flux::toast('Kata sandi berhasil diperbarui.', variant: 'success');
     }
+
+    public function resendEmailChange(ResendEmailChangeAction $action): void
+    {
+        $action->execute($this->user, $this->emailChangePassword, app('vendor.context')->id());
+        $this->resetErrorBag();
+        Flux::toast('Tautan konfirmasi baru sudah dikirim.', variant: 'success');
+    }
+
+    public function cancelEmailChange(CancelEmailChangeAction $action): void
+    {
+        $action->execute($this->user, app('vendor.context')->id());
+        $this->emailChangePassword = '';
+        $this->resetErrorBag();
+        Flux::toast('Permintaan perubahan email dibatalkan.', variant: 'success');
+    }
+
 };
 ?>
 
-<div class="py-2 sm:py-4">
+<div class="py-2 sm:py-4" x-data
+    x-on:owner-password-form-opened.window="$nextTick(() => {
+        const section = document.getElementById('keamanan-akun');
+        const input = section?.querySelector('[data-password-focus]');
+        if (!section || !input) return;
+        history.replaceState(null, '', '#keamanan-akun');
+        input.focus({ preventScroll: true });
+        section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    })">
     <div class="max-w-5xl mx-auto space-y-6">
 
         <!-- Header -->
@@ -262,7 +256,7 @@ new #[Layout('layouts::admin')] class extends Component {
                 <!-- Avatar Card -->
                 <div class="bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 flex flex-col items-center text-center shadow-sm">
                     <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden flex items-center justify-center">
-                        @if ($avatar)
+                        @if ($avatar && ! $errors->has('avatar'))
                             <img src="{{ $avatar->temporaryUrl() }}" alt="Preview Foto"
                                 class="w-full h-full object-cover" />
                         @elseif ($user?->avatar)
@@ -339,38 +333,26 @@ new #[Layout('layouts::admin')] class extends Component {
             <div class="lg:col-span-8 space-y-6">
                 <!-- Card 1: Informasi pribadi -->
                 <div id="informasi-pribadi" class="scroll-mt-6 bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 shadow-sm">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-200/80">
-                        <div>
-                            <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">
-                                Informasi pribadi
-                            </h2>
-                            <p class="mt-1 text-xs sm:text-sm text-zinc-500">
-                                Data ini dipakai untuk akun login dan kontak pengelola mitra.
-                            </p>
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <flux:icon icon="user" class="size-6 text-[#1B3C2A]" />
+                            <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">Informasi pribadi</h2>
                         </div>
-
-                        <div>
+                        <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-3">
                             @if (! $isEditing)
                                 <button type="button" wire:click="startEditing"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                                    <span>Edit profil</span>
-                                    <flux:icon icon="pencil" class="size-4 text-[#2D5945]" />
-                                </button>
+                                    class="whitespace-nowrap rounded-full border border-[#2D5945] px-5 py-2 text-sm font-semibold text-[#2D5945] hover:bg-[#2D5945]/5">Edit profil</button>
                             @else
-                                <div class="flex items-center gap-2">
-                                    <button type="button" wire:click="cancelEditing"
-                                        class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                        Batal
-                                    </button>
-                                    <button type="submit" form="owner-profile-form"
-                                        class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                        <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
-                                        <span wire:loading wire:target="save">Menyimpan...</span>
-                                    </button>
-                                </div>
+                                <button type="button" wire:click="cancelEditing" class="whitespace-nowrap rounded-full border border-zinc-300 px-5 py-2 text-sm font-semibold text-zinc-700">Batal</button>
+                                <button type="submit" form="owner-profile-form" wire:loading.attr="disabled" wire:target="save"
+                                    class="whitespace-nowrap rounded-full bg-[#1B3C2A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#153022]">
+                                    <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
+                                    <span wire:loading wire:target="save">Menyimpan...</span>
+                                </button>
                             @endif
                         </div>
                     </div>
+                    <p class="text-sm text-zinc-500">Data ini dipakai untuk akun login dan kontak pengelola mitra.</p>
 
                     <form id="owner-profile-form" wire:submit="save" class="mt-6 space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -401,17 +383,21 @@ new #[Layout('layouts::admin')] class extends Component {
                                     Email <span class="text-red-500">*</span>
                                 </label>
                                 <input type="email" wire:model.blur="formData.email"
-                                    @disabled(! $isEditing)
+                                    @disabled(! $isEditing || ! $user->canChangeEmail(app('vendor.context')->id()))
                                     placeholder="owner@klinik.com"
                                     class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
                                 <flux:error name="formData.email" class="mt-1" />
+                                @if ($user->canChangeEmail(app('vendor.context')->id()))
+                                    <x-email-change-controls :user="$user" :is-editing="$isEditing" :show-notice="false" />
+                                @endif
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                     Nomor WhatsApp / telepon <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" wire:model.blur="formData.phone_number"
+                                <input type="tel" inputmode="numeric" minlength="10" maxlength="15" wire:model.blur="formData.phone_number"
+                                    x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 15)"
                                     @disabled(! $isEditing)
                                     placeholder="0812 3456 7890"
                                     class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
@@ -436,66 +422,46 @@ new #[Layout('layouts::admin')] class extends Component {
                             </div>
                         </div>
 
-                        @if ($isEditing)
-                            <div class="pt-4 border-t border-zinc-100 flex justify-end gap-3 sm:hidden">
-                                <button type="button" wire:click="cancelEditing"
-                                    class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                    <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
-                                    <span wire:loading wire:target="save">Menyimpan...</span>
-                                </button>
-                            </div>
+                        @if ($user?->pending_email && $user->canChangeEmail(app('vendor.context')->id()))
+                            <x-email-change-controls :user="$user" :show-password="false" />
                         @endif
                     </form>
                 </div>
 
                 <!-- Card 2: Keamanan Akun -->
                 <div id="keamanan-akun" class="scroll-mt-6 bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 shadow-sm">
-                    <div class="flex items-center gap-2 mb-4">
-                        <flux:icon icon="shield-check" class="size-6 text-[#1B3C2A]" />
-                        <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">
-                            Keamanan akun
-                        </h2>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-semibold text-zinc-800">
-                                Kata sandi
-                            </h3>
-                            <p class="mt-0.5 text-xs sm:text-sm text-zinc-500">
-                                Gunakan kata sandi unik untuk menjaga akunmu tetap aman.
-                            </p>
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <flux:icon icon="shield-check" class="size-6 text-[#1B3C2A]" />
+                            <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">Keamanan akun</h2>
                         </div>
-
-                        <div>
+                        <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-3">
                             @if (! $isChangingPassword)
                                 <button type="button" wire:click="startChangingPassword"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                                    <span>Ubah kata sandi</span>
-                                    <flux:icon icon="lock-closed" class="size-4 text-[#2D5945]" />
+                                    class="whitespace-nowrap rounded-full border border-[#2D5945] px-5 py-2 text-sm font-semibold text-[#2D5945] hover:bg-[#2D5945]/5">
+                                    {{ blank($user?->password) ? 'Buat kata sandi' : 'Ubah kata sandi' }}
                                 </button>
                             @else
-                                <button type="button" wire:click="cancelChangingPassword"
-                                    class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                    Batal
+                                <button type="button" wire:click="cancelChangingPassword" class="whitespace-nowrap rounded-full border border-zinc-300 px-5 py-2 text-sm font-semibold text-zinc-700">Batal</button>
+                                <button type="submit" form="owner-password-form" wire:loading.attr="disabled" wire:target="updatePassword"
+                                    class="whitespace-nowrap rounded-full bg-[#1B3C2A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#153022]">
+                                    <span wire:loading.remove wire:target="updatePassword">Simpan Kata Sandi</span>
+                                    <span wire:loading wire:target="updatePassword">Menyimpan...</span>
                                 </button>
                             @endif
                         </div>
                     </div>
+                    <p class="text-sm text-zinc-500">Gunakan kata sandi unik untuk menjaga akunmu tetap aman.</p>
 
                     @if ($isChangingPassword)
-                        <form wire:submit="updatePassword" class="mt-6 pt-6 border-t border-zinc-100 space-y-4">
+                        <form id="owner-password-form" wire:submit="updatePassword" class="mt-6 pt-6 border-t border-zinc-100 space-y-4">
                             @if (! empty($user?->password))
                                 <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
+                                    <label for="owner-current-password" class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                         Kata sandi saat ini <span class="text-red-500">*</span>
                                     </label>
                                     <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="currentPassword"
+                                        <input id="owner-current-password" data-password-focus autocomplete="current-password" :type="show ? 'text' : 'password'" wire:model.blur="currentPassword"
                                             placeholder="Masukkan kata sandi saat ini"
                                             class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
                                         <button type="button" @click="show = !show"
@@ -515,11 +481,11 @@ new #[Layout('layouts::admin')] class extends Component {
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
+                                    <label for="owner-new-password" class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                         Kata sandi baru <span class="text-red-500">*</span>
                                     </label>
                                     <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="newPassword"
+                                        <input id="owner-new-password" data-password-focus autocomplete="new-password" :type="show ? 'text' : 'password'" wire:model.blur="newPassword"
                                             placeholder="Minimal 8 karakter"
                                             class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
                                         <button type="button" @click="show = !show"
@@ -537,11 +503,11 @@ new #[Layout('layouts::admin')] class extends Component {
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
+                                    <label for="owner-password-confirmation" class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
                                         Konfirmasi kata sandi baru <span class="text-red-500">*</span>
                                     </label>
                                     <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="newPasswordConfirmation"
+                                        <input id="owner-password-confirmation" autocomplete="new-password" :type="show ? 'text' : 'password'" wire:model.blur="newPasswordConfirmation"
                                             placeholder="Ulangi kata sandi baru"
                                             class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
                                         <button type="button" @click="show = !show"
@@ -559,17 +525,6 @@ new #[Layout('layouts::admin')] class extends Component {
                                 </div>
                             </div>
 
-                            <div class="pt-2 flex justify-end gap-3">
-                                <button type="button" wire:click="cancelChangingPassword"
-                                    class="px-5 py-2.5 rounded-full border border-zinc-300 text-zinc-700 hover:bg-zinc-50 text-sm font-semibold transition cursor-pointer">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                    <span wire:loading.remove wire:target="updatePassword">Simpan Kata Sandi</span>
-                                    <span wire:loading wire:target="updatePassword">Menyimpan...</span>
-                                </button>
-                            </div>
                         </form>
                     @endif
 

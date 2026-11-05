@@ -39,6 +39,34 @@ new class extends Component {
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'unique' => ':attribute sudah digunakan.',
+            'email_vendor.email' => 'Format email mitra tidak valid.',
+            'email.email' => 'Format email pemilik tidak valid.',
+        ];
+    }
+
+    protected function validationAttributes(): array
+    {
+        return [
+            'vendor_name' => 'Nama mitra',
+            'address' => 'Alamat',
+            'contact' => 'Nomor kontak mitra',
+            'email_vendor' => 'Email mitra',
+            'email' => 'Email pemilik',
+            'description' => 'Deskripsi',
+            'owner_name' => 'Nama pemilik',
+            'phone_number' => 'Nomor telepon pemilik',
+            'password' => 'Kata sandi',
+        ];
+    }
+
     public function mount()
     {
         if (auth()->check()) {

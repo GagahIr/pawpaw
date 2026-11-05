@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\TestResponse;
@@ -119,12 +120,33 @@ class ClientGoogleLoginTest extends TestCase
 
     public function test_google_login_respects_remember_me(): void
     {
-        $user = $this->user();
+        $user = $this->user(overrides: ['password' => null]);
         $this->fakeGoogle();
         $this->googleCallback(context: ['remember' => true])->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
-        $this->assertNotEmpty($user->fresh()->userClient?->remember_token);
+        $this->assertNotEmpty($user->fresh()->remember_token);
         $this->assertSame('amanda@gmail.com', Cookie::queued('pawpaw_client_identifier')->getValue());
+        $name = Auth::guard('client')->getRecallerName();
+        $cookie = Cookie::queued($name);
+        $this->assertNotNull($cookie);
+        session()->invalidate();
+        Auth::forgetGuards();
+        $this->withCookie($name, $cookie->getValue())->withoutVite()->get(route('client.dashboard'))->assertOk();
+        $this->assertAuthenticatedAs($user, 'client');
+        $this->assertNull($user->fresh()->password);
+    }
+
+    public function test_new_google_identity_keeps_the_existing_automatic_registration_flow(): void
+    {
+        $this->user();
+        $this->fakeGoogle(['email' => 'new-client@gmail.com', 'sub' => 'new-google-id']);
+        $this->googleCallback()->assertRedirect(route('client.dashboard'));
+        $user = User::where('email', 'new-client@gmail.com')->firstOrFail();
+        $this->assertDatabaseCount('users', 2);
+        $this->assertNull($user->password);
+        $this->assertNull($user->phone_number);
+        $this->assertSame('new-google-id', $user->userClient->google_id);
+        $this->assertAuthenticatedAs($user, 'client');
     }
 
     public function test_linked_identity_is_used_after_google_email_changes(): void
@@ -151,7 +173,6 @@ class ClientGoogleLoginTest extends TestCase
             'invalid email' => [['email' => 'invalid']],
             'missing subject' => [['sub' => '']],
             'malformed verification' => [['email_verified' => 'true']],
-            'unknown client' => [['email' => 'unknown@gmail.com']],
             'third party email' => [['email' => 'amanda@example.com']],
         ];
     }
@@ -215,7 +236,7 @@ class ClientGoogleLoginTest extends TestCase
         $this->user();
         $this->fakeGoogle();
         $this->googleCallback()->assertRedirect(route('client.dashboard'));
-        $this->post(route('logout'))->assertRedirect('/');
+        $this->post(route('client.logout'))->assertRedirect('/');
         $this->get(route('client.google.callback', ['state' => 'test-state', 'code' => 'test-code']))
             ->assertRedirect(route('client.login'))->assertSessionHas('client_login_error');
         Http::assertSentCount(2);

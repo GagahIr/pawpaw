@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,14 +22,22 @@ class ConfigureClientSession
             ? Str::before($host, '.'.$domain)
             : null;
         $isVendor = $subdomain !== null;
-        $cookie = $isVendor
-            ? 'pawpaw-vendor-session-'.$subdomain
-            : 'pawpaw-client-session';
+        $isAdmin = $request->is('super-admin', 'super-admin/*')
+            || $request->route('sessionContext') === 'super-admin';
+        abort_if($isAdmin && $isVendor, 404);
+        $guard = $isVendor ? 'vendor' : ($isAdmin ? 'web' : 'client');
+        $cookie = match ($guard) {
+            'vendor' => 'pawpaw-vendor-session-'.$subdomain,
+            'web' => 'pawpaw-super-admin-session',
+            default => 'pawpaw-client-session',
+        };
 
         config([
             'session.cookie' => $cookie,
-            'auth.defaults.guard' => $isVendor ? 'vendor' : 'client',
         ]);
+        app('session')->driver()->setName($cookie);
+        Auth::shouldUse($guard);
+        URL::defaults(['sessionContext' => $isAdmin ? 'super-admin' : 'site']);
 
         return $next($request);
     }
