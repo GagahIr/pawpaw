@@ -5,9 +5,15 @@
 .env.dusk.local
 .env.production
 .phpactor.json
+AGENTS.md
+CLAUDE.md
 .phpunit.result.cache
 /.codex
-/tests
+/tests/*
+!/tests/Feature/
+/tests/Feature/*
+!/tests/Feature/EmailChangeTest.php
+!/tests/Feature/AuthenticationSessionTest.php
 /.cursor/
 /.idea
 /.nova
@@ -27,6 +33,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
 
 # Playwright
 node_modules/

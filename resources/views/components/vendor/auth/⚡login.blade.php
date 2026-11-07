@@ -22,6 +22,15 @@ new #[Layout('layouts.app')] class extends Component {
 
     public int $retryAfter = 0;
 
+    protected function messages(): array
+    {
+        return [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Kata sandi wajib diisi.',
+        ];
+    }
+
     public function mount(): void
     {
         $email = request()->cookie('pawpaw_vendor_identifier');

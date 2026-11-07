@@ -29,7 +29,7 @@ new class extends Component {
     {
         $identifierRules = str_contains($this->identifier, '@')
             ? ['required', 'string', 'email', 'max:255']
-            : ['required', 'string', 'min:10', 'max:15', 'regex:/\A\+?[0-9]{10,20}\z/'];
+            : ['required', 'string', 'min:8', 'max:21', 'regex:/\A\+?[0-9]{8,20}\z/'];
 
         return [
             'identifier' => $identifierRules,
@@ -50,7 +50,7 @@ new class extends Component {
             'min' => ':attribute minimal :min karakter.',
             'max' => ':attribute maksimal :max karakter.',
             'identifier.email' => 'Format email tidak valid.',
-            'identifier.regex' => 'Nomor telepon harus berisi minimal 10 angka, dengan tanda + hanya di awal jika diperlukan.',
+            'identifier.regex' => 'Format nomor telepon tidak valid.',
             'remember.boolean' => 'Pilihan Ingat Saya tidak valid.',
         ];
     }

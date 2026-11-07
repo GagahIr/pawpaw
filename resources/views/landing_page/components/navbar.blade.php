@@ -9,8 +9,8 @@
 
         <div class="flex items-center gap-3 ms-auto lg:ms-0 lg:order-3">
             <div class="hidden sm:flex items-center gap-2 lg:gap-3">
-                @auth
-                    @if (auth()->user()->role?->name === 'client')
+                @auth('client')
+                    @if (auth('client')->user()->role?->name === 'client')
                         <a href="{{ route('client.dashboard') }}"
                             class="py-2.5 px-3.5 text-sm font-medium text-gray-700 hover:text-[#EE6D52]">
                             Dashboard
@@ -24,7 +24,7 @@
                         </button>
                     </form>
                 @endauth
-                @guest
+                @guest('client')
                 <a href="{{ route('client.login') }}"
                     class="py-2.5 px-3.5 text-sm font-medium text-gray-700 hover:text-[#EE6D52]">
                     Masuk Pelanggan

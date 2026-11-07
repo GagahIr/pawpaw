@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\GoogleLoginController;
+use App\Http\Controllers\EmailChangeController;
 use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureVendorStaff;
@@ -12,7 +13,19 @@ use Illuminate\Support\Facades\Route;
 
 $domain = config('app.domain');
 
+if (app()->environment('local', 'testing') && $domain === 'localhost') {
+    Route::domain('127.0.0.1')->get('/{path?}', function (Request $request): RedirectResponse {
+        $port = in_array($request->getPort(), [80, 443], true) ? '' : ':'.$request->getPort();
+
+        return redirect()->away($request->getScheme().'://localhost'.$port.$request->getRequestUri());
+    })->where('path', '.*');
+}
+
 Route::domain($domain)->group(function () {
+    Route::get('/account/email-change/{user}/{token}', [EmailChangeController::class, 'show'])
+        ->middleware('throttle:20,1')->name('account.email-change.show');
+    Route::post('/account/email-change/{user}/{token}', [EmailChangeController::class, 'confirm'])
+        ->middleware('throttle:10,1')->name('account.email-change.confirm');
     Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
     Route::livewire('/vendor-register', 'vendor.register-form')->name('vendor.register');
     Route::livewire('/vendor-domain', 'vendor.auth.domain')->name('vendor.domain');
@@ -86,18 +99,20 @@ Route::domain('{subdomain}.'.$domain)
         });
     });
 
-Route::livewire('/client-register', 'client.auth.register')->middleware('guest:client')->name('client.register');
-Route::livewire('/client-login', 'client.auth.login')->middleware('guest:client')->name('client.login');
-Route::livewire('/client-forgot-password', 'client.auth.forgot-password')->middleware('guest:client')->name('client.password.request');
-Route::livewire('/client-reset-password/{token}', 'client.auth.reset-password')->middleware('guest:client')->name('client.password.reset');
+Route::domain($domain)->group(function (): void {
+    Route::livewire('/client-register', 'client.auth.register')->middleware('guest:client')->name('client.register');
+    Route::livewire('/client-login', 'client.auth.login')->middleware('guest:client')->name('client.login');
+    Route::livewire('/client-forgot-password', 'client.auth.forgot-password')->middleware('guest:client')->name('client.password.request');
+    Route::livewire('/client-reset-password/{token}', 'client.auth.reset-password')->middleware('guest:client')->name('client.password.reset');
 
-Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('guest:client')->name('client.google.redirect');
-Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('guest:client')->name('client.google.callback');
+    Route::get('/auth/google', [GoogleLoginController::class, 'redirect'])->middleware('guest:client')->name('client.google.redirect');
+    Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->middleware('guest:client')->name('client.google.callback');
 
-Route::post('/logout', function (Request $request): RedirectResponse {
-    Auth::guard('client')->logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
+    Route::post('/logout', function (Request $request): RedirectResponse {
+        Auth::guard('client')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-    return redirect('/');
-})->middleware('auth:client')->name('client.logout');
+        return redirect('/');
+    })->middleware('auth:client')->name('client.logout');
+});

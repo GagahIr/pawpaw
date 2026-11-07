@@ -69,7 +69,7 @@ class ClientSessionTest extends TestCase
 
         $response->assertNoContent()->assertCookie(config('session.cookie'))
             ->assertCookieMissing(Auth::guard()->getRecallerName());
-        $this->assertSame(0, $response->getCookie(config('session.cookie'))->getExpiresTime());
+        $this->assertGreaterThan(now()->timestamp, $response->getCookie(config('session.cookie'))->getExpiresTime());
         $this->assertAuthenticatedAs($user);
         $this->assertNull($user->fresh()->userClient->remember_token);
 
@@ -89,7 +89,7 @@ class ClientSessionTest extends TestCase
 
         $recallerName = Auth::guard()->getRecallerName();
         $response->assertNoContent()->assertCookie($recallerName);
-        $this->assertSame(0, $response->getCookie(config('session.cookie'))->getExpiresTime());
+        $this->assertGreaterThan(now()->timestamp, $response->getCookie(config('session.cookie'))->getExpiresTime());
         $this->assertGreaterThan(now()->timestamp, $response->getCookie($recallerName)->getExpiresTime());
         $recaller = $response->getCookie($recallerName)->getValue();
 
@@ -130,7 +130,7 @@ class ClientSessionTest extends TestCase
 
         $response->assertRedirect(route('client.dashboard'));
         $this->assertAuthenticatedAs($user);
-        $this->assertSame(0, $response->getCookie(config('session.cookie'))->getExpiresTime());
+        $this->assertGreaterThan(now()->timestamp, $response->getCookie(config('session.cookie'))->getExpiresTime());
         if ($remember) {
             $response->assertCookie(Auth::guard()->getRecallerName());
             $this->assertGreaterThan(now()->timestamp, $response->getCookie(Auth::guard()->getRecallerName())->getExpiresTime());
@@ -163,7 +163,7 @@ class ClientSessionTest extends TestCase
         $this->assertSame(now()->addMinutes(120)->timestamp, $actual->getExpiresTime());
     }
 
-    public function test_client_request_does_not_change_following_vendor_request_or_global_config(): void
+    public function test_client_and_vendor_hosts_use_separate_session_cookies(): void
     {
         $client = $this->user();
         $vendor = $this->user('owner');
@@ -171,10 +171,11 @@ class ClientSessionTest extends TestCase
         $this->freezeTime();
 
         $clientResponse = $this->actingAs($client)->get('/_tests/session-cookie')->assertNoContent();
-        $vendorResponse = $this->actingAs($vendor)->get('/_tests/session-cookie')->assertNoContent();
+        $vendorResponse = $this->actingAs($vendor)->get('http://clinic.localhost/_tests/session-cookie')->assertNoContent()
+            ->assertCookie('pawpaw-vendor-session-clinic')->assertCookieMissing('pawpaw-client-session');
 
-        $this->assertSame(0, $clientResponse->getCookie(config('session.cookie'))->getExpiresTime());
-        $this->assertSame(now()->addMinutes(120)->timestamp, $vendorResponse->getCookie(config('session.cookie'))->getExpiresTime());
+        $this->assertGreaterThan(now()->timestamp, $clientResponse->getCookie('pawpaw-client-session')->getExpiresTime());
+        $this->assertSame(now()->addMinutes(120)->timestamp, $vendorResponse->getCookie('pawpaw-vendor-session-clinic')->getExpiresTime());
         $this->assertFalse(config('session.expire_on_close'));
     }
 }

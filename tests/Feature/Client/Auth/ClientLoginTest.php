@@ -3,6 +3,7 @@
 namespace Tests\Feature\Client\Auth;
 
 use App\Actions\Client\LoginClientAction;
+use App\DTOs\LoginClientData;
 use App\Enums\SystemMessage;
 use App\Models\Role;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Models\UserClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -97,7 +99,7 @@ class ClientLoginTest extends TestCase
             'invalid email' => [['identifier' => 'amanda@'], 'identifier', 'email'],
             'email too long' => [['identifier' => str_repeat('a', 245).'@example.com'], 'identifier', 'max'],
             'phone too short' => [['identifier' => '08123'], 'identifier', 'min'],
-            'phone too long' => [['identifier' => str_repeat('1', 16)], 'identifier', 'max'],
+            'phone too long' => [['identifier' => str_repeat('1', 22)], 'identifier', 'max'],
             'phone only symbols' => [['identifier' => '++++++++++'], 'identifier', 'regex'],
             'phone contains letters' => [['identifier' => '08abc4567890'], 'identifier', 'regex'],
             'short password' => [['password' => 'short'], 'password', 'min'],
@@ -256,6 +258,24 @@ class ClientLoginTest extends TestCase
         $this->travel(61)->seconds();
         $this->form()->call('login')->assertHasNoErrors();
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_failures_are_isolated_by_identifier_and_ip(): void
+    {
+        $user = $this->user();
+        $action = app(LoginClientAction::class);
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            try {
+                $action->execute(new LoginClientData($user->email, 'wrongpassword'));
+            } catch (ValidationException $exception) {
+                $this->assertArrayHasKey('identifier', $exception->errors());
+            }
+        }
+        $this->form()->call('login')->assertHasErrors(['identifier']);
+        $this->form(['identifier' => $user->phone_number])->call('login')->assertHasNoErrors();
+        Auth::guard('client')->logout();
+        request()->server->set('REMOTE_ADDR', '192.0.2.10');
+        $this->assertTrue($action->execute(new LoginClientData($user->email, 'password123'))->is($user));
     }
 
     public function test_system_failure_shows_generic_toast_and_does_not_login(): void
