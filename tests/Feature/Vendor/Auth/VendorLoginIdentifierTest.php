@@ -194,7 +194,7 @@ class VendorLoginIdentifierTest extends TestCase
             ->call('login')
             ->assertHasNoErrors();
 
-        $cookie = Cookie::getQueuedCookies()['pawpaw_vendor_identifier'] ?? null;
+        $cookie = Cookie::queued('pawpaw_vendor_identifier');
 
         $this->assertNotNull($cookie);
         $this->assertSame('drh_rani', $cookie->getValue());

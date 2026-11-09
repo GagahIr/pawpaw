@@ -11,6 +11,7 @@ use App\Services\VendorUserProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -27,6 +28,7 @@ class VendorRememberMeTest extends TestCase
         config(['app.key' => 'base64:'.base64_encode(str_repeat('a', 32))]);
         $this->vendor = Vendor::factory()->create();
         app('vendor.context')->set($this->vendor);
+        URL::defaults(['subdomain' => $this->vendor->slug]);
     }
 
     private function staff(string $roleName = 'owner', array $overrides = []): User
@@ -52,7 +54,7 @@ class VendorRememberMeTest extends TestCase
             ->set('identifier', 'owner@klinik.test')->set('password', 'password123')->set('remember', true)
             ->call('login')->assertHasNoErrors();
 
-        $cookie = Cookie::getQueuedCookies()['pawpaw_vendor_identifier'] ?? null;
+        $cookie = Cookie::queued('pawpaw_vendor_identifier');
         $this->assertNotNull($cookie);
         $this->assertSame('owner@klinik.test', $cookie->getValue());
         $this->assertGreaterThan(now()->timestamp, $cookie->getExpiresTime());
@@ -66,7 +68,7 @@ class VendorRememberMeTest extends TestCase
             ->set('identifier', 'owner@klinik.test')->set('password', 'password123')->set('remember', false)
             ->call('login')->assertHasNoErrors();
 
-        $cookie = Cookie::getQueuedCookies()['pawpaw_vendor_identifier'] ?? null;
+        $cookie = Cookie::queued('pawpaw_vendor_identifier');
         $this->assertNotNull($cookie);
         $this->assertLessThan(now()->timestamp, $cookie->getExpiresTime());
     }
