@@ -147,6 +147,33 @@ new #[Layout('layouts::admin')] class extends Component {
         Flux::toast(SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
     }
 
+    public function confirmDeleteAvatar(): void
+    {
+        if ($this->avatar && ! $this->user?->avatar) {
+            $this->avatar = null;
+            $this->resetErrorBag();
+
+            return;
+        }
+
+        Flux::modal('confirm-delete-avatar')->show();
+    }
+
+    public function deleteAvatar(OwnerProfileAction $action): void
+    {
+        if ($this->user?->avatar) {
+            Storage::disk('public')->delete($this->user->avatar);
+            $this->user = $action->execute($this->user, ['avatar' => null]);
+        }
+
+        $this->avatar = null;
+        $this->resetErrorBag();
+
+        $this->js("window.dispatchEvent(new CustomEvent('owner-avatar-updated', { detail: { url: '' } }))");
+        Flux::modal('confirm-delete-avatar')->close();
+        Flux::toast('Foto profil berhasil dihapus.', variant: 'success');
+    }
+
     public function getInitials(): string
     {
         $names = explode(' ', trim($this->user?->name ?? ''));
@@ -332,10 +359,20 @@ new #[Layout('layouts::admin')] class extends Component {
                         x-on:livewire-upload-finish="uploading = false"
                         x-on:livewire-upload-error="uploading = false; clientError = 'Ukuran gambar maksimal 2 MB atau format tidak didukung'"
                     >
-                        <label for="owner-avatar-input"
-                            class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                            Ubah foto
-                        </label>
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                            <label for="owner-avatar-input"
+                                class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
+                                Ubah foto
+                            </label>
+
+                            @if ($user?->avatar || $avatar)
+                                <button type="button"
+                                    wire:click="confirmDeleteAvatar"
+                                    class="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition cursor-pointer">
+                                    Hapus foto
+                                </button>
+                            @endif
+                        </div>
                         <input type="file" id="owner-avatar-input" wire:model="avatar"
                             accept="image/jpeg,image/png,image/webp"
                             @change.capture="validateFile($event)"
@@ -352,9 +389,15 @@ new #[Layout('layouts::admin')] class extends Component {
                         <p x-show="clientError" x-text="clientError" class="mt-1.5 text-xs text-red-600 font-medium" style="display: none;"></p>
 
                         @if ($avatar && ! $errors->has('avatar'))
-                            <p class="mt-2 text-xs text-green-600 font-medium">
-                                ✓ Foto siap disimpan
-                            </p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <p class="text-xs text-green-600 font-medium">
+                                    ✓ Foto siap disimpan
+                                </p>
+                                <button type="button" wire:click="$set('avatar', null)"
+                                    class="text-xs text-zinc-400 hover:text-red-500 underline cursor-pointer">
+                                    Batal
+                                </button>
+                            </div>
                         @endif
 
                         <flux:error name="avatar" class="mt-1.5 text-xs text-red-600" />
@@ -636,4 +679,26 @@ new #[Layout('layouts::admin')] class extends Component {
         </div>
 
     </div>
+
+    {{-- Modal Konfirmasi Hapus Foto Profil --}}
+    <flux:modal name="confirm-delete-avatar" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Hapus Foto Profil?</flux:heading>
+                <flux:text class="mt-2">
+                    Foto profil akan dihapus dan tampilan avatar akan kembali menggunakan inisial nama. Tindakan ini tidak dapat dibatalkan.
+                </flux:text>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Batal</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="deleteAvatar" variant="danger">
+                    <span wire:loading.remove wire:target="deleteAvatar">Ya, Hapus Foto</span>
+                    <span wire:loading wire:target="deleteAvatar">Menghapus...</span>
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

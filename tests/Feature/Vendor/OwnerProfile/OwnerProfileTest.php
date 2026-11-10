@@ -246,6 +246,42 @@ class OwnerProfileTest extends TestCase
             ->assertDontSee('Foto siap disimpan');
     }
 
+    public function test_owner_sees_delete_photo_button_when_avatar_exists(): void
+    {
+        $this->owner->update(['avatar' => 'avatars/existing-photo.webp']);
+
+        $this->livewireComponent()
+            ->assertSee('Hapus foto');
+    }
+
+    public function test_owner_can_delete_existing_avatar(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('avatars/existing-photo.webp', 'fake-image-content');
+
+        $this->owner->update(['avatar' => 'avatars/existing-photo.webp']);
+        Storage::disk('public')->assertExists('avatars/existing-photo.webp');
+
+        $this->livewireComponent()
+            ->call('deleteAvatar')
+            ->assertHasNoErrors()
+            ->assertSet('avatar', null);
+
+        $this->assertNull($this->owner->refresh()->avatar);
+        Storage::disk('public')->assertMissing('avatars/existing-photo.webp');
+    }
+
+    public function test_owner_can_cancel_staged_avatar_before_saving(): void
+    {
+        Storage::fake('public');
+
+        $this->livewireComponent()
+            ->set('avatar', UploadedFile::fake()->image('staged.png', 100, 100))
+            ->assertSet('avatar', fn ($avatar) => $avatar !== null)
+            ->call('confirmDeleteAvatar')
+            ->assertSet('avatar', null);
+    }
+
     public function test_owner_can_change_password(): void
     {
         $this->livewireComponent()
