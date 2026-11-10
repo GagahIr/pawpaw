@@ -229,6 +229,7 @@ class OwnerProfileTest extends TestCase
         Storage::fake('public');
 
         $this->livewireComponent()
+            ->call('startEditing')
             ->set('avatar', UploadedFile::fake()->create('dokumen.txt', 50, 'text/plain'))
             ->assertHasErrors(['avatar' => 'mimes'])
             ->assertSee('Format gambar harus JPEG, PNG, atau WebP')
@@ -240,6 +241,7 @@ class OwnerProfileTest extends TestCase
         Storage::fake('public');
 
         $this->livewireComponent()
+            ->call('startEditing')
             ->set('avatar', UploadedFile::fake()->image('gambar-berat.jpg')->size(3000))
             ->assertHasErrors(['avatar' => 'max'])
             ->assertSee('Ukuran gambar maksimal 2 MB')
@@ -251,7 +253,23 @@ class OwnerProfileTest extends TestCase
         $this->owner->update(['avatar' => 'avatars/existing-photo.webp']);
 
         $this->livewireComponent()
+            ->assertDontSee('Ubah foto')
+            ->assertDontSee('Hapus foto')
+            ->call('startEditing')
+            ->assertSee('Ubah foto')
             ->assertSee('Hapus foto');
+    }
+
+    public function test_avatar_action_buttons_are_hidden_in_view_mode_and_appear_in_edit_mode(): void
+    {
+        $this->livewireComponent()
+            ->assertDontSee('Ubah foto')
+            ->assertDontSee('JPG, PNG, WebP (Maks. 2 MB)')
+            ->call('startEditing')
+            ->assertSee('Ubah foto')
+            ->assertSee('JPG, PNG, WebP (Maks. 2 MB)')
+            ->call('cancelEditing')
+            ->assertDontSee('Ubah foto');
     }
 
     public function test_owner_can_delete_existing_avatar(): void

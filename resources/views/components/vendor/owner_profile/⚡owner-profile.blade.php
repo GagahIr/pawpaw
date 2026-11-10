@@ -330,102 +330,104 @@ new #[Layout('layouts::admin')] class extends Component {
                         </span>
                     </div>
 
-                    <div class="mt-4 w-full flex flex-col items-center"
-                        x-data="{
-                            uploading: false,
-                            clientError: '',
-                            errorTimeout: null,
-                            setError(msg) {
-                                this.clientError = msg;
-                                if (this.errorTimeout) clearTimeout(this.errorTimeout);
-                                this.errorTimeout = setTimeout(() => {
+                    @if ($isEditing)
+                        <div class="mt-4 w-full flex flex-col items-center"
+                            x-data="{
+                                uploading: false,
+                                clientError: '',
+                                errorTimeout: null,
+                                setError(msg) {
+                                    this.clientError = msg;
+                                    if (this.errorTimeout) clearTimeout(this.errorTimeout);
+                                    this.errorTimeout = setTimeout(() => {
+                                        this.clientError = '';
+                                    }, 5000);
+                                },
+                                clearError() {
                                     this.clientError = '';
-                                }, 5000);
-                            },
-                            clearError() {
-                                this.clientError = '';
-                                if (this.errorTimeout) clearTimeout(this.errorTimeout);
-                            },
-                            validateFile(event) {
-                                this.clearError();
-                                const file = event.target.files?.[0];
-                                if (!file) return;
+                                    if (this.errorTimeout) clearTimeout(this.errorTimeout);
+                                },
+                                validateFile(event) {
+                                    this.clearError();
+                                    const file = event.target.files?.[0];
+                                    if (!file) return;
 
-                                const maxSizeBytes = 2048 * 1024;
-                                const allowedExtensions = ['jpeg', 'jpg', 'png', 'webp'];
-                                const fileExt = file.name.split('.').pop().toLowerCase();
-                                const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+                                    const maxSizeBytes = 2048 * 1024;
+                                    const allowedExtensions = ['jpeg', 'jpg', 'png', 'webp'];
+                                    const fileExt = file.name.split('.').pop().toLowerCase();
+                                    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
 
-                                if (!allowedExtensions.includes(fileExt) || (file.type && !allowedMimes.includes(file.type))) {
-                                    this.setError('Format gambar harus JPEG, PNG, atau WebP');
-                                    event.stopImmediatePropagation();
-                                    event.target.value = '';
-                                    return false;
+                                    if (!allowedExtensions.includes(fileExt) || (file.type && !allowedMimes.includes(file.type))) {
+                                        this.setError('Format gambar harus JPEG, PNG, atau WebP');
+                                        event.stopImmediatePropagation();
+                                        event.target.value = '';
+                                        return false;
+                                    }
+
+                                    if (file.size > maxSizeBytes) {
+                                        this.setError('Ukuran gambar maksimal 2 MB');
+                                        event.stopImmediatePropagation();
+                                        event.target.value = '';
+                                        return false;
+                                    }
                                 }
+                            }"
+                            x-on:livewire-upload-start="uploading = true; clearError()"
+                            x-on:livewire-upload-finish="uploading = false"
+                            x-on:livewire-upload-error="uploading = false; setError('Ukuran gambar maksimal 2 MB atau format tidak didukung')"
+                            x-on:owner-avatar-updated.window="clearError()"
+                            x-on:owner-profile-saved.window="clearError()"
+                            x-on:owner-profile-reset.window="clearError()"
+                        >
+                            <div class="flex flex-wrap items-center justify-center gap-2">
+                                <label for="owner-avatar-input"
+                                    class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
+                                    Ubah foto
+                                </label>
 
-                                if (file.size > maxSizeBytes) {
-                                    this.setError('Ukuran gambar maksimal 2 MB');
-                                    event.stopImmediatePropagation();
-                                    event.target.value = '';
-                                    return false;
-                                }
-                            }
-                        }"
-                        x-on:livewire-upload-start="uploading = true; clearError()"
-                        x-on:livewire-upload-finish="uploading = false"
-                        x-on:livewire-upload-error="uploading = false; setError('Ukuran gambar maksimal 2 MB atau format tidak didukung')"
-                        x-on:owner-avatar-updated.window="clearError()"
-                        x-on:owner-profile-saved.window="clearError()"
-                        x-on:owner-profile-reset.window="clearError()"
-                    >
-                        <div class="flex flex-wrap items-center justify-center gap-2">
-                            <label for="owner-avatar-input"
-                                class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                                Ubah foto
-                            </label>
+                                @if ($user?->avatar || $avatar)
+                                    <button type="button"
+                                        wire:click="confirmDeleteAvatar"
+                                        class="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition cursor-pointer">
+                                        Hapus foto
+                                    </button>
+                                @endif
+                            </div>
+                            <input type="file" id="owner-avatar-input" wire:model="avatar"
+                                accept="image/jpeg,image/png,image/webp"
+                                @change.capture="validateFile($event)"
+                                class="hidden" />
 
-                            @if ($user?->avatar || $avatar)
-                                <button type="button"
-                                    wire:click="confirmDeleteAvatar"
-                                    class="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold transition cursor-pointer">
-                                    Hapus foto
-                                </button>
-                            @endif
-                        </div>
-                        <input type="file" id="owner-avatar-input" wire:model="avatar"
-                            accept="image/jpeg,image/png,image/webp"
-                            @change.capture="validateFile($event)"
-                            class="hidden" />
+                            <p class="mt-1.5 text-xs text-zinc-500">
+                                JPG, PNG, WebP (Maks. 2 MB)
+                            </p>
 
-                        <p class="mt-1.5 text-xs text-zinc-500">
-                            JPG, PNG, WebP (Maks. 2 MB)
-                        </p>
+                            <p x-show="uploading" class="mt-1.5 text-xs text-blue-600 font-medium" style="display: none;">
+                                Mengunggah foto...
+                            </p>
 
-                        <p x-show="uploading" class="mt-1.5 text-xs text-blue-600 font-medium" style="display: none;">
-                            Mengunggah foto...
-                        </p>
-
-                        <div x-show="clientError" x-cloak class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-xs text-red-600 font-medium">
-                            <span x-text="clientError"></span>
-                            <button type="button" @click="clearError()" class="text-red-400 hover:text-red-700 cursor-pointer ml-1 leading-none font-bold text-sm" aria-label="Tutup pesan error">
-                                &times;
-                            </button>
-                        </div>
-
-                        @if ($avatar && ! $errors->has('avatar'))
-                            <div class="mt-2 flex items-center gap-2">
-                                <p class="text-xs text-green-600 font-medium">
-                                    ✓ Foto siap disimpan
-                                </p>
-                                <button type="button" wire:click="$set('avatar', null)"
-                                    class="text-xs text-zinc-400 hover:text-red-500 underline cursor-pointer">
-                                    Batal
+                            <div x-show="clientError" x-cloak class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-xs text-red-600 font-medium">
+                                <span x-text="clientError"></span>
+                                <button type="button" @click="clearError()" class="text-red-400 hover:text-red-700 cursor-pointer ml-1 leading-none font-bold text-sm" aria-label="Tutup pesan error">
+                                    &times;
                                 </button>
                             </div>
-                        @endif
 
-                        <flux:error name="avatar" class="mt-1.5 text-xs text-red-600" />
-                    </div>
+                            @if ($avatar && ! $errors->has('avatar'))
+                                <div class="mt-2 flex items-center gap-2">
+                                    <p class="text-xs text-green-600 font-medium">
+                                        ✓ Foto siap disimpan
+                                    </p>
+                                    <button type="button" wire:click="$set('avatar', null)"
+                                        class="text-xs text-zinc-400 hover:text-red-500 underline cursor-pointer">
+                                        Batal
+                                    </button>
+                                </div>
+                            @endif
+
+                            <flux:error name="avatar" class="mt-1.5 text-xs text-red-600" />
+                        </div>
+                    @endif
 
                     <div class="w-full border-t border-zinc-200/80 my-6"></div>
 
