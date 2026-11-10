@@ -43,7 +43,7 @@ new #[Layout('layouts::admin')] class extends Component {
             'formData.username' => ['nullable', 'string', 'min:4', 'max:50', 'alpha_dash:ascii', Rule::unique('users', 'username')->ignore($userId)],
             'formData.email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId), Rule::unique('vendors', 'email')->ignore($vendorId)],
             'formData.phone_number' => ['required', 'string', 'min:10', 'max:20', 'regex:/\A\+?[0-9]{10,20}\z/', Rule::unique('users', 'phone_number')->ignore($userId), Rule::unique('vendors', 'contact')->ignore($vendorId)],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,webp,jpg', 'max:2048'],
         ];
     }
 
@@ -89,8 +89,13 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function updatedAvatar(): void
     {
-        $this->validateOnly('avatar');
-        $this->isEditing = true;
+        try {
+            $this->validateOnly('avatar');
+            $this->isEditing = true;
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->avatar = null;
+            throw $e;
+        }
     }
 
     public function startEditing(): void
@@ -108,6 +113,10 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function save(OwnerProfileAction $action, ImageService $imageService): void
     {
+        if (isset($this->formData['phone_number'])) {
+            $this->formData['phone_number'] = preg_replace('/[\s()-]+/', '', trim($this->formData['phone_number']));
+        }
+
         $this->validate();
 
         $data = [
@@ -262,7 +271,7 @@ new #[Layout('layouts::admin')] class extends Component {
                 <!-- Avatar Card -->
                 <div class="bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 flex flex-col items-center text-center shadow-sm">
                     <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden flex items-center justify-center">
-                        @if ($avatar)
+                        @if ($avatar && ! $errors->has('avatar'))
                             <img src="{{ $avatar->temporaryUrl() }}" alt="Preview Foto"
                                 class="w-full h-full object-cover" />
                         @elseif ($user?->avatar)
@@ -290,21 +299,65 @@ new #[Layout('layouts::admin')] class extends Component {
                         </span>
                     </div>
 
-                    <div class="mt-4 w-full flex flex-col items-center">
+                    <div class="mt-4 w-full flex flex-col items-center"
+                        x-data="{
+                            uploading: false,
+                            clientError: '',
+                            validateFile(event) {
+                                this.clientError = '';
+                                const file = event.target.files?.[0];
+                                if (!file) return;
+
+                                const maxSizeBytes = 2048 * 1024;
+                                const allowedExtensions = ['jpeg', 'jpg', 'png', 'webp'];
+                                const fileExt = file.name.split('.').pop().toLowerCase();
+                                const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+
+                                if (!allowedExtensions.includes(fileExt) || (file.type && !allowedMimes.includes(file.type))) {
+                                    this.clientError = 'Format gambar harus JPEG, PNG, atau WebP';
+                                    event.stopImmediatePropagation();
+                                    event.target.value = '';
+                                    return false;
+                                }
+
+                                if (file.size > maxSizeBytes) {
+                                    this.clientError = 'Ukuran gambar maksimal 2 MB';
+                                    event.stopImmediatePropagation();
+                                    event.target.value = '';
+                                    return false;
+                                }
+                            }
+                        }"
+                        x-on:livewire-upload-start="uploading = true; clientError = ''"
+                        x-on:livewire-upload-finish="uploading = false"
+                        x-on:livewire-upload-error="uploading = false; clientError = 'Ukuran gambar maksimal 2 MB atau format tidak didukung'"
+                    >
                         <label for="owner-avatar-input"
                             class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
                             Ubah foto
                         </label>
                         <input type="file" id="owner-avatar-input" wire:model="avatar"
-                            accept="image/jpeg,image/png,image/webp" class="hidden" />
+                            accept="image/jpeg,image/png,image/webp"
+                            @change.capture="validateFile($event)"
+                            class="hidden" />
 
-                        @if ($avatar)
+                        <p class="mt-1.5 text-xs text-zinc-500">
+                            JPG, PNG, WebP (Maks. 2 MB)
+                        </p>
+
+                        <p x-show="uploading" class="mt-1.5 text-xs text-blue-600 font-medium" style="display: none;">
+                            Mengunggah foto...
+                        </p>
+
+                        <p x-show="clientError" x-text="clientError" class="mt-1.5 text-xs text-red-600 font-medium" style="display: none;"></p>
+
+                        @if ($avatar && ! $errors->has('avatar'))
                             <p class="mt-2 text-xs text-green-600 font-medium">
                                 ✓ Foto siap disimpan
                             </p>
                         @endif
 
-                        <flux:error name="avatar" class="mt-2 text-xs text-red-600" />
+                        <flux:error name="avatar" class="mt-1.5 text-xs text-red-600" />
                     </div>
 
                     <div class="w-full border-t border-zinc-200/80 my-6"></div>
@@ -324,7 +377,7 @@ new #[Layout('layouts::admin')] class extends Component {
                         <span>Informasi pribadi</span>
                     </a>
 
-                    <form method="POST" action="{{ route('vendor.admin.logout') }}">
+                    <form method="POST" action="{{ route('vendor.admin.logout', ['subdomain' => app('vendor.context')->get()?->slug ?? request()->route('subdomain')]) }}">
                         @csrf
                         <button type="submit"
                             class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-[#C2410C] hover:bg-red-50/80 transition cursor-pointer text-left">
