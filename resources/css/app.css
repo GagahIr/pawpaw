@@ -30,6 +30,27 @@
 
 @theme {
     --color-accent: #1B5E43;          
+    --color-pg-primary-50: var(--color-zinc-50);
+    --color-pg-primary-100: var(--color-zinc-100);
+    --color-pg-primary-200: var(--color-zinc-300);
+    --color-pg-primary-300: var(--color-zinc-400);
+    --color-pg-primary-400: var(--color-zinc-500);
+    --color-pg-primary-500: var(--color-zinc-600);
+    --color-pg-primary-600: var(--color-zinc-700);
+    --color-pg-primary-700: var(--color-zinc-800);
+    --color-pg-primary-800: var(--color-zinc-900);
+    --color-pg-primary-900: var(--color-zinc-950);
+
+    --color-pg-secondary-50: var(--color-emerald-50);
+    --color-pg-secondary-100: var(--color-emerald-100);
+    --color-pg-secondary-200: var(--color-emerald-200);
+    --color-pg-secondary-300: var(--color-emerald-300);
+    --color-pg-secondary-400: var(--color-emerald-400);
+    --color-pg-secondary-500: var(--color-emerald-500);
+    --color-pg-secondary-600: var(--color-emerald-600);
+    --color-pg-secondary-700: var(--color-emerald-700);
+    --color-pg-secondary-800: var(--color-emerald-800);
+    --color-pg-secondary-900: var(--color-emerald-900);
 }
 /* --color-accent-content: var(--color-amber-600); 
 --color-accent-foreground: var(--color-white);    */
