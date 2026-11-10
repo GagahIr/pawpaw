@@ -109,6 +109,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->fillFormData();
         $this->resetErrorBag();
         $this->isEditing = false;
+        $this->dispatch('owner-profile-reset');
     }
 
     public function save(OwnerProfileAction $action, ImageService $imageService): void
@@ -143,6 +144,7 @@ new #[Layout('layouts::admin')] class extends Component {
 
         $newAvatarUrl = $this->user->avatar ? Storage::url($this->user->avatar) : '';
         $this->js("window.dispatchEvent(new CustomEvent('owner-avatar-updated', { detail: { url: " . json_encode($newAvatarUrl) . " } }))");
+        $this->dispatch('owner-profile-saved');
 
         Flux::toast(SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
     }
@@ -152,6 +154,7 @@ new #[Layout('layouts::admin')] class extends Component {
         if ($this->avatar && ! $this->user?->avatar) {
             $this->avatar = null;
             $this->resetErrorBag();
+            $this->dispatch('owner-profile-reset');
 
             return;
         }
@@ -170,6 +173,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->resetErrorBag();
 
         $this->js("window.dispatchEvent(new CustomEvent('owner-avatar-updated', { detail: { url: '' } }))");
+        $this->dispatch('owner-profile-saved');
         Flux::modal('confirm-delete-avatar')->close();
         Flux::toast('Foto profil berhasil dihapus.', variant: 'success');
     }
@@ -330,8 +334,20 @@ new #[Layout('layouts::admin')] class extends Component {
                         x-data="{
                             uploading: false,
                             clientError: '',
-                            validateFile(event) {
+                            errorTimeout: null,
+                            setError(msg) {
+                                this.clientError = msg;
+                                if (this.errorTimeout) clearTimeout(this.errorTimeout);
+                                this.errorTimeout = setTimeout(() => {
+                                    this.clientError = '';
+                                }, 5000);
+                            },
+                            clearError() {
                                 this.clientError = '';
+                                if (this.errorTimeout) clearTimeout(this.errorTimeout);
+                            },
+                            validateFile(event) {
+                                this.clearError();
                                 const file = event.target.files?.[0];
                                 if (!file) return;
 
@@ -341,23 +357,26 @@ new #[Layout('layouts::admin')] class extends Component {
                                 const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
 
                                 if (!allowedExtensions.includes(fileExt) || (file.type && !allowedMimes.includes(file.type))) {
-                                    this.clientError = 'Format gambar harus JPEG, PNG, atau WebP';
+                                    this.setError('Format gambar harus JPEG, PNG, atau WebP');
                                     event.stopImmediatePropagation();
                                     event.target.value = '';
                                     return false;
                                 }
 
                                 if (file.size > maxSizeBytes) {
-                                    this.clientError = 'Ukuran gambar maksimal 2 MB';
+                                    this.setError('Ukuran gambar maksimal 2 MB');
                                     event.stopImmediatePropagation();
                                     event.target.value = '';
                                     return false;
                                 }
                             }
                         }"
-                        x-on:livewire-upload-start="uploading = true; clientError = ''"
+                        x-on:livewire-upload-start="uploading = true; clearError()"
                         x-on:livewire-upload-finish="uploading = false"
-                        x-on:livewire-upload-error="uploading = false; clientError = 'Ukuran gambar maksimal 2 MB atau format tidak didukung'"
+                        x-on:livewire-upload-error="uploading = false; setError('Ukuran gambar maksimal 2 MB atau format tidak didukung')"
+                        x-on:owner-avatar-updated.window="clearError()"
+                        x-on:owner-profile-saved.window="clearError()"
+                        x-on:owner-profile-reset.window="clearError()"
                     >
                         <div class="flex flex-wrap items-center justify-center gap-2">
                             <label for="owner-avatar-input"
@@ -386,7 +405,12 @@ new #[Layout('layouts::admin')] class extends Component {
                             Mengunggah foto...
                         </p>
 
-                        <p x-show="clientError" x-text="clientError" class="mt-1.5 text-xs text-red-600 font-medium" style="display: none;"></p>
+                        <div x-show="clientError" x-cloak class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-xs text-red-600 font-medium">
+                            <span x-text="clientError"></span>
+                            <button type="button" @click="clearError()" class="text-red-400 hover:text-red-700 cursor-pointer ml-1 leading-none font-bold text-sm" aria-label="Tutup pesan error">
+                                &times;
+                            </button>
+                        </div>
 
                         @if ($avatar && ! $errors->has('avatar'))
                             <div class="mt-2 flex items-center gap-2">
