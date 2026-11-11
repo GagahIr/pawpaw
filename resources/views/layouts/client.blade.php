@@ -27,11 +27,11 @@
                 </flux:navbar.item>
                 <flux:navbar.item href="{{ route('client.my-bookings') }}"
                     :current="request()->routeIs('client.my-bookings')">
-                    Reservasi saya
+                    Reservasi saya & Riwayat
                 </flux:navbar.item>
                 {{-- <flux:navbar.item href="#">Transfers</flux:navbar.item> --}}
-                <flux:navbar.item href="{{ route('client.history') }}"
-                    :current="request()->routeIs('client.history')">Riwayat</flux:navbar.item>
+                {{-- <flux:navbar.item href="{{ route('client.history') }}"
+                    :current="request()->routeIs('client.history')">Riwayat</flux:navbar.item> --}}
                 {{-- <flux:navbar.item href="#">Statements</flux:navbar.item> --}}
             </flux:navbar>
             <flux:spacer />

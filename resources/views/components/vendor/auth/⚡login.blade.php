@@ -1,32 +1,53 @@
 <?php
 
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 use App\Enums\SystemMessage;
 
 new #[Layout('layouts.app')] class extends Component {
-    #[Validate('required|email')]
-    public string $email = '';
+    public string $identifier = '';
 
-    #[Validate('required')]
     public string $password = '';
 
     public bool $remember = false;
 
     public int $retryAfter = 0;
 
+    /**
+     * @return array<string, list<string>>
+     */
+    public function rules(): array
+    {
+        return [
+            'identifier' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'identifier.required' => 'Email, username, atau nomor HP wajib diisi.',
+            'identifier.max' => 'Email, username, atau nomor HP maksimal 255 karakter.',
+            'password.required' => 'Password wajib diisi.',
+        ];
+    }
+
     public function mount(): void
     {
-        $email = request()->cookie('pawpaw_vendor_identifier');
-        if (is_string($email) && $email !== '' && strlen($email) <= 255) {
-            $this->email = $email;
+        $identifier = request()->cookie('pawpaw_vendor_identifier');
+        if (is_string($identifier) && $identifier !== '' && strlen($identifier) <= 255) {
+            $this->identifier = $identifier;
             $this->remember = true;
         }
 
@@ -49,9 +70,9 @@ new #[Layout('layouts.app')] class extends Component {
         $vendorId = app('vendor.context')->id();
 
         $credentials = [
-            'email' => $this->email,
             'password' => $this->password,
-            fn($query) => $query->whereHas('vendorStaff', fn($query) => $query->where('vendor_id', $vendorId)),
+            fn (Builder $query) => $query->where(fn (Builder $query) => $this->matchIdentifier($query)),
+            fn (Builder $query) => $query->whereHas('vendorStaff', fn ($query) => $query->where('vendor_id', $vendorId)),
         ];
 
         $authenticated = Auth::guard('vendor')->attempt($credentials, $this->remember);
@@ -60,7 +81,7 @@ new #[Layout('layouts.app')] class extends Component {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => SystemMessage::INVALID_CREDENTIALS->value,
+                'identifier' => SystemMessage::INVALID_CREDENTIALS->value,
             ]);
         }
 
@@ -68,7 +89,7 @@ new #[Layout('layouts.app')] class extends Component {
         session()->regenerate();
 
         if ($this->remember) {
-            Cookie::queue('pawpaw_vendor_identifier', $this->email, 60 * 24 * 30);
+            Cookie::queue('pawpaw_vendor_identifier', $this->identifier, 60 * 24 * 30);
         } else {
             Cookie::queue(Cookie::forget('pawpaw_vendor_identifier'));
         }
@@ -86,12 +107,62 @@ new #[Layout('layouts.app')] class extends Component {
 
     //     $this->retryAfter = RateLimiter::availableIn($this->throttleKey());
 
-    //     $this->addError('email', 'Terlalu banyak percobaan login.');
+    //     $this->addError('identifier', 'Terlalu banyak percobaan login.');
     // }
+
+    /**
+     * Match the typed identifier against email, username, or phone number.
+     */
+    protected function matchIdentifier(Builder $query): void
+    {
+        $identifier = trim($this->identifier);
+
+        if (str_contains($identifier, '@')) {
+            $query->where('email', $identifier);
+
+            return;
+        }
+
+        $query->whereRaw('LOWER(username) = ?', [Str::lower($identifier)]);
+
+        $phoneNumbers = $this->phoneNumberVariants($identifier);
+
+        if ($phoneNumbers !== []) {
+            $query->orWhereIn('phone_number', $phoneNumbers);
+        }
+    }
+
+    /**
+     * Indonesian numbers can be stored as 08xx, 628xx, or +628xx, so try all three.
+     *
+     * @return list<string>
+     */
+    protected function phoneNumberVariants(string $identifier): array
+    {
+        $number = preg_replace('/[\s().-]+/', '', $identifier);
+
+        if (! preg_match('/\A\+?[0-9]{8,20}\z/', $number)) {
+            return [];
+        }
+
+        $digits = ltrim($number, '+');
+
+        $national = match (true) {
+            str_starts_with($digits, '62') => substr($digits, 2),
+            str_starts_with($digits, '0') => substr($digits, 1),
+            default => null,
+        };
+
+        if ($national === null) {
+            return [$number];
+        }
+
+        return array_values(array_unique([$number, '0'.$national, '62'.$national, '+62'.$national]));
+    }
 
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip() . '|' . app('vendor.context')->id());
+        return Str::transliterate(Str::lower($this->identifier) . '|' . request()->ip() . '|' . app('vendor.context')->id());
     }
 };
 ?>
@@ -138,8 +209,8 @@ new #[Layout('layouts.app')] class extends Component {
 
                 <flux:card class="space-y-6">
                     <form wire:submit="login" class="space-y-5">
-                        <flux:input wire:model="email" label="Email" type="email" icon="envelope"
-                            placeholder="email@example.com" autofocus autocomplete="email" />
+                        <flux:input wire:model="identifier" label="Email, username, atau nomor HP" type="text" icon="user"
+                            placeholder="Email, username, atau nomor HP" autofocus autocomplete="username" />
 
                         <flux:input wire:model="password" label="Password" type="password" icon="lock-closed"
                             placeholder="Masukkan password Anda" viewable autocomplete="current-password" />
