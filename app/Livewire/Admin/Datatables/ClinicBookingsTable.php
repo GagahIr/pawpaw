@@ -53,7 +53,6 @@ final class ClinicBookingsTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        // Scope vendor WAJIB tetap ada: ini batas keamanan antar vendor.
         return BookingClinic::query()
             ->forVendor(app('vendor.context')->id())
             ->with(['userClient.user', 'vendorServiceItem.vendorService.categoryService']);
@@ -107,8 +106,6 @@ final class ClinicBookingsTable extends PowerGridComponent
     public function filters(): array
     {
         return [
-            // Catatan: parameter pertama WAJIB sama dengan field pada Column::make(...)
-            // agar filter tampil di tabel.
             Filter::inputText('customer')
                 ->placeholder('Nama pelanggan')
                 ->operators(['contains'])
