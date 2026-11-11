@@ -219,12 +219,12 @@ new class extends Component {
                                     <flux:checkbox id="client-terms" name="terms" wire:model="terms" required />
                                     <flux:label for="client-terms" class="!font-normal">
                                         <span>
-                                            Saya menyetujui <span
-                                                class="font-medium text-[#1a5c40] dark:text-[#25825a]">Syarat &amp;
-                                                Ketentuan</span>
-                                            serta <span
-                                                class="font-medium text-[#1a5c40] dark:text-[#25825a]">Kebijakan
-                                                Privasi</span> PawPaw.
+                                            Saya menyetujui <a href="{{ route('terms') }}" target="_blank"
+                                                class="font-medium text-[#1a5c40] underline hover:text-[#25825a] dark:text-[#25825a]">Syarat &amp;
+                                                Ketentuan</a>
+                                            serta <a href="{{ route('privacy') }}" target="_blank"
+                                                class="font-medium text-[#1a5c40] underline hover:text-[#25825a] dark:text-[#25825a]">Kebijakan
+                                                Privasi</a> PawPaw.
                                         </span>
                                     </flux:label>
                                     <flux:error name="terms" />
