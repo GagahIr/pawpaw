@@ -11,6 +11,7 @@ use App\Services\VendorUserProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -27,6 +28,7 @@ class VendorRememberMeTest extends TestCase
         config(['app.key' => 'base64:'.base64_encode(str_repeat('a', 32))]);
         $this->vendor = Vendor::factory()->create();
         app('vendor.context')->set($this->vendor);
+        URL::defaults(['subdomain' => $this->vendor->slug]);
     }
 
     private function staff(string $roleName = 'owner', array $overrides = []): User
@@ -49,10 +51,10 @@ class VendorRememberMeTest extends TestCase
         $this->staff();
 
         Livewire::test('vendor.auth.login')
-            ->set('email', 'owner@klinik.test')->set('password', 'password123')->set('remember', true)
+            ->set('identifier', 'owner@klinik.test')->set('password', 'password123')->set('remember', true)
             ->call('login')->assertHasNoErrors();
 
-        $cookie = Cookie::getQueuedCookies()['pawpaw_vendor_identifier'] ?? null;
+        $cookie = Cookie::queued('pawpaw_vendor_identifier');
         $this->assertNotNull($cookie);
         $this->assertSame('owner@klinik.test', $cookie->getValue());
         $this->assertGreaterThan(now()->timestamp, $cookie->getExpiresTime());
@@ -63,25 +65,25 @@ class VendorRememberMeTest extends TestCase
         $this->staff();
 
         Livewire::test('vendor.auth.login')
-            ->set('email', 'owner@klinik.test')->set('password', 'password123')->set('remember', false)
+            ->set('identifier', 'owner@klinik.test')->set('password', 'password123')->set('remember', false)
             ->call('login')->assertHasNoErrors();
 
-        $cookie = Cookie::getQueuedCookies()['pawpaw_vendor_identifier'] ?? null;
+        $cookie = Cookie::queued('pawpaw_vendor_identifier');
         $this->assertNotNull($cookie);
         $this->assertLessThan(now()->timestamp, $cookie->getExpiresTime());
     }
 
-    public function test_login_form_prefills_email_and_checks_remember_from_cookie(): void
+    public function test_login_form_prefills_identifier_and_checks_remember_from_cookie(): void
     {
         Livewire::withCookie('pawpaw_vendor_identifier', 'owner@klinik.test')
             ->test('vendor.auth.login')
-            ->assertSet('email', 'owner@klinik.test')
+            ->assertSet('identifier', 'owner@klinik.test')
             ->assertSet('remember', true);
     }
 
     public function test_login_form_is_empty_without_cookie(): void
     {
-        Livewire::test('vendor.auth.login')->assertSet('email', '')->assertSet('remember', false);
+        Livewire::test('vendor.auth.login')->assertSet('identifier', '')->assertSet('remember', false);
     }
 
     public function test_provider_restores_active_staff_by_remember_token(): void
