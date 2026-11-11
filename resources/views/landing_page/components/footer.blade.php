@@ -65,7 +65,8 @@
                 <li><a href="#" class="pawpaw-footer-link">Cari Layanan</a></li>
                 <li><a href="#" class="pawpaw-footer-link">Artikel &amp; Tips</a></li>
                 <li><a href="#" class="pawpaw-footer-link">Promo</a></li>
-                <li><a href="{{ url('/') }}" class="pawpaw-footer-link">Beranda</a></li>
+                <li><a href="{{ route('terms') }}" class="pawpaw-footer-link">Syarat &amp; Ketentuan</a></li>
+                <li><a href="{{ route('privacy') }}" class="pawpaw-footer-link">Kebijakan Privasi</a></li>
             </ul>
         </div>
 
