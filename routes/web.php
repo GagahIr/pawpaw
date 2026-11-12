@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Client\GoogleLoginController;
+use App\Http\Controllers\Vendor\MidtransNotificationController;
 use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\EnsureVendorPaidSubscription;
 use App\Http\Middleware\EnsureVendorStaff;
 use App\Http\Middleware\ResolveVendor;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +23,10 @@ Route::domain($domain)->group(function () {
     Route::livewire('/vendor-domain', 'vendor.auth.domain')->name('vendor.domain');
     Route::livewire('/vendor-login', 'vendor.auth.domain');
     Route::redirect('/akun/profil', '/profile');
+    Route::post('/api/midtrans/notification', [MidtransNotificationController::class, 'handle'])->name('midtrans.notification');
+    // Route::post('/api/midtrans/notification', [MidtransNotificationController::class, 'handle'])
+    //     ->name('midtrans.notification')
+    //     ->withoutMiddleware('web');
 
     Route::middleware(['auth:client', EnsureClient::class])->group(function () {
         Route::livewire('/client-dashboard', 'client.dashboard.dashboard')->name('client.dashboard');
@@ -68,6 +74,12 @@ Route::domain('{subdomain}.'.$domain)
         });
 
         Route::middleware(['auth:vendor', EnsureVendorStaff::class])->group(function () {
+            Route::livewire('/payment/subscription', 'vendor.payment.subscription')->name('payment.subscription');
+        });
+
+        Route::livewire('/payment/callback', 'vendor.payment.callback')->name('payment.callback');
+
+        Route::middleware(['auth:vendor', EnsureVendorStaff::class, EnsureVendorPaidSubscription::class])->group(function () {
             Route::livewire('/admin', 'vendor.dashboard.dashboard')->name('admin.dashboard');
             Route::livewire('/admin/operations', 'vendor.operation_hours.form')->name('admin.operations');
             Route::livewire('/admin/services', 'vendor.services.services')->name('admin.services');

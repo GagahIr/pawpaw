@@ -15,13 +15,15 @@ new class extends Component {
     public string $owner_name = '';
     public string $phone_number = '';
     public string $password = '';
+    public bool $agreePaymentTerms = false;
 
     public int $currentStep = 1;
 
     public array $steps = [
         1 => 'Mitra',
         2 => 'Pemilik & Akun',
-        3 => 'Konfirmasi',
+        3 => 'Pembayaran',
+        4 => 'Konfirmasi',
     ];
 
     protected function rules(): array
@@ -36,6 +38,7 @@ new class extends Component {
             'owner_name' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'min:10', 'max:20', 'unique:users,phone_number', 'unique:vendors,contact'],
             'password' => ['required', 'string', 'min:8'],
+            'agreePaymentTerms' => ['accepted'],
         ];
     }
 
@@ -56,6 +59,7 @@ new class extends Component {
         return match ($step) {
             1 => ['vendor_name', 'contact', 'email_vendor', 'address', 'description'],
             2 => ['owner_name', 'phone_number', 'email', 'password'],
+            3 => ['agreePaymentTerms'],
             default => [],
         };
     }
@@ -77,12 +81,12 @@ new class extends Component {
     {
         $this->validate();
 
-        $data = new RegisterVendorData(vendorName: $this->vendor_name, address: $this->address, contact: $this->contact, emailVendor: $this->email_vendor, email: $this->email, description: $this->description, ownerName: $this->owner_name, phoneNumber: $this->phone_number, password: $this->password);
+        $data = new RegisterVendorData(vendorName: $this->vendor_name, address: $this->address, contact: $this->contact, emailVendor: $this->email_vendor, email: $this->email, description: $this->description, ownerName: $this->owner_name, phoneNumber: $this->phone_number, password: $this->password, agreePaymentTerms: $this->agreePaymentTerms);
 
         try {
             $vendor = $action->execute($data);
-            session()->flash('success', SystemMessage::VENDOR_REGISTER_SUCCESS->value);
-            return redirect()->route('vendor.admin.dashboard', ['subdomain' => $vendor->slug]);
+            session()->flash('success', 'Pendaftaran berhasil. Tunggu verifikasi Super Admin sebelum melakukan pembayaran.');
+            return redirect()->route('vendor.payment.subscription', ['subdomain' => $vendor->slug]);
         } catch (\Throwable $e) {
             report($e);
             session()->flash('error', SystemMessage::ERROR_SYSTEM->value);
@@ -286,8 +290,30 @@ new class extends Component {
                                     autocomplete="new-password" />
                             </div>
 
-                            {{-- Langkah 3: Konfirmasi --}}
+                            {{-- Langkah 3: Informasi Pembayaran --}}
                             <div class="space-y-5" x-show="step === 3"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 translate-y-1"
+                                x-transition:enter-end="opacity-100 translate-y-0">
+                                <flux:heading size="lg" class="flex items-center gap-2">
+                                    <flux:icon.credit-card variant="micro" class="text-zinc-400" />
+                                    Langganan Mitra
+                                </flux:heading>
+
+                                <flux:callout variant="info" icon="information-circle" heading="Layanan mitra berbayar">
+                                    Biaya langganan {{ config('midtrans.subscription.plan_name') }} sebesar
+                                    Rp {{ number_format(config('midtrans.subscription.amount'), 0, ',', '.') }} per
+                                    {{ config('midtrans.subscription.duration_days') }} hari.
+                                    Pembayaran dilakukan manual setelah akun diverifikasi Super Admin. Tidak ada auto-renewal.
+                                </flux:callout>
+
+                                <flux:checkbox wire:model="agreePaymentTerms"
+                                    label="Saya bersedia membayar biaya langganan sebelum menggunakan layanan mitra." />
+                                <flux:error name="agreePaymentTerms" />
+                            </div>
+
+                            {{-- Langkah 4: Konfirmasi --}}
+                            <div class="space-y-5" x-show="step === 4"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0">
