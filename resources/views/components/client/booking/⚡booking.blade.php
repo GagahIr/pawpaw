@@ -52,6 +52,9 @@ new #[Layout('layouts.client')] class extends Component {
             ])
             ->where('slug', $this->slug)
             ->whereNotNull('join_at')
+            ->where('status_verification', 'approved')
+            ->where('status_subscription', 'active')
+            ->where('subscription_expired_at', '>', now())
             ->firstOrFail();
     }
 

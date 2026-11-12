@@ -35,6 +35,8 @@ new #[Layout('layouts.client')] class extends Component {
                 [
                     'search' => $this->search,
                     'category_id' => $this->categoryId,
+                    'verified' => true,
+                    'active_subscription' => true,
                 ],
                 perPage: 12,
             ),

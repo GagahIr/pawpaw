@@ -4,7 +4,6 @@ namespace App\DTOs;
 
 readonly class RegisterVendorData
 {
-
     public function __construct(
         public string $vendorName,
         public string $address,
@@ -15,5 +14,6 @@ readonly class RegisterVendorData
         public string $ownerName,
         public string $phoneNumber,
         public string $password,
+        public bool $agreePaymentTerms = false,
     ) {}
 }
