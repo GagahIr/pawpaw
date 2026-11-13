@@ -5,6 +5,7 @@ use App\Enums\VendorVerificationStatus;
 use App\Models\Vendor;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use App\Enums\VendorSubscriptionStatus;
 
 new #[Layout('layouts.app')] class extends Component {
     public Vendor $vendor;
@@ -13,12 +14,16 @@ new #[Layout('layouts.app')] class extends Component {
     public function mount(): void
     {
         $this->vendor = app('vendor.context')->get() ?? abort(404);
+
+        if ($this->vendor->status_subscription === VendorSubscriptionStatus::Active && $this->vendor->subscription_expired_at?->isFuture()) {
+            $this->redirectRoute('vendor.admin.dashboard', ['subdomain' => $this->vendor->slug]);
+        }
     }
 
     public function createPayment(CreateSubscriptionPaymentAction $action): void
     {
-        if ($this->vendor->status_verification !== VendorVerificationStatus::Approved) {
-            $this->addError('payment', 'Pembayaran tersedia setelah akun disetujui Super Admin.');
+        if ($this->vendor->fresh()->status_subscription === VendorSubscriptionStatus::Active && $this->vendor->fresh()->subscription_expired_at?->isFuture()) {
+            $this->redirectRoute('vendor.admin.dashboard', ['subdomain' => $this->vendor->slug]);
 
             return;
         }
@@ -40,7 +45,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         @if ($vendor->status_verification !== VendorVerificationStatus::Approved)
             <flux:callout variant="info" icon="information-circle" heading="Menunggu verifikasi">
-                Pembayaran dibuka setelah akun disetujui oleh Super Admin.
+                Pembayaran dibuka setelah akun disetujui oleh Tim PawPaw.
             </flux:callout>
         @endif
 
@@ -51,15 +56,18 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
             <div class="flex justify-between gap-4">
                 <span class="text-zinc-500">Biaya</span>
-                <span class="font-medium">Rp {{ number_format(config('midtrans.subscription.amount'), 0, ',', '.') }}</span>
+                <span class="font-medium">Rp
+                    {{ number_format(config('midtrans.subscription.amount'), 0, ',', '.') }}</span>
             </div>
             <div class="flex justify-between gap-4">
                 <span class="text-zinc-500">Masa aktif</span>
                 <span class="font-medium">{{ config('midtrans.subscription.duration_days') }} hari</span>
             </div>
-            <flux:callout variant="secondary" icon="arrow-path">Tidak diperpanjang otomatis. Perpanjangan dilakukan manual.</flux:callout>
+            <flux:callout variant="secondary" icon="arrow-path">Tidak diperpanjang otomatis. Perpanjangan dilakukan
+                manual.</flux:callout>
             <flux:error name="payment" />
-            <flux:button wire:click="createPayment" variant="primary" class="w-full" :disabled="$vendor->status_verification !== VendorVerificationStatus::Approved">
+            <flux:button wire:click="createPayment" variant="primary" class="w-full"
+                :disabled="$vendor->status_verification !== VendorVerificationStatus::Approved">
                 Bayar Sekarang
             </flux:button>
         </flux:card>
@@ -67,25 +75,34 @@ new #[Layout('layouts.app')] class extends Component {
 </div>
 
 @script
-<script>
-    $wire.on('open-midtrans-snap', ({ token }) => {
-        const open = () => window.snap.pay(token, {
-            onSuccess: result => window.location.href = '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=success&order_id=' + encodeURIComponent(result.order_id),
-            onPending: result => window.location.href = '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=pending&order_id=' + encodeURIComponent(result.order_id),
-            onError: result => window.location.href = '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=failed&order_id=' + encodeURIComponent(result.order_id),
-            onClose: () => {},
+    <script>
+        $wire.on('open-midtrans-snap', ({
+            token
+        }) => {
+            const open = () => window.snap.pay(token, {
+                onSuccess: result => window.location.href =
+                    '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=success&order_id=' +
+                    encodeURIComponent(result.order_id),
+                onPending: result => window.location.href =
+                    '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=pending&order_id=' +
+                    encodeURIComponent(result.order_id),
+                onError: result => window.location.href =
+                    '{{ route('vendor.payment.callback', ['subdomain' => $vendor->slug]) }}?status=failed&order_id=' +
+                    encodeURIComponent(result.order_id),
+                onClose: () => {},
+            });
+
+            if (window.snap) {
+                open();
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src =
+                '{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}';
+            script.dataset.clientKey = '{{ config('midtrans.client_key') }}';
+            script.onload = open;
+            document.head.appendChild(script);
         });
-
-        if (window.snap) {
-            open();
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = '{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}';
-        script.dataset.clientKey = '{{ config('midtrans.client_key') }}';
-        script.onload = open;
-        document.head.appendChild(script);
-    });
-</script>
+    </script>
 @endscript

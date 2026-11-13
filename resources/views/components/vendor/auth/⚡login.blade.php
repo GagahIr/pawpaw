@@ -178,58 +178,56 @@ new #[Layout('layouts.app')] class extends Component {
                         clearInterval(timer);
                         $wire.set('retryAfter', 0);
                     }
-                }, 1000);
-            }
-        }
-    }">
+                }
+            }">
 
-        {{-- Tombol Kembali --}}
-        <div>
-            <flux:link href="{{ route('landing_page') }}" variant="subtle"
-                class="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors">
-                <flux:icon.arrow-left variant="micro" />
-                <span>Kembali ke Beranda</span>
-            </flux:link>
-        </div>
+                {{-- Tombol Kembali --}}
+                <flux:link href="{{ route('landing_page') }}" variant="subtle"
+                    class="inline-flex items-center gap-1 text-sm">
+                    <flux:icon.arrow-left variant="micro" />
+                    Kembali ke Beranda
+                </flux:link>
 
-        <div class="text-center space-y-2">
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-white">Masuk ke Akun</flux:heading>
-            <flux:subheading class="text-sm text-zinc-600 dark:text-zinc-400">Dasbor {{ app('vendor.context')->get()->name }}</flux:subheading>
-        </div>
-
-        {{-- Callout Peringatan --}}
-        <template x-if="seconds > 0">
-            <flux:callout variant="danger" icon="exclamation-triangle">
-                <flux:callout.text>
-                    Terlalu banyak percobaan. Coba lagi dalam
-                    <span x-text="seconds" class="font-semibold"></span> detik.
-                </flux:callout.text>
-            </flux:callout>
-        </template>
-
-        <flux:card class="space-y-6 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800 p-6 sm:p-8">
-            <form wire:submit="login" class="space-y-5">
-                <flux:input wire:model="identifier" label="Email, username, atau nomor HP" type="text" icon="user"
-                    placeholder="Email, username, atau nomor HP" autofocus autocomplete="username" />
-
-                <flux:input wire:model="password" label="Password" type="password" icon="lock-closed"
-                    placeholder="Masukkan password Anda" viewable autocomplete="current-password" />
-
-                <div class="flex items-center justify-between">
-                    <flux:checkbox wire:model="remember" label="Ingat saya" />
-
-                    <flux:link href="{{ route('vendor.password.request') }}" class="text-sm !text-[#1a5c40] dark:!text-[#25825a] font-medium">
-                        Lupa password?
-                    </flux:link>
+                <div class="text-center">
+                    <flux:heading size="xl">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
+                    <flux:subheading>Silakan masuk menggunakan akun pemilik atau front office Anda.</flux:subheading>
                 </div>
 
-                <div class="pt-2">
-                    <flux:button type="submit" variant="primary" class="w-full !bg-[#1a5c40]"
-                        x-bind:disabled="seconds > 0">
-                        Masuk
-                    </flux:button>
-                </div>
-            </form>
-        </flux:card>
+                {{-- Callout Peringatan --}}
+                <template x-if="seconds > 0">
+                    <flux:callout variant="danger" icon="exclamation-triangle">
+                        <flux:callout.text>
+                            Terlalu banyak percobaan. Coba lagi dalam
+                            <span x-text="seconds" class="font-semibold"></span> detik.
+                        </flux:callout.text>
+                    </flux:callout>
+                </template>
+
+                <flux:card class="space-y-6">
+                    <form wire:submit="login" class="space-y-5">
+                        <flux:input wire:model="identifier" label="Email, username, atau nomor HP" type="text" icon="user"
+                            placeholder="Email, username, atau nomor HP" autofocus autocomplete="username" />
+
+                        <flux:input wire:model="password" label="Password" type="password" icon="lock-closed"
+                            placeholder="Masukkan password Anda" viewable autocomplete="current-password" />
+
+                        <div class="flex items-center justify-between">
+                            <flux:checkbox wire:model="remember" label="Ingat saya" />
+
+                            <flux:link href="{{ route('vendor.password.request') }}" class="text-sm !text-[#1a5c40] dark:!text-[#25825a] font-medium">
+                                Lupa password?
+                            </flux:link>
+                        </div>
+
+                        <div class="pt-2">
+                            <flux:button type="submit" variant="primary" class="w-full !bg-[#1a5c40]"
+                                x-bind:disabled="seconds > 0">
+                                Masuk
+                            </flux:button>
+                        </div>
+                    </form>
+                </flux:card>
+            </div>
+        </div>
     </div>
 </div>

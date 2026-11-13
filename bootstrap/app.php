@@ -16,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->web(prepend: [ConfigureClientSession::class]);
-        $middleware->web(prepend: [ConfigureClientSession::class]);
+
+        $middleware->preventRequestForgery(except: [
+            'api/midtrans/notification',
+        ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {
             if ($request->routeIs('super_admin.*')) {
