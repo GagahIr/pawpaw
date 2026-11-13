@@ -9,14 +9,17 @@ use Illuminate\Support\Str;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->web(prepend: [ConfigureClientSession::class]);
-        $middleware->web(prepend: [ConfigureClientSession::class]);
+
+        $middleware->preventRequestForgery(except: [
+            'api/midtrans/notification',
+        ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {
             if ($request->routeIs('super_admin.*')) {
@@ -26,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->routeIs('vendor.*')) {
                 return route('vendor.login', [
                     'subdomain' => $request->route('subdomain')
-                        ?? Str::before($request->getHost(), '.'.config('app.domain')),
+                        ?? Str::before($request->getHost(), '.' . config('app.domain')),
                 ]);
             }
 
@@ -40,7 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($request->routeIs('vendor.*')) {
                 $subdomain = $request->route('subdomain')
-                    ?? Str::before($request->getHost(), '.'.config('app.domain'));
+                    ?? Str::before($request->getHost(), '.' . config('app.domain'));
 
                 return route('vendor.admin.dashboard', ['subdomain' => $subdomain]);
             }
@@ -63,6 +66,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn(Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();
