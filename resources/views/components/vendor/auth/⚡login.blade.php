@@ -193,8 +193,8 @@ new #[Layout('layouts.app')] class extends Component {
                 </flux:link>
 
                 <div class="text-center">
-                    <flux:heading size="xl">Masuk ke Akun</flux:heading>
-                    <flux:subheading>Dasbor {{ app('vendor.context')->get()->name }}</flux:subheading>
+                    <flux:heading size="xl">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
+                    <flux:subheading>Silakan masuk menggunakan akun pemilik atau front office Anda.</flux:subheading>
                 </div>
 
                 {{-- Callout Peringatan --}}
@@ -232,26 +232,6 @@ new #[Layout('layouts.app')] class extends Component {
                     </form>
                 </flux:card>
             </div>
-            {{-- 
-                <flux:text class="text-center text-sm">
-                    Klinik Anda belum terdaftar?
-                    <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium"
-                        href="{{ route('landing_page') }}">
-                        Daftar sebagai Mitra
-                    </flux:link>
-                </flux:text> --}}
         </div>
-
-        {{-- Gambar Background Sisi Kanan (Sesuai inspirasi, diaktifkan jika butuh) --}}
-        {{--
-        <div class="flex-1 p-4 max-lg:hidden">
-            <div class="text-white relative rounded-lg h-full w-full bg-zinc-900 flex flex-col items-start justify-end p-16"
-                style="background-image: url('https://fluxui.dev/img/demo/auth_aurora_2x.png'); background-size: cover">
-                <div class="mb-6 italic font-base text-3xl xl:text-4xl">
-                    Kelola operasional pet care Anda dengan lebih mudah dan efisien bersama PawPaw.
-                </div>
-            </div>
-        </div>
-        --}}
     </div>
 </div>
