@@ -167,20 +167,16 @@ new #[Layout('layouts.app')] class extends Component {
 };
 ?>
 
-<div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
-    <div class="flex min-h-screen">
-        <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-            <div class="w-full max-w-md space-y-6" x-data="{
-                seconds: {{ $retryAfter }},
-                init() {
-                    if (this.seconds > 0) {
-                        const timer = setInterval(() => {
-                            this.seconds--;
-                            if (this.seconds <= 0) {
-                                clearInterval(timer);
-                                $wire.set('retryAfter', 0);
-                            }
-                        }, 1000);
+<div class="min-h-[calc(100vh-14rem)] flex flex-col justify-center items-center pt-6 sm:pt-10 pb-16 px-4 sm:px-6 lg:px-8 bg-[#FFF8F5] dark:bg-zinc-950 transition-colors">
+    <div class="w-full max-w-md mx-auto space-y-6 -mt-4 sm:-mt-10" x-data="{
+        seconds: {{ $retryAfter }},
+        init() {
+            if (this.seconds > 0) {
+                const timer = setInterval(() => {
+                    this.seconds--;
+                    if (this.seconds <= 0) {
+                        clearInterval(timer);
+                        $wire.set('retryAfter', 0);
                     }
                 }
             }">
