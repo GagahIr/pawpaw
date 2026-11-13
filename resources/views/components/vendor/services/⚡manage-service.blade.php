@@ -31,7 +31,6 @@ new #[Layout('layouts::admin')] class extends Component
         'name' => '',
         'price' => '',
         'duration' => '',
-        'capacity' => '',
     ];
 
     public function rules(): array
@@ -40,7 +39,6 @@ new #[Layout('layouts::admin')] class extends Component
             'formData.name' => 'required|string|max:255',
             'formData.price' => 'required|numeric|min:1',
             'formData.duration' => 'required|numeric|min:1',
-            'formData.capacity' => 'nullable|numeric|min:1',
         ];
     }
 
@@ -56,8 +54,6 @@ new #[Layout('layouts::admin')] class extends Component
             'formData.duration.required' => 'Durasi harus diisi',
             'formData.duration.numeric' => 'Durasi harus berupa angka',
             'formData.duration.min' => 'Durasi minimal 1 menit',
-            'formData.capacity.numeric' => 'Kapasitas harus berupa angka',
-            'formData.capacity.min' => 'Kapasitas minimal 1',
         ];
     }
 
@@ -83,7 +79,6 @@ new #[Layout('layouts::admin')] class extends Component
                         'name' => $item->name,
                         'price' => $item->price,
                         'duration' => $item->duration,
-                        'capacity' => $item->capacity,
                     ],
                 )
                 ->toArray();
@@ -100,11 +95,10 @@ new #[Layout('layouts::admin')] class extends Component
                 'name' => $item->name,
                 'price' => $item->price,
                 'duration' => $item->duration,
-                'capacity' => $item->capacity,
             ];
         } else {
             $this->editingId = null;
-            $this->formData = ['name' => '', 'price' => '', 'duration' => '', 'capacity' => ''];
+            $this->formData = ['name' => '', 'price' => '', 'duration' => ''];
         }
 
         $this->showForm = true;
@@ -114,7 +108,7 @@ new #[Layout('layouts::admin')] class extends Component
     {
         $this->showForm = false;
         $this->editingId = null;
-        $this->formData = ['name' => '', 'price' => '', 'duration' => '', 'capacity' => ''];
+        $this->formData = ['name' => '', 'price' => '', 'duration' => ''];
         $this->resetValidation();
     }
 
@@ -141,9 +135,6 @@ new #[Layout('layouts::admin')] class extends Component
         $this->validate();
 
         $dataToSave = $this->formData;
-        if ($dataToSave['capacity'] === '') {
-            $dataToSave['capacity'] = null;
-        }
 
         if ($this->editingId) {
             $updateVendorServiceItem->execute($this->editingId, $dataToSave);
@@ -216,12 +207,6 @@ new #[Layout('layouts::admin')] class extends Component
                     <flux:input wire:model.blur="formData.duration" type="number" placeholder="60" required
                         min="1" />
                     <flux:error name="formData.duration" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Kapasitas (opsional)</flux:label>
-                    <flux:input wire:model.blur="formData.capacity" type="number" placeholder="5" min="1" />
-                    <flux:error name="formData.capacity" />
                 </flux:field>
             </div>
 

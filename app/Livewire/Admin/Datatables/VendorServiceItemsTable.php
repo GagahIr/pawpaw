@@ -78,9 +78,6 @@ final class VendorServiceItemsTable extends PowerGridComponent
             Column::make('Durasi', 'duration_formatted', 'duration')
                 ->sortable(),
 
-            Column::make('Kapasitas', 'capacity_formatted', 'capacity')
-                ->sortable(),
-
             // Column::make('Kategori', 'category_name')
             //     ->sortable(),
 
