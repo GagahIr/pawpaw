@@ -45,7 +45,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         @if ($vendor->status_verification !== VendorVerificationStatus::Approved)
             <flux:callout variant="info" icon="information-circle" heading="Menunggu verifikasi">
-                Pembayaran dibuka setelah akun disetujui oleh Super Admin.
+                Pembayaran dibuka setelah akun disetujui oleh Tim PawPaw.
             </flux:callout>
         @endif
 
