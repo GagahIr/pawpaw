@@ -2,6 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DayOfWeek;
+use App\Enums\StaffPosition;
+use App\Enums\VendorSubscriptionStatus;
+use App\Enums\VendorVerificationStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
@@ -9,8 +13,6 @@ use App\Models\VendorOperatingHour;
 use App\Models\VendorService;
 use App\Models\VendorServiceItem;
 use App\Models\VendorStaff;
-use App\Enums\DayOfWeek;
-use App\Enums\StaffPosition;
 use Illuminate\Database\Seeder;
 
 class VendorSeeder extends Seeder
@@ -18,17 +20,24 @@ class VendorSeeder extends Seeder
     public function run(): void
     {
         // 1. Ambil Role Owner (pastikan RoleSeeder sudah jalan)
-        $ownerRole = Role::where('name', 'owner')->first();
+        $ownerRole = Role::firstOrCreate(['name' => 'owner']);
 
-        // 2. Buat 10 Vendor beserta relasinya
-        Vendor::factory(10)->create()->each(function ($vendor) use ($ownerRole) {
+        $vendors = Vendor::factory(10)->create();
+        $activeVendors = Vendor::factory(10)->create([
+            'status_verification' => VendorVerificationStatus::Approved,
+            'status_subscription' => VendorSubscriptionStatus::Active,
+            'subscription_started_at' => now(),
+            'subscription_expired_at' => now()->addDays(30),
+        ]);
+
+        $vendors->concat($activeVendors)->each(function (Vendor $vendor) use ($ownerRole): void {
 
             // A. Buat User & Jadikan Staff (Owner) untuk vendor ini
             $user = User::factory()->create(['role_id' => $ownerRole->id]);
             VendorStaff::create([
                 'user_id' => $user->id,
                 'vendor_id' => $vendor->id,
-                'position' => StaffPosition::cases()[0] ?? 'owner', // Sesuaikan Enum
+                'position' => StaffPosition::Owner,
             ]);
 
             // B. Buat Operating Hours (Misal buka Senin-Jumat)
@@ -41,11 +50,17 @@ class VendorSeeder extends Seeder
             }
 
             // C. Buat 2 Kategori Service (Grooming / Clinic / Pet Hotel)
-            VendorService::factory(2)->create(['vendor_id' => $vendor->id])->each(function ($vendorService) {
+            $serviceFactory = VendorService::factory(2);
+
+            if ($vendor->status_subscription === VendorSubscriptionStatus::Active) {
+                $serviceFactory = $serviceFactory->state(['status_service' => true]);
+            }
+
+            $serviceFactory->create(['vendor_id' => $vendor->id])->each(function (VendorService $vendorService): void {
 
                 // D. Buat 3 Item Layanan untuk tiap kategori
                 VendorServiceItem::factory(3)->create([
-                    'vendor_service_id' => $vendorService->id
+                    'vendor_service_id' => $vendorService->id,
                 ]);
             });
         });

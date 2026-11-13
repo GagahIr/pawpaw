@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "flatpickr/dist/flatpickr.min.css";
+@import "./clinic.css";
 
 @import '../../vendor/livewire/flux/dist/flux.css';
 @custom-variant dark (&:where(.dark, .dark *));

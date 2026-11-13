@@ -1,23 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>PawPaw</title>
+    @php
+        $isClinicPage = request()->routeIs('client.clinic', 'client.vendor.detail');
+    @endphp
+    @if ($isClinicPage)
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    @endif
     {{-- @fluxAppearance --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#FFF]">
+<body class="{{ $isClinicPage ? 'clinic-shell' : 'bg-[#FFF]' }}">
 
     <div>
         <flux:header container
             class="border-b border-zinc-200 bg-white lg:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" aria-label="Open navigation" />
-            <flux:brand href="#" logo="{{ asset('assets/img/pawpaw-logo.webp') }}"
-                class="max-lg:hidden dark:hidden" />
+            <flux:brand href="{{ $isClinicPage ? route('landing_page') : '#' }}" logo="{{ asset('assets/img/pawpaw-logo.webp') }}"
+                class="{{ $isClinicPage ? 'clinic-brand' : 'max-lg:hidden dark:hidden' }}" />
             {{-- <flux:brand href="#" logo="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Acme Bank"
                 class="max-lg:hidden! hidden dark:flex" /> --}}
             <flux:navbar class="max-lg:hidden">
@@ -27,7 +35,7 @@
                 </flux:navbar.item>
                 <flux:navbar.item href="{{ route('client.my-bookings') }}"
                     :current="request()->routeIs('client.my-bookings')">
-                    Reservasi saya & Riwayat
+                    {{ $isClinicPage ? 'Reservasi Saya' : 'Reservasi saya & Riwayat' }}
                 </flux:navbar.item>
                 {{-- <flux:navbar.item href="#">Transfers</flux:navbar.item> --}}
                 {{-- <flux:navbar.item href="{{ route('client.history') }}"
@@ -82,9 +90,14 @@
         <flux:sidebar sticky collapsible="mobile"
             class="lg:hidden border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <flux:sidebar.brand href="#" logo="https://fluxui.dev/img/demo/logo.png"
-                    logo:dark="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Acme Bank"
-                    class="min-w-0 flex-1" />
+                @if ($isClinicPage)
+                    <flux:sidebar.brand href="{{ route('landing_page') }}" logo="{{ asset('assets/img/pawpaw-logo.webp') }}"
+                        name="" class="min-w-0 flex-1" />
+                @else
+                    <flux:sidebar.brand href="#" logo="https://fluxui.dev/img/demo/logo.png"
+                        logo:dark="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Acme Bank"
+                        class="min-w-0 flex-1" />
+                @endif
                 <flux:sidebar.collapse />
             </flux:sidebar.header>
             <flux:sidebar.nav>
@@ -108,7 +121,7 @@
                 <flux:sidebar.item icon="information-circle" href="#">Help</flux:sidebar.item>
             </flux:sidebar.nav>
         </flux:sidebar>
-        <flux:main container>
+        <flux:main container class="{{ $isClinicPage ? 'clinic-main' : '' }}">
             {{ $slot }}
 
         </flux:main>
