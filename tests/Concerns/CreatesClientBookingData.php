@@ -55,7 +55,7 @@ trait CreatesClientBookingData
             'name' => $name,
             'slug' => Str::slug($name),
             'address' => 'Jl. Soekarno Hatta No. 1, Malang',
-            'contact' => '081200001111',
+            'contact' => fake()->unique()->numerify('08##########'),
             'status_verification' => VendorVerificationStatus::Approved,
             'status_subscription' => VendorSubscriptionStatus::Active,
             'subscription_expired_at' => now()->addYear(),
