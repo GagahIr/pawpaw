@@ -270,15 +270,19 @@ new #[Layout('layouts.client')] class extends Component {
             return ['status' => 'closed', 'slots' => []];
         }
 
-        $start = Carbon::parse($date . ' ' . $hour->open_time);
-        $end = Carbon::parse($date . ' ' . $hour->close_time);
-        $earliest = now()->addMinutes(self::MIN_LEAD_MINUTES);
+        $appTimezone = config('app.timezone', 'UTC');
+        $now = now();
+        $isToday = Carbon::parse($date, $appTimezone)->isToday();
+
+        $start = Carbon::parse($date . ' ' . $hour->open_time, $appTimezone);
+        $end = Carbon::parse($date . ' ' . $hour->close_time, $appTimezone);
         $booked = $this->bookedMinutes($date);
         $slots = [];
 
         for ($slot = $start->copy(); $slot->copy()->addMinutes($item->duration)->lte($end); $slot->addMinutes(self::SLOT_STEP_MINUTES)) {
             $minutes = $slot->hour * 60 + $slot->minute;
-            $reason = $slot->lt($earliest) ? 'past' : (in_array($minutes, $booked, true) ? 'booked' : null);
+            $isPast = $isToday && $slot->lte($now);
+            $reason = $isPast ? 'past' : (in_array($minutes, $booked, true) ? 'booked' : null);
 
             $slots[] = [
                 'minutes' => $minutes,
