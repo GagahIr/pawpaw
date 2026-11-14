@@ -394,7 +394,7 @@ new #[Layout('layouts.client')] class extends Component {
             </div>
             <div class="flex justify-end gap-3">
                 <flux:modal.close>
-                    <flux:button variant="subtle">Tidak jadi</flux:button>
+                    <flux:button variant="subtle">Tidak</flux:button>
                 </flux:modal.close>
                 <flux:button variant="danger" wire:click="cancel" wire:loading.attr="disabled" wire:target="cancel">
                     <span wire:loading.remove wire:target="cancel">Ya, batalkan</span>
