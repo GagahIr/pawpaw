@@ -134,6 +134,45 @@ new #[Layout('layouts.client')] class extends Component {
 
         Flux::toast('Reservasi dibatalkan.', variant: 'success');
     }
+
+    public function statusStyle(string $status): array
+    {
+        return match ($status) {
+            'confirmed', 'completed' => [
+                'card' => 'border-emerald-200 bg-emerald-50/60',
+                'icon_bg' => 'bg-emerald-100 text-emerald-700',
+                'icon' => 'check-circle',
+                'text' => 'text-emerald-900',
+            ],
+            'cancelled', 'rejected' => [
+                'card' => 'border-red-200 bg-red-50/60',
+                'icon_bg' => 'bg-red-100 text-red-700',
+                'icon' => 'x-circle',
+                'text' => 'text-red-900',
+            ],
+            default => [
+                'card' => 'border-amber-200 bg-amber-50/60',
+                'icon_bg' => 'bg-amber-100 text-amber-700',
+                'icon' => 'clock',
+                'text' => 'text-amber-900',
+            ],
+        };
+    }
+
+    public function statusMessage(array $booking): string
+    {
+        $vendorName = $booking['vendor_name'] ?? 'Klinik';
+
+        return match ($booking['status']) {
+            'pending' => "{$vendorName} akan segera memeriksa dan mengonfirmasi reservasi Anda.",
+            'confirmed' => "Reservasi telah dikonfirmasi oleh {$vendorName}. Silakan datang 10 menit lebih awal.",
+            'completed' => "Layanan telah selesai dilaksanakan oleh {$vendorName}.",
+            'cancelled' => 'Reservasi ini telah dibatalkan.',
+            'rejected' => "Mohon maaf, reservasi belum dapat diterima oleh {$vendorName}.",
+            'expired' => "Waktu tunggu habis sebelum {$vendorName} mengonfirmasi. Silakan reservasi ulang.",
+            default => '-',
+        };
+    }
 };
 ?>
 
@@ -143,17 +182,17 @@ new #[Layout('layouts.client')] class extends Component {
             'label' => 'Menunggu konfirmasi',
             'color' => 'amber',
             'icon' => 'clock',
-            'hint' => 'Klinik akan segera mengonfirmasi.',
+            'hint' => 'Klinik akan segera mengonfirmasi pesanan Anda.',
         ],
         'confirmed' => [
             'label' => 'Dikonfirmasi',
             'color' => 'green',
             'icon' => 'check-circle',
-            'hint' => 'Datang 10 menit lebih awal.',
+            'hint' => 'Datang 10 menit lebih awal ke klinik.',
         ],
         'completed' => ['label' => 'Selesai', 'color' => 'zinc', 'icon' => 'check', 'hint' => null],
         'cancelled' => ['label' => 'Dibatalkan', 'color' => 'red', 'icon' => 'x-circle', 'hint' => null],
-        'rejected' => ['label' => 'Ditolak oleh klinik', 'color' => 'red', 'icon' => 'x-circle', 'hint' => null],
+        'rejected' => ['label' => 'Ditolak klinik', 'color' => 'red', 'icon' => 'x-circle', 'hint' => null],
         'expired' => [
             'label' => 'Kedaluwarsa',
             'color' => 'zinc',
@@ -201,7 +240,7 @@ new #[Layout('layouts.client')] class extends Component {
     {{-- Filter --}}
     <div class="mb-6 space-y-3">
         <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass"
-            placeholder="Cari nama vendor atau layanan" />
+            placeholder="Cari nama klinik atau layanan" />
 
         {{-- Chip status --}}
         <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="group" aria-label="Filter status">
@@ -349,7 +388,19 @@ new #[Layout('layouts.client')] class extends Component {
                         @endif
 
                         @if ($st['hint'])
-                            <p class="text-sm text-zinc-600">{{ $st['hint'] }}</p>
+                            <p class="text-sm text-zinc-600">
+                                @if ($booking['status'] === 'pending')
+                                    <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span> akan segera mengonfirmasi.
+                                @elseif ($booking['status'] === 'confirmed')
+                                    Datang 10 menit lebih awal ke <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
+                                @elseif ($booking['status'] === 'rejected')
+                                    Ditolak oleh <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
+                                @elseif ($booking['status'] === 'expired')
+                                    <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span> belum sempat mengonfirmasi.
+                                @else
+                                    {{ $st['hint'] }}
+                                @endif
+                            </p>
                         @endif
 
                         <div class="flex flex-wrap gap-2 border-t border-zinc-100 pt-4">
@@ -362,7 +413,7 @@ new #[Layout('layouts.client')] class extends Component {
                                 @if ($booking['whatsapp_url'])
                                     <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
                                         href="{{ $booking['whatsapp_url'] }}" target="_blank" rel="noopener">Hubungi
-                                        vendor</flux:button>
+                                        klinik</flux:button>
                                 @endif
                                 @if ($booking['maps_url'])
                                     <flux:button size="sm" variant="outline" icon="map-pin"
@@ -442,95 +493,92 @@ new #[Layout('layouts.client')] class extends Component {
                     </flux:text>
                 </div>
 
-                {{-- Status & Petunjuk Dinamis dengan Nama Klinik --}}
-                @php
-                    $vendorName = $selectedBooking['vendor_name'] ?? 'Klinik';
-                    $hintText = match ($selectedBooking['status']) {
-                        'pending' => "{$vendorName} akan segera memeriksa dan mengonfirmasi reservasi Anda.",
-                        'confirmed' => "Reservasi telah dikonfirmasi oleh {$vendorName}. Silakan datang 10 menit lebih awal.",
-                        'completed' => "Layanan telah selesai dilaksanakan oleh {$vendorName}. Terima kasih!",
-                        'cancelled' => "Reservasi ini telah dibatalkan.",
-                        'rejected' => "Mohon maaf, reservasi belum dapat diterima oleh {$vendorName}.",
-                        'expired' => "Waktu tunggu habis sebelum {$vendorName} mengonfirmasi. Silakan reservasi ulang.",
-                        default => $detailSt['hint'],
-                    };
-                @endphp
-
-                <div class="rounded-xl bg-amber-50/80 border border-amber-200/90 p-4 flex items-start gap-3 text-xs text-amber-950">
-                    <flux:icon name="information-circle" class="size-4 shrink-0 mt-0.5 text-amber-600" />
-                    <div>
-                        <p class="font-bold text-amber-900">{{ $detailSt['label'] }}</p>
-                        <p class="mt-0.5 text-amber-800 leading-relaxed">{{ $hintText }}</p>
-                    </div>
-                </div>
-
-                {{-- Card Riwayat Status / Waktu Pemesanan (Format Card Bersih, Tanpa Garis Melenceng) --}}
-                <div class="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 space-y-3 text-xs">
-                    <h4 class="font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 pb-2 border-b border-zinc-200">
-                        <flux:icon name="clock" class="size-4 text-accent" />
-                        Riwayat & Jejak Waktu
+                {{-- Riwayat & Status (Desain Card Bersih, Tanpa Garis Melenceng) --}}
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 pb-1 border-b border-zinc-200/70">
+                        <flux:icon name="clock" class="size-4 text-emerald-700" />
+                        Riwayat & Status Reservasi
                     </h4>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div class="rounded-lg bg-white p-3 border border-zinc-200/80">
-                            <span class="text-zinc-500 font-medium">Waktu Pemesanan</span>
-                            <p class="text-zinc-900 font-bold mt-1 text-sm">
-                                {{ $selectedBooking['created_at_formatted'] ?? '-' }}
-                            </p>
-                            <span class="text-[11px] text-zinc-400">
-                                {{ $selectedBooking['created_human'] ?? '' }}
-                            </span>
+                    <div class="space-y-2.5">
+                        {{-- 1. Tahap Pembuatan --}}
+                        <div class="flex items-start gap-3 rounded-lg border border-zinc-200/80 bg-white p-3 shadow-xs">
+                            <div class="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5">
+                                <flux:icon name="check" class="size-3.5" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center justify-between gap-1">
+                                    <p class="text-xs font-semibold text-zinc-900">Reservasi Diajukan</p>
+                                    <span class="text-[11px] text-zinc-500 font-medium">{{ $selectedBooking['created_at_formatted'] ?? '-' }}</span>
+                                </div>
+                                <p class="text-xs text-zinc-500 mt-0.5">
+                                    Permintaan berhasil dikirim ke <span class="font-medium text-zinc-700">{{ $selectedBooking['vendor_name'] }}</span>
+                                    @if (!empty($selectedBooking['created_human']))
+                                        <span class="text-zinc-400">({{ $selectedBooking['created_human'] }})</span>
+                                    @endif
+                                </p>
+                            </div>
                         </div>
 
-                        <div class="rounded-lg bg-white p-3 border border-zinc-200/80">
-                            <span class="text-zinc-500 font-medium">Status Terakhir</span>
-                            <p class="text-zinc-900 font-bold mt-1 text-sm flex items-center gap-1.5">
-                                <span class="size-2 rounded-full {{ in_array($selectedBooking['status'], ['confirmed', 'completed']) ? 'bg-emerald-500' : (in_array($selectedBooking['status'], ['cancelled', 'rejected']) ? 'bg-red-500' : 'bg-amber-400') }}"></span>
-                                {{ $detailSt['label'] }}
-                            </p>
-                            <span class="text-[11px] text-zinc-400">
-                                Diperbarui: {{ $selectedBooking['updated_at_formatted'] ?? '-' }}
-                            </span>
+                        {{-- 2. Status Terkini --}}
+                        <div class="flex items-start gap-3 rounded-lg border {{ $this->statusStyle($selectedBooking['status'])['card'] }} p-3 shadow-xs">
+                            <div class="flex size-7 shrink-0 items-center justify-center rounded-full {{ $this->statusStyle($selectedBooking['status'])['icon_bg'] }} mt-0.5">
+                                <flux:icon name="{{ $this->statusStyle($selectedBooking['status'])['icon'] }}" class="size-3.5" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center justify-between gap-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-xs font-semibold text-zinc-900">Status Terkini</p>
+                                        <flux:badge size="sm" color="{{ $detailSt['color'] }}">{{ $detailSt['label'] }}</flux:badge>
+                                    </div>
+                                    <span class="text-[11px] text-zinc-500 font-medium">
+                                        {{ $selectedBooking['updated_at_formatted'] ?? $selectedBooking['created_at_formatted'] ?? '-' }}
+                                    </span>
+                                </div>
+                                <p class="text-xs {{ $this->statusStyle($selectedBooking['status'])['text'] }} mt-1 leading-relaxed">
+                                    {{ $this->statusMessage($selectedBooking) }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- Detail Jadwal & Pesanan --}}
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3 text-sm">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-2 border-b border-zinc-200">
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-1 border-b border-zinc-200/70">
                         Rincian Jadwal & Layanan
                     </h4>
 
                     <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-500 text-xs">Klinik / Tempat</span>
-                        <span class="font-semibold text-zinc-900 text-right">{{ $selectedBooking['vendor_name'] }}</span>
+                        <span class="text-zinc-600">Nama Klinik</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['vendor_name'] }}</span>
                     </div>
 
                     <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-500 text-xs">Perawatan</span>
-                        <span class="font-semibold text-zinc-900 text-right">{{ $selectedBooking['service_item_name'] }} <span class="text-xs font-normal text-zinc-500">({{ $selectedBooking['category_label'] }})</span></span>
+                        <span class="text-zinc-600">Layanan</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['service_item_name'] }} ({{ $selectedBooking['category_label'] }})</span>
                     </div>
 
                     <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-500 text-xs">Jadwal Tanggal</span>
-                        <span class="font-semibold text-zinc-900 text-right">{{ $selectedBooking['date_label'] }}</span>
+                        <span class="text-zinc-600">Jadwal Tanggal</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['date_label'] }}</span>
                     </div>
 
                     @if ($selectedBooking['time_label'])
                         <div class="flex justify-between items-start gap-4">
-                            <span class="text-zinc-500 text-xs">Jam Kunjungan</span>
-                            <span class="font-semibold text-zinc-900 text-right">{{ $selectedBooking['time_label'] }} WIB</span>
+                            <span class="text-zinc-600">Jam Kunjungan</span>
+                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['time_label'] }} WIB</span>
                         </div>
                     @endif
 
                     @if ($selectedBooking['nights'])
                         <div class="flex justify-between items-start gap-4">
-                            <span class="text-zinc-500 text-xs">Durasi Menginap</span>
-                            <span class="font-semibold text-zinc-900 text-right">{{ $selectedBooking['nights'] }} malam</span>
+                            <span class="text-zinc-600">Durasi Menginap</span>
+                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['nights'] }} malam</span>
                         </div>
                     @endif
 
-                    <div class="border-t border-dashed border-zinc-200 pt-3">
+                    <div class="border-t border-dashed border-zinc-300 pt-3">
                         @if (($selectedBooking['nights'] ?? 0) > 1)
                             <div class="flex justify-between text-xs text-zinc-500 mb-1">
                                 <span>Tarif per malam</span>
@@ -539,7 +587,7 @@ new #[Layout('layouts.client')] class extends Component {
                         @endif
                         <div class="flex justify-between items-baseline">
                             <span class="font-bold text-zinc-900">Total Tagihan</span>
-                            <span class="text-xl font-extrabold text-accent">
+                            <span class="text-xl font-bold text-accent">
                                 Rp {{ number_format($selectedBooking['total_price'], 0, ',', '.') }}
                             </span>
                         </div>
