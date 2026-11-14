@@ -21,7 +21,7 @@ class UpdateGroomingBookingStatusAction
 
             $allowedTransitions = [
                 'pending' => ['confirmed', 'rejected'],
-                'confirmed' => ['completed', 'cancelled'],
+                'confirmed' => ['completed'],
                 'completed' => [],
                 'cancelled' => [],
                 'rejected' => [],
