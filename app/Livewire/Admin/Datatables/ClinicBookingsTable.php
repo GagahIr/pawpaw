@@ -184,12 +184,6 @@ final class ClinicBookingsTable extends PowerGridComponent
                 ->class($base.'text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50')
                 ->dispatch('updateBookingStatus', ['rowId' => $row->id, 'status' => 'completed'])
                 ->can($row->status === 'confirmed'),
-
-            Button::add('cancel')
-                ->slot('Batalkan')
-                ->class($base.'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700/40')
-                ->dispatch('updateBookingStatus', ['rowId' => $row->id, 'status' => 'cancelled'])
-                ->can($row->status === 'confirmed'),
         ];
     }
 }
