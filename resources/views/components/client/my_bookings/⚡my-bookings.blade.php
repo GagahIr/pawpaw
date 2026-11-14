@@ -421,10 +421,10 @@ new #[Layout('layouts.client')] class extends Component {
                                     </flux:button>
                                 @endif
                                 @if ($booking['status'] === 'pending')
-                                    <flux:button size="sm" variant="subtle"
-                                        class="ml-auto text-red-600 hover:text-red-700"
+                                    <flux:button size="sm" variant="danger" class="ml-auto"
                                         wire:click="askCancel('{{ $booking['type'] }}', {{ $booking['id'] }})">
-                                        Batalkan</flux:button>
+                                        Batalkan
+                                    </flux:button>
                                 @endif
                             @elseif ($booking['vendor_slug'])
                                 {{-- Riwayat: ajak pengguna memesan lagi, terutama yang kedaluwarsa/dibatalkan --}}
@@ -611,9 +611,17 @@ new #[Layout('layouts.client')] class extends Component {
                         @endif
                     </div>
 
-                    <flux:modal.close>
-                        <flux:button variant="primary">Tutup</flux:button>
-                    </flux:modal.close>
+                    <div class="flex items-center gap-2">
+                        @if ($selectedBooking['status'] === 'pending')
+                            <flux:button size="sm" variant="danger"
+                                wire:click="askCancel('{{ $selectedBooking['type'] }}', {{ $selectedBooking['id'] }})">
+                                Batalkan
+                            </flux:button>
+                        @endif
+                        <flux:modal.close>
+                            <flux:button size="sm" variant="primary">Tutup</flux:button>
+                        </flux:modal.close>
+                    </div>
                 </div>
             </div>
         @endif
