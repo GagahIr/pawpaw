@@ -451,7 +451,7 @@ new #[Layout('layouts.client')] class extends Component {
         }
 
         Flux::toast('Reservasi berhasil dibuat. Menunggu konfirmasi vendor.', variant: 'success');
-        return $this->redirectRoute('client.vendor.detail', ['slug' => $this->slug], navigate: true);
+        return $this->redirectRoute('client.my-bookings', navigate: true);
     }
 
     public function with(): array
