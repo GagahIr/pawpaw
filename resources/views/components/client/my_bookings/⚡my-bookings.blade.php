@@ -24,6 +24,8 @@ new #[Layout('layouts.client')] class extends Component {
     public string $cancelType = '';
     public int $cancelId = 0;
 
+    public ?array $selectedBooking = null;
+
     private function userClientId(): ?int
     {
         return auth('client')->user()?->userClient?->id;
@@ -96,6 +98,16 @@ new #[Layout('layouts.client')] class extends Component {
         $this->cancelType = $type;
         $this->cancelId = $id;
         $this->modal('cancel-booking')->show();
+    }
+
+    public function showDetail(string $type, int $id): void
+    {
+        $booking = $this->result['items']->first(fn($b) => $b['type'] === $type && $b['id'] === $id);
+
+        if ($booking) {
+            $this->selectedBooking = $booking;
+            $this->modal('detail-booking')->show();
+        }
     }
 
     public function cancel(): void
@@ -341,6 +353,11 @@ new #[Layout('layouts.client')] class extends Component {
                         @endif
 
                         <div class="flex flex-wrap gap-2 border-t border-zinc-100 pt-4">
+                            <flux:button size="sm" variant="outline" icon="document-text"
+                                wire:click="showDetail('{{ $booking['type'] }}', {{ $booking['id'] }})">
+                                Detail reservasi
+                            </flux:button>
+
                             @if ($tab === 'active')
                                 @if ($booking['whatsapp_url'])
                                     <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
@@ -402,5 +419,99 @@ new #[Layout('layouts.client')] class extends Component {
                 </flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    {{-- Detail Reservasi --}}
+    <flux:modal name="detail-booking" class="min-w-[22rem] md:min-w-lg">
+        @if ($selectedBooking)
+            @php($detailSt = $statusMap[$selectedBooking['status']] ?? $statusMap['pending'])
+            <div class="space-y-6">
+                <div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-medium text-zinc-500">{{ $selectedBooking['code'] }}</span>
+                        <flux:badge size="sm" color="{{ $detailSt['color'] }}">
+                            {{ $detailSt['label'] }}
+                        </flux:badge>
+                    </div>
+                    <flux:heading size="lg" class="mt-2">{{ $selectedBooking['service_item_name'] }}</flux:heading>
+                    <flux:text class="text-sm text-zinc-600">
+                        {{ $selectedBooking['category_label'] }} &middot; {{ $selectedBooking['vendor_name'] }}
+                    </flux:text>
+                </div>
+
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
+                    <div class="flex justify-between gap-4">
+                        <span class="text-zinc-600">Vendor / Klinik</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['vendor_name'] }}</span>
+                    </div>
+
+                    <div class="flex justify-between gap-4">
+                        <span class="text-zinc-600">Kategori Layanan</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['category_label'] }}</span>
+                    </div>
+
+                    <div class="flex justify-between gap-4">
+                        <span class="text-zinc-600">Jadwal Tanggal</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['date_label'] }}</span>
+                    </div>
+
+                    @if ($selectedBooking['time_label'])
+                        <div class="flex justify-between gap-4">
+                            <span class="text-zinc-600">Jam Kunjungan</span>
+                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['time_label'] }} WIB</span>
+                        </div>
+                    @endif
+
+                    @if ($selectedBooking['nights'])
+                        <div class="flex justify-between gap-4">
+                            <span class="text-zinc-600">Lama Menginap</span>
+                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['nights'] }} malam</span>
+                        </div>
+                    @endif
+
+                    <div class="border-t border-dashed border-zinc-200 pt-3">
+                        @if (($selectedBooking['nights'] ?? 0) > 1)
+                            <div class="flex justify-between text-xs text-zinc-500 mb-1">
+                                <span>Tarif per malam</span>
+                                <span>Rp {{ number_format($selectedBooking['unit_price'], 0, ',', '.') }} &times; {{ $selectedBooking['nights'] }} malam</span>
+                            </div>
+                        @endif
+                        <div class="flex justify-between items-baseline">
+                            <span class="font-semibold text-zinc-900">Total Biaya</span>
+                            <span class="text-lg font-bold text-accent">
+                                Rp {{ number_format($selectedBooking['total_price'], 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                @if ($detailSt['hint'])
+                    <p class="text-xs text-zinc-500 bg-zinc-50 rounded-lg p-3 border border-zinc-100">
+                        💡 {{ $detailSt['hint'] }}
+                    </p>
+                @endif
+
+                <div class="flex justify-between items-center gap-3 pt-2">
+                    <div class="flex gap-2">
+                        @if ($selectedBooking['whatsapp_url'])
+                            <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
+                                href="{{ $selectedBooking['whatsapp_url'] }}" target="_blank" rel="noopener">
+                                Hubungi
+                            </flux:button>
+                        @endif
+                        @if ($selectedBooking['maps_url'])
+                            <flux:button size="sm" variant="outline" icon="map-pin"
+                                href="{{ $selectedBooking['maps_url'] }}" target="_blank" rel="noopener">
+                                Rute
+                            </flux:button>
+                        @endif
+                    </div>
+
+                    <flux:modal.close>
+                        <flux:button variant="primary">Tutup</flux:button>
+                    </flux:modal.close>
+                </div>
+            </div>
+        @endif
     </flux:modal>
 </div>
