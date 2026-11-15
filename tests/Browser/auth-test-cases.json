@@ -1,0 +1,919 @@
+{
+  "spreadsheet_url": "https://docs.google.com/spreadsheets/d/192Bv4nCH7k8-IGVITvIhR__0OaUdLD_vDFrqgBT5ssc/edit",
+  "scope": "Login/register client dan mitra. Menggunakan Revisi Mitra_Register (15 ID), bukan Vendor_Register (55 ID).",
+  "commands": {
+    "server": "php artisan serve --env=dusk.local --host=0.0.0.0 --port=8011 --no-reload",
+    "test": "php artisan dusk --without-tty",
+    "single_case": "php artisan dusk --without-tty --filter='(?i)TC_REG_MITRA_002'",
+    "report": "php artisan dusk --without-tty --log-junit=tests/Browser/auth-results.xml"
+  },
+  "setup": [
+    "laravel/dusk 8.7.2 dan php-webdriver/webdriver 1.16.0 sudah dicatat pada composer.json/composer.lock. Di perangkat lain: composer install; php artisan dusk:chrome-driver --detect.",
+    "Salin .env.dusk.local.example ke .env.dusk.local, isi APP_KEY; buat file kosong database/pawpaw-dusk.sqlite.",
+    "Gunakan Google Chrome yang cocok dengan ChromeDriver. DUSK_CHROME_BINARY dapat diisi jika Chrome portable.",
+    "Database khusus Dusk direset per tes; guard menolak database selain database/pawpaw-dusk.sqlite.",
+    "Jangan jalankan suite paralel: browser dan test runner berbagi file database Dusk."
+  ],
+  "counts": {
+    "spreadsheet_ids": 78,
+    "phpunit_scenarios": 97,
+    "external_skipped_ids": 4
+  },
+  "cases": [
+    {
+      "id": "TC_LOGIN_001",
+      "sheet": "Pelanggan_Login",
+      "title": "Login dengan Email dan Kata Sandi valid",
+      "expected_result": "Login berhasil dan pengguna diarahkan ke dashboard.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_valid_credentials_open_client_dashboard\"TC_LOGIN_001 email\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_002",
+      "sheet": "Pelanggan_Login",
+      "title": "Login dengan No.Telepon dan Kata Sandi valid",
+      "expected_result": "Login berhasil dan pengguna diarahkan ke dashboard.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_valid_credentials_open_client_dashboard\"TC_LOGIN_002 telepon\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_003",
+      "sheet": "Pelanggan_Login",
+      "title": "Email valid dan Kata Sandi salah",
+      "expected_result": "Login gagal dan Muncul pesan error.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_003 password salah\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_004",
+      "sheet": "Pelanggan_Login",
+      "title": "Email salah dan Kata Sandi valid",
+      "expected_result": "Login gagal dan Muncul pesan error.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_004 email salah\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_005",
+      "sheet": "Pelanggan_Login",
+      "title": "Email salah dan Kata Sandi salah",
+      "expected_result": "Login gagal dan Muncul pesan error.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_005 keduanya salah\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_006",
+      "sheet": "Pelanggan_Login",
+      "title": "Email belum terdaftar",
+      "expected_result": "Login gagal dan Muncul pesan error.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_006 email belum terdaftar\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_007",
+      "sheet": "Pelanggan_Login",
+      "title": "No telepon belum terdaftar",
+      "expected_result": "Login gagal dan Muncul pesan error.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_007 telepon belum terdaftar\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_008",
+      "sheet": "Pelanggan_Login",
+      "title": "Kedua field dikosongkan",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'wajib diisi' pada kedua field.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_008 keduanya kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_009",
+      "sheet": "Pelanggan_Login",
+      "title": "Email/No. Telepon kosong, Kata Sandi terisi",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'wajib diisi' pada field email.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_009 identifier kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_010",
+      "sheet": "Pelanggan_Login",
+      "title": "Email/No. Telepon terisi, Kata Sandi kosong",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'wajib diisi' pada field kata sandi.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_010 password kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_011",
+      "sheet": "Pelanggan_Login",
+      "title": "Format Email tidak valid",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'Format email salah' pada field input Email atau Nomor Whatsapp.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_011 email tidak valid\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_012",
+      "sheet": "Pelanggan_Login",
+      "title": "Format No. WhatsApp tidak valid",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'Format nomor handphone salah' pada field input Email atau Nomor Whatsapp.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_012 telepon tidak valid\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_013",
+      "sheet": "Pelanggan_Login",
+      "title": "Kata Sandi kurang dari 8 karakter",
+      "expected_result": "Login tidak diproses. Muncul pesan validasi 'wajib diisi' pada field kata sandi.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_invalid_credentials_do_not_authenticate\"TC_LOGIN_013 password pendek\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_014",
+      "sheet": "Pelanggan_Login",
+      "title": "Kata Sandi tersamarkan secara default",
+      "expected_result": "Karakter kata sandi tampil sebagai bintang).",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_tc_login_014_password_is_masked_by_default"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_015",
+      "sheet": "Pelanggan_Login",
+      "title": "Menampilkan Kata Sandi dengan ikon mata",
+      "expected_result": "Kata Sandi tampil sebagai teks biasa.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_tc_login_015_eye_displays_password"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_016",
+      "sheet": "Pelanggan_Login",
+      "title": "Mencentang dan menghilangkan centang checkbox",
+      "expected_result": "Checkbox berubah menjadi tercentang pada klik pertama dan tidak tercentang pada klik kedua.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_tc_login_016_remember_checkbox_toggles"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_017",
+      "sheet": "Pelanggan_Login",
+      "title": "Login dengan checkbox 'Ingat sesi' dicentang",
+      "expected_result": "Login berhasil dan pengguna tetap dalam keadaan login setelah browser dibuka kembali (sesi tersimpan).",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_browser_restart_respects_remember_choice\"TC_LOGIN_017 ingat sesi\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_018",
+      "sheet": "Pelanggan_Login",
+      "title": "Login dengan checkbox 'Ingat sesi' tidak dicentang",
+      "expected_result": "Login berhasil, namun setelah browser ditutup & dibuka kembali pengguna diminta login ulang.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_browser_restart_respects_remember_choice\"TC_LOGIN_018 tanpa ingat sesi\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_019",
+      "sheet": "Pelanggan_Login",
+      "title": "Klik link Lupa Kata Sandi",
+      "expected_result": "Pengguna diarahkan ke form pemulihan kata sandi.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_navigation_opens_expected_page\"TC_LOGIN_019 lupa password\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_020",
+      "sheet": "Pelanggan_Login",
+      "title": "Login dengan Google Akun yang valid dan terdaftar",
+      "expected_result": "Login berhasil dan pengguna diarahkan ke dashboard.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_google_login_requires_controlled_oauth_accounts\"TC_LOGIN_020 Google terdaftar\""
+      ],
+      "execution": "skipped_external_oauth",
+      "notes": "Akun Google nyata tidak diotomasi; feature test callback terpisah tidak dianggap bukti PASS Dusk."
+    },
+    {
+      "id": "TC_LOGIN_021",
+      "sheet": "Pelanggan_Login",
+      "title": "Login Google dengan akun yang belum terdaftar",
+      "expected_result": "Sistem membuat akun baru ",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_google_login_requires_controlled_oauth_accounts\"TC_LOGIN_021 Google belum terdaftar\""
+      ],
+      "execution": "skipped_external_oauth",
+      "notes": "Akun Google nyata tidak diotomasi; feature test callback terpisah tidak dianggap bukti PASS Dusk."
+    },
+    {
+      "id": "TC_LOGIN_022",
+      "sheet": "Pelanggan_Login",
+      "title": "Berpindah ke tab 'Daftar Akun Baru'",
+      "expected_result": "Form pendaftaran akun baru ditampilkan.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_navigation_opens_expected_page\"TC_LOGIN_022 daftar\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_LOGIN_023",
+      "sheet": "Pelanggan_Login",
+      "title": "Berpindah ke tab 'Mitra Klinik'",
+      "expected_result": "Tampilan form login Mitra Klinik ditampilkan.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_navigation_opens_expected_page\"TC_LOGIN_023 mitra klinik\""
+      ],
+      "execution": "automated",
+      "notes": "Spreadsheet meminta tab Mitra Klinik/form login mitra. UI lokal hanya punya tautan Daftar sebagai Mitra ke registrasi; tes tetap mendeteksi tautan login yang hilang."
+    },
+    {
+      "id": "TC_LOGIN_024",
+      "sheet": "Pelanggan_Login",
+      "title": "Klik tautan 'Bantuan & FAQ'",
+      "expected_result": "Pengguna diarahkan ke halaman Bantuan & FAQ.",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_navigation_opens_expected_page\"TC_LOGIN_024 bantuan FAQ\""
+      ],
+      "execution": "automated",
+      "notes": "Tautan Bantuan & FAQ belum ditemukan pada halaman login lokal. Tujuan FAQ belum ditentukan, jadi keberadaan dan navigasi tautan harus diperiksa."
+    },
+    {
+      "id": "TC_LOGIN_025",
+      "sheet": "Pelanggan_Login",
+      "title": "Pengguna yang sudah login membuka URL halaman Login",
+      "expected_result": "Pengguna diarahkan ke dashboard Pemilik Hewan tanpa dapat mengakses form login",
+      "tests": [
+        "Tests\\Browser\\ClientLoginTest::test_tc_login_025_authenticated_client_cannot_reopen_login"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_001",
+      "sheet": "Pelanggan_Regist",
+      "title": "Registrasi dengan seluruh data valid",
+      "expected_result": "Pendaftaran berhasil: muncul notifikasi sukses, akun pelanggan terbentuk, dan pengguna diarahkan ke halaman login/dashboard.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_tc_regist_001_valid_data_creates_client_and_logs_in"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_002",
+      "sheet": "Pelanggan_Regist",
+      "title": "Seluruh field dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan 'wajib diisi' pada seluruh field wajib.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_002 semua kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_003",
+      "sheet": "Pelanggan_Regist",
+      "title": "Nama Lengkap dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nama Lengkap. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_003 nama kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_004",
+      "sheet": "Pelanggan_Regist",
+      "title": "Username dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_004 username kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_005",
+      "sheet": "Pelanggan_Regist",
+      "title": "Nomor WhatsApp / Telepon dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_005 telepon kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_006",
+      "sheet": "Pelanggan_Regist",
+      "title": "Email dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_006 email kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_007",
+      "sheet": "Pelanggan_Regist",
+      "title": "Password dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_007 password kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_008",
+      "sheet": "Pelanggan_Regist",
+      "title": "Konfirmasi Password dikosongkan",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (wajib diisi).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_008 konfirmasi kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_009",
+      "sheet": "Pelanggan_Regist",
+      "title": "Checkbox persetujuan tidak dicentang",
+      "expected_result": "Pendaftaran tidak diproses. Muncul pesan bahwa pengguna harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi (atau tombol tidak aktif).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_009 syarat tidak disetujui\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_010",
+      "sheet": "Pelanggan_Regist",
+      "title": "Nama Lengkap berisi angka dan simbol",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nama Lengkap. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (hanya huruf).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_010 nama angka simbol\""
+      ],
+      "execution": "automated",
+      "notes": "Spreadsheet mengharuskan nama tanpa angka/simbol. Rule lokal hanya string/min/max; tes diharapkan mendeteksi ketidaksesuaian."
+    },
+    {
+      "id": "TC_REGIST_011",
+      "sheet": "Pelanggan_Regist",
+      "title": "Nama Lengkap hanya berisi spasi",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nama Lengkap. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (hanya huruf).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_011 nama spasi\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_012",
+      "sheet": "Pelanggan_Regist",
+      "title": "Username sudah terdaftar",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Username. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. bahwa username sudah digunakan.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_012 username duplikat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_013",
+      "sheet": "Pelanggan_Regist",
+      "title": "No. WhatsApp sudah terdaftar",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nomor WhatsApp / Telepon. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. bahwa nomor sudah digunakan.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_013 telepon duplikat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_014",
+      "sheet": "Pelanggan_Regist",
+      "title": "No. WhatsApp berisi huruf",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nomor WhatsApp / Telepon. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. (hanya angka).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_014 telepon huruf\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_015",
+      "sheet": "Pelanggan_Regist",
+      "title": "No. WhatsApp terlalu pendek",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nomor WhatsApp / Telepon. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_015 telepon pendek\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_016",
+      "sheet": "Pelanggan_Regist",
+      "title": "No. WhatsApp terlalu panjang",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nomor WhatsApp / Telepon. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_016 telepon panjang\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_017",
+      "sheet": "Pelanggan_Regist",
+      "title": "No. WhatsApp berisi karakter spesial",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Nomor WhatsApp / Telepon. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_017 telepon simbol\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_018",
+      "sheet": "Pelanggan_Regist",
+      "title": "Email sudah terdaftar",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Email. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. ",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_018 email duplikat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_019",
+      "sheet": "Pelanggan_Regist",
+      "title": "Password kurang dari 8 karakter",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Password. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. ",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_019 password pendek\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_020",
+      "sheet": "Pelanggan_Regist",
+      "title": "Konfirmasi Password tidak sama dengan Password",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Password. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. ",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_020 konfirmasi berbeda\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_021",
+      "sheet": "Pelanggan_Regist",
+      "title": "Konfirmasi Password beda huruf besar/kecil",
+      "expected_result": "Pendaftaran ditolak. Muncul pesan validasi pada field Password. Akun tidak dibuat dan pengguna tetap di halaman pendaftaran. ",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_invalid_registration_does_not_create_account\"TC_REGIST_021 konfirmasi beda kapital\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_022",
+      "sheet": "Pelanggan_Regist",
+      "title": "Konfirmasi Password beda huruf besar/kecil",
+      "expected_result": "Karakter password tampil sebagai titik/bintang.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_tc_regist_022_password_is_masked_by_default"
+      ],
+      "execution": "automated",
+      "notes": "Judul pada spreadsheet duplikat TC_REGIST_021, tetapi langkah dan expected result menyatakan password tersamarkan. Pemetaan mengikuti langkah dan expected result."
+    },
+    {
+      "id": "TC_REGIST_023",
+      "sheet": "Pelanggan_Regist",
+      "title": "Menampilkan Password dengan ikon mata",
+      "expected_result": "Password tampil sebagai teks biasa dan ikon berubah.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_tc_regist_023_eye_reveals_password"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_024",
+      "sheet": "Pelanggan_Regist",
+      "title": "Menyembunyikan kembali Password dengan ikon mata",
+      "expected_result": "Password kembali tersamarkan.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_tc_regist_024_eye_hides_password_again"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_025",
+      "sheet": "Pelanggan_Regist",
+      "title": "Mencentang dan menghilangkan centang checkbox",
+      "expected_result": "Checkbox tercentang pada klik pertama dan tidak tercentang pada klik kedua.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_tc_regist_025_terms_checkbox_toggles"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_026",
+      "sheet": "Pelanggan_Regist",
+      "title": "Klik tautan 'Syarat & Ketentuan'",
+      "expected_result": "Halaman/modal Syarat & Ketentuan tampil (data yang sudah diisi tidak hilang).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_legal_link_opens_new_tab_without_losing_form\"TC_REGIST_026 syarat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_027",
+      "sheet": "Pelanggan_Regist",
+      "title": "Klik tautan 'Kebijakan Privasi'",
+      "expected_result": "Halaman/modal Kebijakan Privasi tampil (data yang sudah diisi tidak hilang).",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_legal_link_opens_new_tab_without_losing_form\"TC_REGIST_027 privasi\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_028",
+      "sheet": "Pelanggan_Regist",
+      "title": "Daftar Cepat dengan Google Akun baru",
+      "expected_result": "Akun pelanggan terbentuk menggunakan data Google dan pengguna diarahkan ke halaman login/dashboard.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_google_registration_requires_controlled_oauth_accounts\"TC_REGIST_028 Google baru\""
+      ],
+      "execution": "skipped_external_oauth",
+      "notes": "Akun Google nyata tidak diotomasi; feature test callback terpisah tidak dianggap bukti PASS Dusk."
+    },
+    {
+      "id": "TC_REGIST_029",
+      "sheet": "Pelanggan_Regist",
+      "title": "Daftar Cepat dengan Google Akun yang sudah terdaftar",
+      "expected_result": "Tidak terbentuk akun ganda; pengguna otomatis login atau muncul pesan bahwa akun sudah terdaftar.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_google_registration_requires_controlled_oauth_accounts\"TC_REGIST_029 Google terdaftar\""
+      ],
+      "execution": "skipped_external_oauth",
+      "notes": "Akun Google nyata tidak diotomasi; feature test callback terpisah tidak dianggap bukti PASS Dusk."
+    },
+    {
+      "id": "TC_REGIST_030",
+      "sheet": "Pelanggan_Regist",
+      "title": "Klik 'Kembali ke Beranda'",
+      "expected_result": "Pengguna diarahkan ke halaman beranda PawPaw.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_registration_navigation_opens_expected_page\"TC_REGIST_030 beranda\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_031",
+      "sheet": "Pelanggan_Regist",
+      "title": "Klik 'Masuk di sini'",
+      "expected_result": "Pengguna diarahkan ke halaman login.",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_registration_navigation_opens_expected_page\"TC_REGIST_031 masuk\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REGIST_032",
+      "sheet": "Pelanggan_Regist",
+      "title": "Klik 'Daftar sebagai Mitra'",
+      "expected_result": "Pengguna diarahkan ke halaman pendaftaran Mitra .",
+      "tests": [
+        "Tests\\Browser\\ClientRegistrationTest::test_registration_navigation_opens_expected_page\"TC_REGIST_032 mitra\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_001",
+      "sheet": "Mitra_login",
+      "title": "Login dengan kredensial valid (Email & Password benar)",
+      "expected_result": "Pengguna berhasil login dan diarahkan ke halaman utama Dasbor Vet.",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_tc_mitra_login_001_valid_owner_opens_dashboard"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_002",
+      "sheet": "Mitra_login",
+      "title": "Login dengan password salah",
+      "expected_result": "Muncul pesan error \"Email atau password salah\" dan pengguna tetap di halaman login.",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_invalid_owner_credentials_are_rejected\"TC_MITRA_LOGIN_002 password salah\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_003",
+      "sheet": "Mitra_login",
+      "title": "Login dengan email yang belum terdaftar",
+      "expected_result": "Muncul pesan error \"Akun tidak ditemukan\" atau \"Email atau password salah\" dan pengguna tetap di halaman login.",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_invalid_owner_credentials_are_rejected\"TC_MITRA_LOGIN_003 email belum terdaftar\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_004",
+      "sheet": "Mitra_login",
+      "title": "Validasi form jika dikosongkan (Email & Password kosong)",
+      "expected_result": "Muncul pesan validasi \"Email wajib diisi\" dan \"Password wajib diisi\". Tombol Masuk mungkin non-aktif.",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_invalid_owner_credentials_are_rejected\"TC_MITRA_LOGIN_004 semua kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_005",
+      "sheet": "Mitra_login",
+      "title": "Fungsionalitas checkbox \"Ingat saya\"",
+      "expected_result": "Pengguna langsung masuk ke Dasbor tanpa perlu login ulang (sesi tersimpan).",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_tc_mitra_login_005_remember_restores_owner_in_new_browser"
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_MITRA_LOGIN_006",
+      "sheet": "Mitra_login",
+      "title": "Navigasi ke tautan \"Lupa password?\" dan \"Daftar sebagai Mitra\"",
+      "expected_result": "Pengguna diarahkan ke halaman pemulihan password dan halaman pendaftaran mitra dengan benar.",
+      "tests": [
+        "Tests\\Browser\\VendorLoginTest::test_owner_login_links_open_expected_page\"TC_MITRA_LOGIN_006 a lupa password\"",
+        "Tests\\Browser\\VendorLoginTest::test_owner_login_links_open_expected_page\"TC_MITRA_LOGIN_006 b daftar mitra\""
+      ],
+      "execution": "automated",
+      "notes": "Dua subkasus: lupa password dan daftar mitra. Tautan daftar belum ditemukan di form login subdomain lokal."
+    },
+    {
+      "id": "TC_REG_MITRA_001",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Membuka halaman registrasi mitra dan menguji tautan navigasi",
+      "expected_result": "Langkah 1: halaman tahap 1 tampil dengan indikator Mitra, Pemilik & Akun, dan Konfirmasi Data.\n Langkah 2: pengguna diarahkan ke beranda PawPaw.\n Langkah 3: pengguna diarahkan ke halaman login.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_001_registration_navigation"
+      ],
+      "execution": "automated",
+      "notes": "Label navigasi disesuaikan UI: Masuk melalui domain klinik Anda. Tahap pembayaran tambahan dicatat pada TC_REG_MITRA_009."
+    },
+    {
+      "id": "TC_REG_MITRA_002",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Field wajib mitra kosong",
+      "expected_result": "Sistem menolak lanjut ke tahap 2 dan menampilkan pesan validasi 'wajib diisi' pada field yang kosong (a: semua field wajib).",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_002 a semua wajib kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_002 b nama kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_002 c kontak kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_002 d email kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_002 e alamat kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_003",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Format Email dan Kontak Mitra tidak valid",
+      "expected_result": "Sistem menolak nilai dan menampilkan pesan validasi format yang sesuai.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_003 a format email\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_003 b format kontak\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_004",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Data mitra valid lanjut ke tahap 2 (Deskripsi opsional)",
+      "expected_result": "Sistem menerima data, indikator tahap 1 berubah menjadi selesai, dan tahap 2 'Pemilik & Akun' tampil. Deskripsi bersifat opsional (skenario b tetap bisa lanjut). Nama dan alamat tidak terpotong.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_valid_mitra_data_opens_owner_step\"TC_REG_MITRA_004 a dengan deskripsi\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_valid_mitra_data_opens_owner_step\"TC_REG_MITRA_004 b tanpa deskripsi\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_005",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Data mitra duplikat",
+      "expected_result": "Sistem menolak data duplikat dan menampilkan pesan kesalahan; pengguna diminta memperbaiki data.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_005 a nama duplikat\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_005 b email duplikat\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_mitra_data_cannot_advance\"TC_REG_MITRA_005 c kontak duplikat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_006",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Field wajib pemilik kosong",
+      "expected_result": "Sistem menolak lanjut ke tahap 3 dan menampilkan pesan validasi 'wajib diisi' pada field yang kosong.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_006 a semua wajib kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_006 b nama kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_006 c telepon kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_006 d email kosong\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_006 e password kosong\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_007",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Format Email dan No. Telepon pemilik tidak valid",
+      "expected_result": "Sistem menolak nilai dan menampilkan pesan validasi format yang sesuai.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_007 a format email\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_007 b format telepon\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_008",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Data akun pemilik duplikat",
+      "expected_result": "Sistem menolak data yang sudah digunakan dan menampilkan pesan kesalahan.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_008 a email duplikat\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_invalid_owner_data_cannot_advance\"TC_REG_MITRA_008 b telepon duplikat\""
+      ],
+      "execution": "automated",
+      "notes": "Data akun memakai fixture khusus pengujian, tidak memakai kredensial pribadi spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_009",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Data pemilik valid lanjut ke tahap 3",
+      "expected_result": "Sistem menerima data dan membuka tahap 3 'Konfirmasi Data'.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_009_third_step_is_confirmation_as_specified"
+      ],
+      "execution": "automated",
+      "notes": "Spreadsheet meminta Konfirmasi Data pada tahap 3. Kode sekarang menampilkan Pembayaran pada tahap 3, Konfirmasi pada tahap 4. Assertion tetap mengikuti expected result spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_010",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Tombol 'Sebelumnya' dan data tetap tersimpan",
+      "expected_result": "Langkah 1: kembali ke tahap 1 dan data mitra tidak hilang.\n Langkah 2: data pemilik tetap terisi (atau perilakunya konsisten sesuai rancangan dan tidak menimbulkan data salah).\n Langkah 3: kembali ke tahap 2 dengan data tetap tersedia.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_010_back_preserves_mitra_and_owner_data"
+      ],
+      "execution": "automated",
+      "notes": "Navigasi kembali diuji pada tahap 1, 2, dan 3; tahap 3 aktual adalah pembayaran."
+    },
+    {
+      "id": "TC_REG_MITRA_011",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Ringkasan data sesuai input dan password tidak ditampilkan",
+      "expected_result": "Ringkasan menampilkan nama, kontak, email, alamat, deskripsi mitra, nama pemilik, nomor telepon, dan email login sesuai input (tidak tertukar atau terpotong). Password tidak ditampilkan sebagai teks biasa.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_011_summary_matches_input_and_hides_password"
+      ],
+      "execution": "automated",
+      "notes": "Ringkasan diuji pada tahap 4 setelah persetujuan langganan aktual. Perbedaan nomor tahap dilaporkan oleh TC_REG_MITRA_009."
+    },
+    {
+      "id": "TC_REG_MITRA_012",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Tombol 'Ubah' pada Data Mitra dan Data Pemilik",
+      "expected_result": "Sistem membawa pengguna ke bagian pengeditan yang sesuai dan perubahan tampil pada ringkasan.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_012_edit_links_update_summary"
+      ],
+      "execution": "automated",
+      "notes": "Edit ringkasan diuji di tahap 4 aktual; tetap memeriksa perubahan mitra dan pemilik."
+    },
+    {
+      "id": "TC_REG_MITRA_013",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Mengirim pendaftaran valid",
+      "expected_result": "Sistem menyimpan data mitra dan akun Owner serta menampilkan konfirmasi pendaftaran berhasil dikirim. Muncul informasi bahwa tim Admin akan memvalidasi data (sekitar 1x24 jam). Data tersimpan sesuai input dan relasi data benar.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_013_submit_persists_pending_mitra_and_owner"
+      ],
+      "execution": "automated",
+      "notes": "Penyimpanan/status/relasi diuji melalui tahap 4 aktual. Informasi 1x24 jam tetap diperiksa sesuai spreadsheet."
+    },
+    {
+      "id": "TC_REG_MITRA_014",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Karakter khusus, script, dan teks melebihi batas panjang",
+      "expected_result": "a) Karakter wajar diterima dan tampil utuh.\n b) Input diperlakukan sebagai teks dan tidak ada script yang dijalankan.\n c) Sistem membatasi panjang atau menampilkan validasi jelas; halaman tidak rusak dan data tidak terpotong tanpa penanganan.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_summary_displays_special_text_without_executing_script\"TC_REG_MITRA_014 a karakter khusus\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_summary_displays_special_text_without_executing_script\"TC_REG_MITRA_014 b script sebagai teks\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_excessive_text_is_limited_or_rejected\"TC_REG_MITRA_014 c nama panjang\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_excessive_text_is_limited_or_rejected\"TC_REG_MITRA_014 c alamat panjang\"",
+        "Tests\\Browser\\VendorRegistrationTest::test_excessive_text_is_limited_or_rejected\"TC_REG_MITRA_014 c deskripsi panjang\""
+      ],
+      "execution": "automated",
+      "notes": "Lima subkasus: tanda baca, script, nama/alamat/deskripsi melebihi batas. Ringkasan aktual pada tahap 4."
+    },
+    {
+      "id": "TC_REG_MITRA_015",
+      "sheet": "Revisi Mitra_Register",
+      "title": "Tampilan responsif pada layar mobile",
+      "expected_result": "Semua field, label, indikator, dan tombol terbaca dan dapat digunakan tanpa elemen terpotong atau tumpang tindih.",
+      "tests": [
+        "Tests\\Browser\\VendorRegistrationTest::test_tc_reg_mitra_015_mobile_form_remains_usable"
+      ],
+      "execution": "automated",
+      "notes": "Viewport 375x812; alur dilanjutkan sampai konfirmasi aktual tahap 4. Pemeriksaan otomatis: field berada dalam lebar viewport dan tanpa overflow horizontal; keterbacaan visual tetap perlu review screenshot."
+    }
+  ],
+  "verification": {
+    "composer": "composer validate passed",
+    "discovery": {
+      "unique_ids": 78,
+      "scenarios": 97
+    },
+    "oauth_run": {
+      "skipped": 4
+    },
+    "other_browser_scenarios": "not_run_due_to_browser_blocker",
+    "syntax": "PHP lint passed; Pint passed",
+    "browser_run": {
+      "id": "TC_LOGIN_014",
+      "status": "environment_error",
+      "message": "session not created: Failed to create Chrome process.",
+      "assertions": 0
+    }
+  }
+}

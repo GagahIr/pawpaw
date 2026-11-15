@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache">
+    <testsuites>
+        <testsuite name="Authentication Browser Tests">
+            <file>tests/Browser/ClientLoginTest.php</file>
+            <file>tests/Browser/ClientRegistrationTest.php</file>
+            <file>tests/Browser/VendorLoginTest.php</file>
+            <file>tests/Browser/VendorRegistrationTest.php</file>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_URL" value="http://localhost:8011" force="true"/>
+        <env name="APP_DOMAIN" value="localhost" force="true"/>
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value="database/pawpaw-dusk.sqlite" force="true"/>
+        <env name="DB_URL" value="" force="true"/>
+        <env name="SESSION_DRIVER" value="file" force="true"/>
+        <env name="SESSION_DOMAIN" value="null" force="true"/>
+        <env name="SESSION_SECURE_COOKIE" value="false" force="true"/>
+        <env name="CACHE_STORE" value="file" force="true"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+    </php>
+</phpunit>
