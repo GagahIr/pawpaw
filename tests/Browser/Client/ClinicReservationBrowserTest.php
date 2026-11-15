@@ -6,7 +6,7 @@ use App\Models\BookingClinic;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorServiceItem;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Laravel\Dusk\Browser;
 use Tests\Concerns\CreatesClientBookingData;
 use Tests\DuskTestCase;
@@ -18,7 +18,7 @@ use Tests\DuskTestCase;
 class ClinicReservationBrowserTest extends DuskTestCase
 {
     use CreatesClientBookingData;
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     private User $client;
 
@@ -62,6 +62,7 @@ class ClinicReservationBrowserTest extends DuskTestCase
                 ->waitForText('Pilih jam kunjungan untuk melanjutkan')
                 ->click($this->dateButton($this->tomorrow()))
                 ->waitFor('button[aria-label="Pilih jam 10:00"]')
+                ->scrollIntoView('button[aria-label="Pilih jam 10:00"]')
                 ->click('button[aria-label="Pilih jam 10:00"]')
                 ->waitForText('Estimasi biaya')
                 ->assertSee('150.000')
@@ -81,6 +82,7 @@ class ClinicReservationBrowserTest extends DuskTestCase
                 ->waitFor($this->dateButton($this->tomorrow()))
                 ->click($this->dateButton($this->tomorrow()))
                 ->waitFor('button[aria-label="Pilih jam 10:00"]')
+                ->scrollIntoView('button[aria-label="Pilih jam 10:00"]')
                 ->click('button[aria-label="Pilih jam 10:00"]')
                 ->waitForText('Estimasi biaya')
                 ->press('Lanjut pesan')

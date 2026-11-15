@@ -3,7 +3,7 @@
 namespace Tests\Browser\Client;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Laravel\Dusk\Browser;
 use Tests\Concerns\CreatesClientBookingData;
 use Tests\DuskTestCase;
@@ -11,7 +11,7 @@ use Tests\DuskTestCase;
 class ClinicListBrowserTest extends DuskTestCase
 {
     use CreatesClientBookingData;
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     private User $client;
 
