@@ -142,7 +142,7 @@ it('lists finished, cancelled, rejected and expired bookings on the history tab'
         ->assertSee('Cek Darah')
         ->assertSee('Rontgen')
         ->assertSee('Potong Kuku')
-        ->assertSee('Ditolak vendor')
+        ->assertSee('Ditolak klinik')
         ->assertSee('Steril Kucing')
         ->assertSee('belum sempat mengonfirmasi')
         ->assertDontSee('Vaksinasi Rabies')
