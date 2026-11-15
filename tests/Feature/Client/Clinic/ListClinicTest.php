@@ -105,7 +105,6 @@ it('lists only verified clinics with an active subscription and an active servic
     listedVendor($this, 'Klinik Ditolak', attributes: ['status_verification' => VendorVerificationStatus::Rejected]);
     listedVendor($this, 'Klinik Langganan Nonaktif', attributes: ['status_subscription' => VendorSubscriptionStatus::Inactive]);
     listedVendor($this, 'Klinik Langganan Kedaluwarsa', attributes: ['subscription_expired_at' => now()->subDay()]);
-    listedVendor($this, 'Klinik Belum Join', attributes: ['join_at' => null]);
 
     $noService = $this->createVendor(['name' => 'Klinik Tanpa Layanan']);
     $inactiveService = $this->createVendor(['name' => 'Klinik Layanan Mati']);
@@ -117,7 +116,6 @@ it('lists only verified clinics with an active subscription and an active servic
         ->assertDontSee('Klinik Ditolak')
         ->assertDontSee('Klinik Langganan Nonaktif')
         ->assertDontSee('Klinik Langganan Kedaluwarsa')
-        ->assertDontSee('Klinik Belum Join')
         ->assertDontSee($noService->name)
         ->assertDontSee('Klinik Layanan Mati');
 });

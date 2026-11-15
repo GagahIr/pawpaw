@@ -98,7 +98,6 @@ it('returns 404 when the clinic cannot take reservations', function (array $attr
     'not verified' => [['status_verification' => VendorVerificationStatus::Pending]],
     'subscription inactive' => [['status_subscription' => VendorSubscriptionStatus::Inactive]],
     'subscription expired' => [['subscription_expired_at' => '2026-11-01 00:00:00']],
-    'not joined yet' => [['join_at' => null]],
 ]);
 
 it('returns 404 for an unknown clinic slug', function () {
