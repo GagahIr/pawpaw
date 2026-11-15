@@ -17,6 +17,7 @@
 import { HSStaticMethods } from "preline/non-auto";
 import './pawpaw-animations';
 import './owner-dashboard-charts';
+import './super-admin-dashboard-charts';
 import flatpickr from "flatpickr";
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid';
 
