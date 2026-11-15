@@ -24,7 +24,7 @@ new #[Layout('layouts::admin')] class extends Component {
         $userId = auth()->id();
 
         return [
-            'formData.name' => 'required|string|max:255',
+            'formData.name' => 'required|string|max:255|unique:vendors,name,' . $vendorId,
             'formData.email' => 'required|email|max:255|unique:vendors,email,' . $vendorId . '|unique:users,email,' . $userId,
             'formData.address' => 'required|string|max:500',
             'formData.contact' => 'required|string|max:20|unique:vendors,contact,' . $vendorId . '|unique:users,phone_number,' . $userId,
@@ -37,6 +37,7 @@ new #[Layout('layouts::admin')] class extends Component {
     {
         return [
             'formData.name.required' => 'Nama mitra harus diisi',
+            'formData.name.unique' => 'Nama mitra sudah terdaftar',
             'formData.email.required' => 'Email harus diisi',
             'formData.email.email' => 'Format email tidak valid',
             'formData.email.unique' => 'Email sudah terdaftar',
@@ -76,6 +77,8 @@ new #[Layout('layouts::admin')] class extends Component {
             $data['logo'] = $imageService->uploadAndConvertToWebp($this->logo, 'vendors');
         }
 
+        $oldSlug = $this->vendor?->slug;
+
         $action->execute($this->vendor->id, $data);
 
         $this->vendor->refresh();
@@ -88,6 +91,10 @@ new #[Layout('layouts::admin')] class extends Component {
         $this->js("window.dispatchEvent(new CustomEvent('vendor-logo-updated', { detail: { url: " . json_encode($newLogoUrl) . " } }))");
 
         Flux::toast(SystemMessage::DATA_UPDATED_SUCCESS->value, variant: 'success');
+
+        if ($oldSlug && $this->vendor->slug && $oldSlug !== $this->vendor->slug) {
+            return redirect()->away(route('vendor.admin.profile.profile-vendor', ['subdomain' => $this->vendor->slug]));
+        }
     }
 
     private function getInitials(): string
@@ -175,10 +182,30 @@ new #[Layout('layouts::admin')] class extends Component {
                     <div class="border-t border-zinc-200 dark:border-zinc-700" />
 
                     <form wire:submit="save" class="space-y-4">
-                        <flux:field>
+                        <flux:field x-data="{
+                            vendorName: $wire.entangle('formData.name'),
+                            baseDomain: '{{ config('app.domain', 'localhost') }}',
+                            get domainPreview() {
+                                if (!this.vendorName) return '';
+                                let slug = this.vendorName.toString().toLowerCase()
+                                    .replace(/\s+/g, '-')
+                                    .replace(/[^\w\-]+/g, '')
+                                    .replace(/\-\-+/g, '-')
+                                    .replace(/^-+/, '')
+                                    .replace(/-+$/, '');
+
+                                return slug ? slug + '.' + this.baseDomain : '';
+                            }
+                        }">
                             <flux:label>Nama Mitra <span class="text-red-600">*</span></flux:label>
                             <flux:input wire:model.blur="formData.name" placeholder="Contoh: PawPaw Grooming Studio"
                                 required />
+                            <template x-if="domainPreview">
+                                <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                    Subdomain portal: <span class="font-mono font-semibold text-[#1B5E43] dark:text-[#25825a]" x-text="domainPreview"></span>
+                                    <span class="text-zinc-400 dark:text-zinc-500 text-[11px] block mt-0.5">Slug URL akan diperbarui otomatis saat profil disimpan.</span>
+                                </p>
+                            </template>
                             <flux:error name="formData.name" />
                         </flux:field>
 
@@ -240,11 +267,14 @@ new #[Layout('layouts::admin')] class extends Component {
 
                     <div>
                         <flux:text class="text-xs text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                            Slug URL
+                            Slug URL &amp; Subdomain
                         </flux:text>
                         <flux:heading size="xs" class="mt-2 font-mono text-xs break-all">
                             {{ $vendor?->slug ?? '-' }}
                         </flux:heading>
+                        <p class="mt-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                            {{ $vendor?->slug ? $vendor->slug . '.' . config('app.domain', 'localhost') : '-' }}
+                        </p>
                     </div>
 
                     <div class="border-t border-zinc-200 dark:border-zinc-700" />

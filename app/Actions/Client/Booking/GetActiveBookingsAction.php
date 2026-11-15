@@ -26,7 +26,7 @@ class GetActiveBookingsAction
 
     /**
      * @param  array{status?:string,type?:string,search?:string,from?:string,to?:string,sort?:string}  $filters
-     *   sort: newest (terbaru dipesan, default) | soonest (jadwal terdekat) | latest (jadwal terjauh)
+     *                                                                                                           sort: newest (terbaru dipesan, default) | soonest (jadwal terdekat) | latest (jadwal terjauh)
      * @return array{items: Collection, has_more: bool}
      */
     public function execute(int $userClientId, bool $history = false, array $filters = [], int $limit = 10): array
@@ -190,6 +190,8 @@ class GetActiveBookingsAction
             'status' => $status,
             'date_label' => $dateLabel,
             'time_label' => $timeLabel,
+            'created_at_formatted' => $booking->created_at?->copy()->locale('id')->isoFormat('D MMMM YYYY, HH:mm').' WIB',
+            'updated_at_formatted' => $booking->updated_at?->copy()->locale('id')->isoFormat('D MMMM YYYY, HH:mm').' WIB',
             'created_human' => $booking->created_at?->copy()->locale('id')->diffForHumans(),
             'created_ts' => $booking->created_at?->timestamp ?? 0,
             'sort_date' => $startsAt->toDateTimeString(),

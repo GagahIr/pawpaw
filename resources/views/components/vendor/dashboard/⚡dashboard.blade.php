@@ -357,128 +357,38 @@ new #[Layout('layouts::admin')] class extends Component
         {{-- B. Summary Cards (4 Kartu Statistik) --}}
         @php
             $summary = $analytics['summary'];
-            $revChange = $summary['total_revenue']['change'];
-            $ordersChange = $summary['completed_orders']['change'];
-            $avgChange = $summary['average_transaction']['change'];
-            $cancelChange = $summary['cancellation_rate']['change'];
         @endphp
         <section aria-label="Ringkasan performa bisnis" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {{-- Card 1: Total Pendapatan (Primary Green Highlight) --}}
-            <article class="flex flex-col justify-between rounded-xl bg-[#1B5E43] p-6 text-white shadow-xs">
+            <article class="rounded-xl bg-[#1B5E43] p-6 text-white shadow-xs">
                 <p class="text-sm font-medium text-white/85">Total pendapatan</p>
                 <p class="mt-3 text-2xl font-bold tabular-nums">
                     {{ $summary['total_revenue']['formatted'] }}
                 </p>
-                <div class="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-                    @if ($revChange['has_previous'])
-                        <span @class([
-                            'inline-flex items-center gap-0.5 font-bold',
-                            'text-emerald-200' => $revChange['tone'] === 'positive',
-                            'text-amber-200' => $revChange['tone'] === 'negative',
-                            'text-white/80' => $revChange['tone'] === 'neutral',
-                        ])>
-                            @if ($revChange['direction'] === 'up')
-                                <span aria-hidden="true">↗</span>
-                            @elseif ($revChange['direction'] === 'down')
-                                <span aria-hidden="true">↘</span>
-                            @endif
-                            {{ $revChange['label'] }}
-                        </span>
-                        <span class="text-white/75">{{ $revChange['comparison_label'] }}</span>
-                    @else
-                        <span class="text-white/75">{{ $revChange['label'] }}</span>
-                    @endif
-                </div>
             </article>
 
             {{-- Card 2: Pesanan Selesai --}}
-            <article class="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <article class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
                 <p class="text-sm font-medium text-zinc-500">Pesanan selesai</p>
                 <p class="mt-3 text-2xl font-bold text-zinc-900 tabular-nums">
                     {{ $summary['completed_orders']['formatted'] }}
                 </p>
-                <div class="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-                    @if ($ordersChange['has_previous'])
-                        <span @class([
-                            'inline-flex items-center gap-0.5 font-bold',
-                            'text-[#1B5E43]' => $ordersChange['tone'] === 'positive',
-                            'text-[#C2410C]' => $ordersChange['tone'] === 'negative',
-                            'text-zinc-500' => $ordersChange['tone'] === 'neutral',
-                        ])>
-                            @if ($ordersChange['direction'] === 'up')
-                                <span aria-hidden="true">↗</span>
-                            @elseif ($ordersChange['direction'] === 'down')
-                                <span aria-hidden="true">↘</span>
-                            @endif
-                            {{ $ordersChange['label'] }}
-                        </span>
-                        <span class="text-zinc-400">{{ $ordersChange['comparison_label'] }}</span>
-                    @else
-                        <span class="text-zinc-400">{{ $ordersChange['label'] }}</span>
-                    @endif
-                </div>
             </article>
 
             {{-- Card 3: Rata-rata Transaksi --}}
-            <article class="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <article class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
                 <p class="text-sm font-medium text-zinc-500">Rata-rata transaksi</p>
                 <p class="mt-3 text-2xl font-bold text-zinc-900 tabular-nums">
                     {{ $summary['average_transaction']['formatted'] }}
                 </p>
-                <div class="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-                    @if ($avgChange['has_previous'])
-                        <span @class([
-                            'inline-flex items-center gap-0.5 font-bold',
-                            'text-[#1B5E43]' => $avgChange['tone'] === 'positive',
-                            'text-[#C2410C]' => $avgChange['tone'] === 'negative',
-                            'text-zinc-500' => $avgChange['tone'] === 'neutral',
-                        ])>
-                            @if ($avgChange['direction'] === 'up')
-                                <span aria-hidden="true">↗</span>
-                            @elseif ($avgChange['direction'] === 'down')
-                                <span aria-hidden="true">↘</span>
-                            @endif
-                            {{ $avgChange['label'] }}
-                        </span>
-                        <span class="text-zinc-400">{{ $avgChange['comparison_label'] }}</span>
-                    @else
-                        <span class="text-zinc-400">{{ $avgChange['label'] }}</span>
-                    @endif
-                </div>
             </article>
 
             {{-- Card 4: Tingkat Pembatalan --}}
-            <article class="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
+            <article class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
                 <p class="text-sm font-medium text-zinc-500">Tingkat pembatalan</p>
                 <p class="mt-3 text-2xl font-bold text-zinc-900 tabular-nums">
                     {{ $summary['cancellation_rate']['formatted'] }}
                 </p>
-                <div class="mt-4 flex flex-wrap items-center gap-1.5 text-xs">
-                    @if ($cancelChange['has_previous'])
-                        <span @class([
-                            'inline-flex items-center gap-0.5 font-bold',
-                            'text-[#1B5E43]' => $cancelChange['tone'] === 'positive',
-                            'text-[#C2410C]' => $cancelChange['tone'] === 'negative',
-                            'text-zinc-500' => $cancelChange['tone'] === 'neutral',
-                        ])>
-                            @if ($cancelChange['direction'] === 'up')
-                                <span aria-hidden="true">↗</span>
-                            @elseif ($cancelChange['direction'] === 'down')
-                                <span aria-hidden="true">↘</span>
-                            @endif
-                            {{ $cancelChange['label'] }}
-                        </span>
-                        <span class="text-zinc-400">{{ $cancelChange['comparison_label'] }}</span>
-                    @else
-                        <span class="text-zinc-400">
-                            @if ($summary['cancellation_rate']['total_bookings'] > 0)
-                                {{ $summary['cancellation_rate']['cancelled_count'] }} dari {{ $summary['cancellation_rate']['total_bookings'] }} pesanan
-                            @else
-                                {{ $cancelChange['label'] }}
-                            @endif
-                        </span>
-                    @endif
-                </div>
             </article>
         </section>
 

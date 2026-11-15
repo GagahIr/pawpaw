@@ -1,16 +1,16 @@
 <?php
 
 use App\Actions\Admin\ManageStaff\CreateManageStaffAction;
-use App\Actions\Admin\ManageStaff\UpdateManageStaffAction;
 use App\Actions\Admin\ManageStaff\DeleteManageStaffAction;
+use App\Actions\Admin\ManageStaff\UpdateManageStaffAction;
 use App\DTOs\ManageStaffData;
 use App\Enums\StaffPosition;
 use App\Enums\SystemMessage;
 use App\Models\VendorStaff;
 use Flux\Flux;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Illuminate\Validation\Rule;
 
 new #[Layout('layouts::admin')] class extends Component {
     public array $formData = [
@@ -63,6 +63,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function toggleForm(): void
     {
+        $this->authorize('create', VendorStaff::class);
+
         $this->showForm = !$this->showForm;
         if (!$this->showForm) {
             $this->reset('formData', 'editingStaffId');
@@ -72,6 +74,8 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function edit(int $staffId): void
     {
+        $this->authorize('update', VendorStaff::class);
+
         $staff = VendorStaff::with('user')->findOrFail($staffId);
         $this->editingStaffId = $staffId;
         $this->formData = [
@@ -86,12 +90,16 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function confirmDelete(int $staffId): void
     {
+        $this->authorize('delete', VendorStaff::class);
+
         $this->deletingStaffId = $staffId;
         Flux::modal('confirm-delete')->show();
     }
 
     public function delete(DeleteManageStaffAction $deleteAction): void
     {
+        $this->authorize('delete', VendorStaff::class);
+
         if (!$this->deletingStaffId) {
             return;
         }
@@ -110,6 +118,12 @@ new #[Layout('layouts::admin')] class extends Component {
 
     public function save(CreateManageStaffAction $createAction, UpdateManageStaffAction $updateAction): void
     {
+        if ($this->editingStaffId) {
+            $this->authorize('update', VendorStaff::class);
+        } else {
+            $this->authorize('create', VendorStaff::class);
+        }
+
         $this->validate();
 
         try {
@@ -166,78 +180,82 @@ new #[Layout('layouts::admin')] class extends Component {
                 </p>
             </div>
 
-            @if (!$this->hasFrontOfficeStaff || $showForm)
-                <div>
-                    <flux:button wire:click="toggleForm" variant="primary">
-                        <span wire:loading.remove wire:target="toggleForm">
-                            {{ $showForm ? 'Tutup Form' : '+ Tambah Staff Front Office' }}
-                        </span>
-                        <span wire:loading wire:target="toggleForm">...</span>
-                    </flux:button>
-                </div>
-            @endif
+            @can('create', App\Models\VendorStaff::class)
+                @if (!$this->hasFrontOfficeStaff || $showForm)
+                    <div>
+                        <flux:button wire:click="toggleForm" variant="primary">
+                            <span wire:loading.remove wire:target="toggleForm">
+                                {{ $showForm ? 'Tutup Form' : '+ Tambah Staff Front Office' }}
+                            </span>
+                            <span wire:loading wire:target="toggleForm">...</span>
+                        </flux:button>
+                    </div>
+                @endif
+            @endcan
         </div>
     </div>
 
-    @if ($showForm)
-        <flux:card class="mb-6">
-            <form wire:submit="save" class="space-y-4">
-                <div class="grid md:grid-cols-2 gap-4">
-                    <flux:field>
-                        <flux:label>Nama Lengkap <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model.blur="formData.name" placeholder="Masukkan nama lengkap" required />
-                        <flux:error name="formData.name" />
-                    </flux:field>
+    @can('create', App\Models\VendorStaff::class)
+        @if ($showForm)
+            <flux:card class="mb-6">
+                <form wire:submit="save" class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <flux:field>
+                            <flux:label>Nama Lengkap <span class="text-red-600">*</span></flux:label>
+                            <flux:input wire:model.blur="formData.name" placeholder="Masukkan nama lengkap" required />
+                            <flux:error name="formData.name" />
+                        </flux:field>
 
-                    <flux:field>
-                        <flux:label>Email <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model.blur="formData.email" type="email" placeholder="staff@example.com"
-                            required />
-                        <flux:error name="formData.email" />
-                    </flux:field>
+                        <flux:field>
+                            <flux:label>Email <span class="text-red-600">*</span></flux:label>
+                            <flux:input wire:model.blur="formData.email" type="email" placeholder="staff@example.com"
+                                required />
+                            <flux:error name="formData.email" />
+                        </flux:field>
 
-                    <flux:field>
-                        <flux:label>Nomor Telepon <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model.blur="formData.phone_number" placeholder="+628****5678" required />
-                        <flux:error name="formData.phone_number" />
-                    </flux:field>
+                        <flux:field>
+                            <flux:label>Nomor Telepon <span class="text-red-600">*</span></flux:label>
+                            <flux:input wire:model.blur="formData.phone_number" placeholder="+628****5678" required />
+                            <flux:error name="formData.phone_number" />
+                        </flux:field>
 
-                    <flux:field>
-                        <flux:label>
-                            Password
-                            @if (!$editingStaffId)
-                                <span class="text-red-600">*</span>
-                            @endif
-                        </flux:label>
+                        <flux:field>
+                            <flux:label>
+                                Password
+                                @if (!$editingStaffId)
+                                    <span class="text-red-600">*</span>
+                                @endif
+                            </flux:label>
 
-                        <flux:input wire:model.blur="formData.password" type="password"
-                            :placeholder="$editingStaffId
-                                ?
-                                'Kosongkan jika tidak ingin mengubah' :
-                                'Minimal 8 karakter'"
-                            :required="!$editingStaffId" viewable autocomplete="new-password" />
+                            <flux:input wire:model.blur="formData.password" type="password"
+                                :placeholder="$editingStaffId
+                                    ?
+                                    'Kosongkan jika tidak ingin mengubah' :
+                                    'Minimal 8 karakter'"
+                                :required="!$editingStaffId" viewable autocomplete="new-password" />
 
-                        <flux:error name="formData.password" />
-                    </flux:field>
-                </div>
+                            <flux:error name="formData.password" />
+                        </flux:field>
+                    </div>
 
-                <input type="hidden" wire:model="formData.position" value="front_office" />
+                    <input type="hidden" wire:model="formData.position" value="front_office" />
 
-                <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 flex gap-2">
-                    <flux:button type="submit" variant="primary">
-                        <span wire:loading.remove wire:target="save">
-                            {{ $editingStaffId ? 'Perbarui' : 'Simpan' }}
-                        </span>
-                        <span wire:loading wire:target="save">Menyimpan...</span>
-                    </flux:button>
+                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 flex gap-2">
+                        <flux:button type="submit" variant="primary">
+                            <span wire:loading.remove wire:target="save">
+                                {{ $editingStaffId ? 'Perbarui' : 'Simpan' }}
+                            </span>
+                            <span wire:loading wire:target="save">Menyimpan...</span>
+                        </flux:button>
 
-                    <flux:button type="button" wire:click="toggleForm" variant="ghost">
-                        Batal
-                    </flux:button>
-                </div>
-            </form>
-        </flux:card>
-    @endif
+                        <flux:button type="button" wire:click="toggleForm" variant="ghost">
+                            Batal
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
+        @endif
+    @endcan
 
     <flux:card>
         <flux:table>
@@ -247,7 +265,9 @@ new #[Layout('layouts::admin')] class extends Component {
                 <flux:table.column>Telepon</flux:table.column>
                 <flux:table.column>Posisi</flux:table.column>
                 <flux:table.column>Tanggal Dibuat</flux:table.column>
-                <flux:table.column>Aksi</flux:table.column>
+                @canany(['update', 'delete'], App\Models\VendorStaff::class)
+                    <flux:table.column>Aksi</flux:table.column>
+                @endcanany
             </flux:table.columns>
 
             <flux:table.rows>
@@ -262,22 +282,28 @@ new #[Layout('layouts::admin')] class extends Component {
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>{{ $staff->created_at->format('d M Y') }}</flux:table.cell>
-                        <flux:table.cell>
-                            <div class="flex gap-2">
-                                <flux:button wire:click="edit({{ $staff->id }})" size="sm" variant="ghost">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </flux:button>
-                                <flux:button wire:click="confirmDelete({{ $staff->id }})" size="sm" variant="danger">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </flux:button>
-                            </div>
-                        </flux:table.cell>
+                        @canany(['update', 'delete'], App\Models\VendorStaff::class)
+                            <flux:table.cell>
+                                <div class="flex gap-2">
+                                    @can('update', App\Models\VendorStaff::class)
+                                        <flux:button wire:click="edit({{ $staff->id }})" size="sm" variant="ghost">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </flux:button>
+                                    @endcan
+                                    @can('delete', App\Models\VendorStaff::class)
+                                        <flux:button wire:click="confirmDelete({{ $staff->id }})" size="sm" variant="danger">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </flux:button>
+                                    @endcan
+                                </div>
+                            </flux:table.cell>
+                        @endcanany
                     </flux:table.row>
                 @empty
                     <flux:table.row>
@@ -289,7 +315,9 @@ new #[Layout('layouts::admin')] class extends Component {
             </flux:table.rows>
         </flux:table>
     </flux:card>
-    <flux:modal name="confirm-delete" class="min-w-[22rem]">
+
+    @can('delete', App\Models\VendorStaff::class)
+        <flux:modal name="confirm-delete" class="min-w-[22rem]">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Hapus Data?</flux:heading>
@@ -310,4 +338,5 @@ new #[Layout('layouts::admin')] class extends Component {
             </div>
         </div>
     </flux:modal>
+    @endcan
 </div>

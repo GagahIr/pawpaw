@@ -60,79 +60,103 @@ new #[Layout('layouts.app')] class extends Component {
 };
 ?>
 
-<div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900" x-data="{
-    vendorName: $wire.entangle('vendor_name'),
-    appDomain: '{{ config('app.domain', 'localhost') }}',
-    get slug() {
-        if (!this.vendorName) return '';
-        let cleaned = this.vendorName.toString().trim().toLowerCase()
-            .replace(/^https?:\/\//, '')
-            .replace(/[/\\?].*$/, '')
-            .replace(/:\d+$/, '');
-        if (cleaned.endsWith('.' + this.appDomain.toLowerCase())) {
-            cleaned = cleaned.slice(0, -(this.appDomain.length + 1));
+<div class="min-h-[calc(100vh-14rem)] flex flex-col justify-center items-center pt-6 sm:pt-10 pb-16 px-4 sm:px-6 lg:px-8 bg-[#FFF8F5] dark:bg-zinc-950 transition-colors"
+    x-data="{
+        vendorName: $wire.entangle('vendor_name'),
+        appDomain: '{{ config('app.domain', 'localhost') }}',
+        get slug() {
+            if (!this.vendorName) return '';
+            let cleaned = this.vendorName.toString().trim().toLowerCase()
+                .replace(/^https?:\/\//, '')
+                .replace(/[/\\?].*$/, '')
+                .replace(/:\d+$/, '');
+            if (cleaned.endsWith('.' + this.appDomain.toLowerCase())) {
+                cleaned = cleaned.slice(0, -(this.appDomain.length + 1));
+            }
+            return cleaned
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        },
+        get previewUrl() {
+            if (!this.slug) return '';
+            let port = '{{ request()->getPort() !== 80 && request()->getPort() !== 443 ? ':' . request()->getPort() : '' }}';
+            return this.slug + '.' + this.appDomain + port + '/login';
         }
-        return cleaned
-            .replace(/\s+/g, '-')
-            .replace(/[^\w\-]+/g, '')
-            .replace(/\-\-+/g, '-')
-            .replace(/^-+/, '')
-            .replace(/-+$/, '');
-    },
-    get previewUrl() {
-        if (!this.slug) return '';
-        let port = '{{ request()->getPort() !== 80 && request()->getPort() !== 443 ? ':' . request()->getPort() : '' }}';
-        return this.slug + '.' + this.appDomain + port + '/login';
-    }
-}">
-    <div class="flex min-h-screen">
-        <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-            <div class="w-full max-w-md space-y-6">
+    }">
+    <div class="w-full max-w-md mx-auto space-y-6 -mt-4 sm:-mt-10">
 
-                {{-- Tombol Kembali --}}
-                <flux:link href="{{ route('landing_page') }}" variant="subtle"
-                    class="inline-flex items-center gap-1 text-sm">
-                    <flux:icon.arrow-left variant="micro" />
-                    Kembali ke Beranda
-                </flux:link>
+        {{-- Tombol Kembali --}}
+        <div>
+            <flux:link href="{{ route('landing_page') }}" variant="subtle"
+                class="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors">
+                <flux:icon.arrow-left variant="micro" />
+                <span>Kembali ke Beranda</span>
+            </flux:link>
+        </div>
 
-                <div class="text-center">
-                    <flux:heading size="xl">Masuk ke Akun</flux:heading>
-                    <flux:subheading>Masuk melalui domain klinik Anda</flux:subheading>
+        {{-- Heading & Subheading --}}
+        <div class="text-center space-y-2">
+            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-white">
+                Masuk ke Akun
+            </flux:heading>
+            <flux:subheading class="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
+                Masuk melalui domain klinik Anda
+            </flux:subheading>
+        </div>
+
+        {{-- Card Form --}}
+        <flux:card class="space-y-6 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200/80 dark:border-zinc-800 p-6 sm:p-8">
+            <form wire:submit="submit" class="space-y-5">
+                <div class="space-y-2">
+                    <flux:input wire:model.live.debounce.150ms="vendor_name"
+                        label="Nama Mitra"
+                        type="text"
+                        icon="building-storefront"
+                        placeholder="Masukkan nama mitra (contoh: klinik-gagah)"
+                        autofocus
+                        autocomplete="off" />
+
+                    {{-- Live Preview Domain Tujuan --}}
+                    <div x-show="previewUrl" x-cloak x-transition
+                        class="mt-3 flex items-center gap-2.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3 text-xs text-zinc-600 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-zinc-300">
+                        <div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#1B5E43] text-white shadow-xs">
+                            <flux:icon.globe-alt class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Domain tujuan:</p>
+                            <p class="truncate font-semibold text-[#1B5E43] dark:text-emerald-400 text-xs sm:text-sm" x-text="previewUrl"></p>
+                        </div>
+                    </div>
                 </div>
 
-                <flux:card class="space-y-6">
-                    <form wire:submit="submit" class="space-y-5">
-                        <div>
-                            <flux:input wire:model.live.debounce.150ms="vendor_name"
-                                label="Nama Mitra"
-                                type="text"
-                                icon="building-storefront"
-                                placeholder="Masukkan nama mitra (contoh: klinik-gagah)"
-                                autofocus
-                                autocomplete="off" />
+                <div class="pt-2">
+                    <flux:button type="submit" variant="primary"
+                        class="w-full !bg-[#1B5E43] hover:!bg-[#154a35] focus:!bg-[#154a35] text-white font-medium shadow-xs transition-colors py-2.5 rounded-xl"
+                        wire:loading.attr="disabled"
+                        wire:target="submit">
+                        <span wire:loading.remove wire:target="submit">Masuk</span>
+                        <span wire:loading wire:target="submit" class="inline-flex items-center gap-2">
+                            <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span>Memeriksa domain...</span>
+                        </span>
+                    </flux:button>
+                </div>
+            </form>
+        </flux:card>
 
-                            <div x-show="previewUrl" x-cloak class="text-xs px-1 mt-2 text-zinc-500">
-                                Domain tujuan: <span class="font-medium text-[#1a5c40] dark:text-[#25825a]" x-text="previewUrl"></span>
-                            </div>
-                        </div>
-
-                        <div class="pt-2">
-                            <flux:button type="submit" variant="primary" class="w-full !bg-[#1a5c40]">
-                                Masuk
-                            </flux:button>
-                        </div>
-                    </form>
-                </flux:card>
-
-                <flux:text class="text-center text-sm">
-                    Klinik Anda belum terdaftar?
-                    <flux:link class="!text-[#1a5c40] dark:!text-[#25825a] font-medium"
-                        href="{{ route('vendor.register') }}">
-                        Daftar sebagai Mitra
-                    </flux:link>
-                </flux:text>
-            </div>
+        {{-- Link Pendaftaran Mitra --}}
+        <div class="text-center text-sm text-zinc-600 dark:text-zinc-400">
+            <span>Klinik Anda belum terdaftar?</span>
+            <flux:link class="font-semibold !text-[#1B5E43] hover:underline dark:!text-[#25825a] ml-1"
+                href="{{ route('vendor.register') }}">
+                Daftar sebagai Mitra
+            </flux:link>
         </div>
     </div>
 </div>
