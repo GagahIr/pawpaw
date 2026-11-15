@@ -69,7 +69,7 @@ class ClinicReservationBrowserTest extends DuskTestCase
         });
     }
 
-    public function test_client_can_reserve_a_clinic_visit_from_the_clinic_detail_page(): void
+    public function test_client_can_reserve_a_clinic_visit_and_lands_on_reservasi_saya(): void
     {
         $this->browse(function (Browser $browser) {
             $browser->loginAs($this->client, 'client')
@@ -86,8 +86,9 @@ class ClinicReservationBrowserTest extends DuskTestCase
                 ->press('Lanjut pesan')
                 ->waitForText('Total tagihan')
                 ->click('button[wire\:click="reserve"]')
-                ->waitForLocation('/clinic/'.$this->vendor->slug)
-                ->assertPathIs('/clinic/'.$this->vendor->slug);
+                ->waitForRoute('client.my-bookings')
+                ->assertRouteIs('client.my-bookings')
+                ->waitForText('Vaksinasi Rabies');
         });
 
         $booking = BookingClinic::sole();

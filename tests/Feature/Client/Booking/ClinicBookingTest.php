@@ -189,7 +189,7 @@ it('creates a pending clinic booking for the chosen treatment, day and time', fu
         ->assertHasNoErrors()
         ->call('reserve')
         ->assertHasNoErrors()
-        ->assertRedirect(route('client.vendor.detail', $this->vendor->slug));
+        ->assertRedirect(route('client.my-bookings'));
 
     $booking = BookingClinic::sole();
 

@@ -99,7 +99,7 @@ it('opens on the active tab and lists pending and confirmed bookings only', func
 it('shows status, vendor, schedule and price on a booking card', function () {
     myBookings($this)
         ->assertSee('Menunggu konfirmasi')
-        ->assertSee('Datang 10 menit lebih awal.')
+        ->assertSee('Datang 10 menit lebih awal ke')
         ->assertSee('Klinik Sehat Hewan')
         ->assertSee('Salon Bulu Cantik')
         ->assertSee('18 Nov 2026')
@@ -144,7 +144,7 @@ it('lists finished, cancelled, rejected and expired bookings on the history tab'
         ->assertSee('Potong Kuku')
         ->assertSee('Ditolak vendor')
         ->assertSee('Steril Kucing')
-        ->assertSee('Vendor belum sempat mengonfirmasi')
+        ->assertSee('belum sempat mengonfirmasi')
         ->assertDontSee('Vaksinasi Rabies')
         ->assertDontSee('Konsultasi Umum')
         ->assertDontSee('Mandi Kutu');
@@ -157,7 +157,7 @@ it('treats a pending booking older than 24 hours as expired', function () {
         ->set('search', 'Cek Darah')
         ->assertDontSee('Menunggu konfirmasi')
         ->set('tab', 'history')
-        ->assertSee('Vendor belum sempat mengonfirmasi');
+        ->assertSee('belum sempat mengonfirmasi');
 });
 
 it('shows an empty history state for a client without past bookings', function () {
