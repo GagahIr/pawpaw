@@ -63,12 +63,13 @@ new #[Layout('layouts.client')] class extends Component {
                         placeholder="Cari nama atau lokasi klinik…" autocomplete="off">
                 </div>
             </div>
-            <div class="clinic-paw-trail" aria-hidden="true">
-                @for ($step = 0; $step < 5; $step++)
-                    <img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="25" height="25" style="--paw-step: {{ $step }}">
-                @endfor
-            </div>
             <div class="clinic-hero-art clinic-hero-care" wire:ignore>
+                <div class="clinic-paw-trail" aria-hidden="true">
+                    @for ($step = 0; $step < 5; $step++)
+                        <img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="25" height="25" style="--paw-step: {{ $step }}">
+                    @endfor
+                </div>
+                <img class="clinic-hero-paw" src="{{ asset('assets/pawkucing.webp') }}" alt="" width="36" height="36" aria-hidden="true">
                 <object data-clinic-hero-object data="{{ asset('assets/pawpaw-hero-care.svg') }}" type="image/svg+xml" aria-label="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
                     <img src="{{ asset('assets/pawpaw-hero-care.svg') }}" alt="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
                 </object>

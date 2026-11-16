@@ -11,13 +11,15 @@
     <flux:navbar class="max-lg:hidden">
         <flux:navbar.item href="{{ route('client.clinic') }}"
             :current="request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking')">Klinik</flux:navbar.item>
-        @if ($clientUser)
+        @if ($clientUser && !$isLandingPage)
             <flux:navbar.item href="{{ route('client.my-bookings') }}" :current="request()->routeIs('client.my-bookings')">
                 Reservasi saya &amp; Riwayat
             </flux:navbar.item>
         @elseif ($isLandingPage)
             <flux:navbar.item href="{{ route('landing_page') }}#services">Layanan</flux:navbar.item>
             <flux:navbar.item href="{{ route('landing_page') }}#how-it-works">Cara Kerja</flux:navbar.item>
+            <flux:navbar.item href="{{ route('landing_page') }}#for-partners">Untuk Mitra</flux:navbar.item>
+            <flux:navbar.item href="{{ route('landing_page') }}#faq">FAQ</flux:navbar.item>
         @endif
     </flux:navbar>
     <flux:spacer />
@@ -48,7 +50,10 @@
             </flux:menu>
         </flux:dropdown>
     @else
-        <a href="{{ route('client.login') }}" class="clinic-header-login max-sm:hidden">Masuk</a>
+        <div class="clinic-header-auth max-sm:hidden">
+            <a href="{{ route('client.login') }}" class="clinic-header-login">Masuk Pelanggan</a>
+            <a href="{{ route('vendor.register') }}" class="clinic-header-partner">Gabung Jadi Mitra</a>
+        </div>
     @endif
 </flux:header>
 <flux:sidebar sticky collapsible="mobile" class="lg:hidden border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
@@ -62,10 +67,11 @@
         @if ($isLandingPage)
             <flux:sidebar.item icon="heart" href="{{ route('landing_page') }}#services">Layanan</flux:sidebar.item>
             <flux:sidebar.item icon="information-circle" href="{{ route('landing_page') }}#how-it-works">Cara Kerja</flux:sidebar.item>
+            <flux:sidebar.item icon="building-office-2" href="{{ route('landing_page') }}#for-partners">Untuk Mitra</flux:sidebar.item>
+            <flux:sidebar.item icon="question-mark-circle" href="{{ route('landing_page') }}#faq">FAQ</flux:sidebar.item>
         @endif
         @if ($clientUser)
             <flux:sidebar.item icon="calendar-days" href="{{ route('client.my-bookings') }}" :current="request()->routeIs('client.my-bookings')">Reservasi saya &amp; Riwayat</flux:sidebar.item>
-            <flux:sidebar.item icon="clock" href="{{ route('client.history') }}" :current="request()->routeIs('client.history')">Riwayat</flux:sidebar.item>
         @endif
     </flux:sidebar.nav>
     <flux:sidebar.spacer />
@@ -76,7 +82,7 @@
         @else
             <flux:sidebar.item icon="user" href="{{ route('client.login') }}">Masuk Pelanggan</flux:sidebar.item>
             <flux:sidebar.item icon="user-plus" href="{{ route('client.register') }}">Daftar Pelanggan</flux:sidebar.item>
-            <flux:sidebar.item icon="building-office-2" href="{{ route('vendor.register') }}">Gabung sebagai Mitra</flux:sidebar.item>
+            <flux:sidebar.item icon="building-office-2" href="{{ route('vendor.register') }}">Gabung Jadi Mitra</flux:sidebar.item>
         @endif
     </flux:sidebar.nav>
 </flux:sidebar>

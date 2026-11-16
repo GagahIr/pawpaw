@@ -47,6 +47,7 @@ new #[Layout('layouts.client')] class extends Component {
                 @if ($vendor->description)
                     <p class="clinic-description">{{ $vendor->description }}</p>
                 @endif
+                <a href="{{ route('client.clinic.booking', $vendor->slug) }}" class="clinic-book-button clinic-profile-book">Buat Reservasi <flux:icon.arrow-right class="size-5" /></a>
             </div>
         </section>
 

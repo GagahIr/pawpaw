@@ -31,7 +31,7 @@
                 @foreach ($items as $item)
                     <li wire:key="item-{{ $item->id }}" class="clinic-treatment">
                         <span class="clinic-treatment-name">{{ $item->name }}</span>
-                        <span class="clinic-price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
+                        <span class="clinic-price">Rp {{ number_format($item->price, 0, ',', '.') }}@if ($categoryType === 'pet hotel')<span class="clinic-price-unit">per malam</span>@endif</span>
                     </li>
                 @endforeach
             </ul>
