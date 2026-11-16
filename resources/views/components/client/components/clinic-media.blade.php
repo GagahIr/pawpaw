@@ -1,18 +1,30 @@
 @php
-    $logoUrl = $vendor->logo ? asset('storage/' . $vendor->logo) : '';
+    $photos = collect(config('clinic-demo-photos', []));
+    $photo = $photos->firstWhere('image_url', $vendor->logo);
+    if (! $vendor->logo && $photos->isNotEmpty()) {
+        $photo = $photos->get(((int) $vendor->id) % $photos->count());
+    }
+    $imageUrl = $photo['image_url'] ?? ($vendor->logo ? asset('storage/' . $vendor->logo) : '');
 @endphp
 
-<div class="clinic-media {{ $mediaClass ?? '' }}" x-data="{ failed: false, source: @js($logoUrl) }"
-    x-effect="if (source !== @js($logoUrl)) { source = @js($logoUrl); failed = false; }">
-    <div class="clinic-media-placeholder" x-show="failed || !source" @if ($logoUrl) style="display: none" @endif>
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M10 9h4M12 7v4" />
-        </svg>
-        <span>Logo klinik belum tersedia</span>
+<figure class="clinic-media-frame" x-data="{ failed: false }" wire:key="clinic-media-{{ $vendor->id }}-{{ md5($imageUrl) }}">
+    <div class="clinic-media {{ $mediaClass ?? '' }}">
+        <div class="clinic-media-placeholder" x-show="failed || {{ $imageUrl ? 'false' : 'true' }}" @if ($imageUrl) style="display: none" @endif>
+            <img src="{{ asset('assets/img/cat-dog.webp') }}" alt="Ilustrasi anjing dan kucing" width="220" height="200">
+            <span>Teman merawat si kesayangan</span>
+        </div>
+        @if ($imageUrl)
+            <img src="{{ $imageUrl }}" alt="{{ $photo['alt'] ?? ('Logo ' . $vendor->name) }}" loading="lazy" decoding="async"
+                x-show="!failed" x-on:error="failed = true" class="{{ $photo ? 'clinic-stock-photo' : 'clinic-vendor-logo' }}" />
+        @endif
+        @if ($photo && empty($showPhotoCredit))
+            <span class="clinic-photo-label" x-show="!failed">Foto ilustrasi &middot; Pexels</span>
+        @endif
     </div>
-    @if ($logoUrl)
-        <img src="{{ $logoUrl }}" alt="Logo {{ $vendor->name }}" loading="lazy" decoding="async"
-            x-show="!failed" x-on:error="failed = true" class="clinic-vendor-logo" />
+    @if ($photo && ! empty($showPhotoCredit))
+        <figcaption class="clinic-photo-credit" x-show="!failed">
+            Foto ilustrasi oleh <a href="{{ $photo['source_url'] }}" target="_blank" rel="noopener noreferrer">{{ $photo['photographer'] }}</a>
+            &middot; <a href="{{ $photo['license_url'] }}" target="_blank" rel="noopener noreferrer">Lisensi Pexels</a>
+        </figcaption>
     @endif
-</div>
+</figure>

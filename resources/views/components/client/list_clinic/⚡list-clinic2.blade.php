@@ -47,11 +47,14 @@ new #[Layout('layouts.client')] class extends Component {
 };
 ?>
 <div class="clinic-page clinic-directory">
-    <div class="clinic-wrap">
-        <section class="clinic-hero" aria-labelledby="clinic-heading">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-request-progress" wire:loading.delay wire:target="search,selectCategory,gotoPage,previousPage,nextPage" aria-hidden="true"><span></span></div>
+    <p class="sr-only" role="status" wire:loading.delay wire:target="search,selectCategory,gotoPage,previousPage,nextPage">Sedang mencari teman perawatan untuk hewanmu.</p>
+    <section class="clinic-hero" aria-labelledby="clinic-heading">
+        <div class="clinic-hero-inner">
             <div class="clinic-hero-copy">
                 <p class="clinic-eyebrow">TEMAN MERAWAT SI KESAYANGAN</p>
-                <h1 id="clinic-heading" class="clinic-title">Temukan klinik,<br><span>berikan yang terbaik.</span></h1>
+                <h1 id="clinic-heading" class="clinic-title">Temukan klinik,<br><span class="clinic-hero-accent">berikan yang terbaik.<svg class="clinic-title-swoosh" viewBox="0 0 500 24" preserveAspectRatio="none" aria-hidden="true"><path d="M8 16Q160 2 310 12T490 8" pathLength="1" /></svg></span></h1>
                 <p class="clinic-intro">Dari perawatan kesehatan, grooming, hingga pet hotel. Temukan layanan yang pas untuk hewanmu.</p>
                 <div class="clinic-search">
                     <img src="{{ asset('assets/img/searching.webp') }}" alt="" width="24" height="24">
@@ -60,12 +63,21 @@ new #[Layout('layouts.client')] class extends Component {
                         placeholder="Cari nama atau lokasi klinik…" autocomplete="off">
                 </div>
             </div>
-            <div class="clinic-hero-art" aria-hidden="true">
-                <img src="{{ asset('assets/img/cat-dog.webp') }}" alt="" fetchpriority="high" width="520" height="470">
+            <div class="clinic-paw-trail" aria-hidden="true">
+                @for ($step = 0; $step < 5; $step++)
+                    <img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="25" height="25" style="--paw-step: {{ $step }}">
+                @endfor
             </div>
-        </section>
-
+            <div class="clinic-hero-art clinic-hero-care" wire:ignore>
+                <object data-clinic-hero-object data="{{ asset('assets/pawpaw-hero-care.svg') }}" type="image/svg+xml" aria-label="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
+                    <img src="{{ asset('assets/pawpaw-hero-care.svg') }}" alt="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
+                </object>
+            </div>
+        </div>
+    </section>
+    <div class="clinic-wrap">
         <section class="clinic-filter-band" aria-label="Filter kategori layanan">
+            @include('components.client.components.clinic-wave')
             <div class="clinic-filters">
                 <button type="button" wire:click="selectCategory(null)"
                     aria-pressed="{{ $categoryId === null ? 'true' : 'false' }}"
@@ -121,7 +133,7 @@ new #[Layout('layouts.client')] class extends Component {
                         @endforeach
                     </div>
                     @if ($vendors->hasPages())
-                        <div class="clinic-pagination">{{ $vendors->links() }}</div>
+                        <div class="clinic-pagination">{{ $vendors->onEachSide(1)->links('components.client.components.clinic-pagination') }}</div>
                     @endif
                 @else
                     <div class="clinic-empty">
@@ -132,6 +144,6 @@ new #[Layout('layouts.client')] class extends Component {
                 @endif
             </div>
         </section>
-        <div class="clinic-bottom-note"><img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="28" height="28"><p>Perawatan yang tepat dimulai dari pilihanmu.</p></div>
     </div>
+    @include('components.client.components.clinic-footer')
 </div>

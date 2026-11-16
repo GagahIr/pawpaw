@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
 
             <div class="z-20 w-full" data-animate="fade-up">
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight" style="font-family: 'Fredoka', 'Nunito', sans-serif;">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1B5E43] leading-tight" style="font-family: 'Fredoka', 'Nunito', sans-serif;">
                     Urus si kesayangan,<br>
                     <span class="text-black-500" style="color: #e07a5f;">tanpa ribet.</span>
                 </h1>
@@ -234,7 +234,7 @@
     {{-- =========================================================
      HOW TO USE — "Cari klinik, pilih jadwal, lalu datang."
     ========================================================= --}}
-    <section id="how-to-use" class="pawpaw-howtouse-section">
+    <section id="how-it-works" class="pawpaw-howtouse-section">
 
         {{-- Top cream wave over green --}}
         <div class="pawpaw-howtouse-wave-top" aria-hidden="true">

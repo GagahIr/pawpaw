@@ -23,11 +23,19 @@ new #[Layout('layouts.client')] class extends Component {
 };
 ?>
 <div class="clinic-page clinic-detail">
+    @include('components.client.components.clinic-atmosphere')
     <div class="clinic-wrap">
         <a href="{{ route('client.clinic') }}" wire:navigate class="clinic-back"><flux:icon.arrow-left class="size-4" /> Kembali ke daftar klinik</a>
         <section class="clinic-profile" aria-labelledby="vendor-heading">
-            @include('components.client.components.clinic-media', ['vendor' => $vendor, 'mediaClass' => 'clinic-profile-media'])
-            <div class="clinic-profile-copy">
+            <div class="clinic-profile-visual" data-clinic-reveal>
+                @include('components.client.components.clinic-media', ['vendor' => $vendor, 'mediaClass' => 'clinic-profile-media', 'showPhotoCredit' => true])
+                <svg class="clinic-photo-outline" viewBox="0 0 600 400" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M25 180C34 70 153 12 306 20C457 18 576 93 578 199C588 306 458 381 304 379C139 385 14 298 25 180Z" pathLength="1" /></svg>
+                <span class="clinic-photo-doodle" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8v12a10 10 0 0 0 20 0V8M7 8h6M27 8h6M20 30v3a8 8 0 0 0 16 0v-5"/><circle cx="36" cy="24" r="4"/><path d="m35 8 2-3m4 9 4-1"/></svg>
+                </span>
+                <svg class="clinic-photo-spark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 4Q20 20 36 20Q20 20 20 36Q20 20 4 20Q20 20 20 4Z" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div class="clinic-profile-copy" data-clinic-reveal>
                 <p class="clinic-eyebrow">KENAL LEBIH DEKAT</p>
                 <h1 id="vendor-heading" class="clinic-title">{{ $vendor->name }}</h1>
                 <p class="clinic-full-address"><flux:icon.map-pin class="size-5 shrink-0" /><span>{{ $vendor->address ?: 'Alamat belum tersedia' }}</span></p>
@@ -42,36 +50,20 @@ new #[Layout('layouts.client')] class extends Component {
             </div>
         </section>
 
+        <div class="clinic-detail-intro">
+            <p class="clinic-eyebrow">LAYANAN & HARGA</p>
+            <h2 id="services-heading" class="clinic-section-title">Perawatan untuk<br><span>si kesayangan.</span></h2>
+            <p class="clinic-services-intro">Kenali pilihan perawatannya sebelum membuat reservasi.</p>
+        </div>
         <div class="clinic-detail-grid">
             <section class="clinic-services" aria-labelledby="services-heading">
-                <p class="clinic-eyebrow">LAYANAN & HARGA</p>
-                <h2 id="services-heading" class="clinic-section-title">Perawatan untuk<br><span>si kesayangan.</span></h2>
-                <p class="clinic-services-intro">Kenali pilihan perawatannya sebelum membuat reservasi.</p>
-                @forelse ($vendor->vendorServices as $service)
-                    <div wire:key="service-{{ $service->id }}" class="clinic-service-group">
-                        <h3 class="clinic-badge">{{ strtolower($service->categoryService?->name ?? '') === 'clinic' ? 'Klinik / Medis' : ($service->categoryService?->name ?? 'Layanan') }}</h3>
-                        @if ($service->vendorServiceItems->isNotEmpty())
-                            <ul class="clinic-treatment-list">
-                                @foreach ($service->vendorServiceItems as $item)
-                                    <li wire:key="item-{{ $item->id }}" class="clinic-treatment">
-                                        <span class="clinic-treatment-name">{{ $item->name }}</span>
-                                        <span class="clinic-price">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="clinic-muted">Detail perawatan belum tersedia.</p>
-                        @endif
-                    </div>
-                @empty
-                    <div class="clinic-empty clinic-empty-services"><h3>Belum ada layanan</h3><p>Layanan klinik ini belum tersedia.</p></div>
-                @endforelse
+                @include('components.client.components.clinic-service-groups', ['vendor' => $vendor])
             </section>
 
-            <aside class="clinic-visit" aria-labelledby="visit-heading">
+            <aside class="clinic-visit" aria-labelledby="visit-heading" data-clinic-reveal>
                 <img class="clinic-visit-paw" src="{{ asset('assets/pawkucing.webp') }}" alt="" width="38" height="38">
                 <h2 id="visit-heading" class="clinic-section-title">Rencanakan<br>kunjunganmu</h2>
-                <section aria-labelledby="hours-heading">
+                <section class="clinic-visit-panel" aria-labelledby="hours-heading">
                     <h3 id="hours-heading" class="clinic-panel-heading"><flux:icon.clock class="size-5" /> Jam Operasional</h3>
                     <dl class="clinic-hours">
                         @forelse ($vendor->vendorOperatingHours as $hour)
@@ -96,7 +88,7 @@ new #[Layout('layouts.client')] class extends Component {
                     </dl>
                 </section>
                 @if ($vendor->contact)
-                    <section class="clinic-contact" aria-labelledby="contact-heading">
+                    <section class="clinic-contact clinic-visit-panel" aria-labelledby="contact-heading">
                         <h3 id="contact-heading" class="clinic-panel-heading">Kontak Klinik</h3>
                         <p><flux:icon.phone class="size-5 shrink-0" /><span>{{ $vendor->contact }}</span></p>
                     </section>
@@ -104,6 +96,6 @@ new #[Layout('layouts.client')] class extends Component {
                 <a href="{{ route('client.clinic.booking', $vendor->slug) }}" class="clinic-book-button">Buat Reservasi <flux:icon.arrow-right class="size-5" /></a>
             </aside>
         </div>
-        <div class="clinic-bottom-note"><img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="28" height="28"><p>Perawatan yang tepat dimulai dari pilihanmu.</p></div>
     </div>
+    @include('components.client.components.clinic-footer')
 </div>

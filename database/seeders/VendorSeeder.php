@@ -23,7 +23,10 @@ class VendorSeeder extends Seeder
         $ownerRole = Role::firstOrCreate(['name' => 'owner']);
 
         $vendors = Vendor::factory(10)->create();
-        $activeVendors = Vendor::factory(10)->create([
+        $photos = config('clinic-demo-photos');
+        $activeVendors = Vendor::factory(15)->sequence(
+            fn ($sequence): array => ['logo' => $photos[$sequence->index % count($photos)]['image_url']],
+        )->create([
             'status_verification' => VendorVerificationStatus::Approved,
             'status_subscription' => VendorSubscriptionStatus::Active,
             'subscription_started_at' => now(),
