@@ -27,6 +27,7 @@
 
     @if (request()->routeIs('landing_page'))
         @include('components.client.components.clinic-footer')
+        @include('landing_page.components.idle-cat')
     @else
         <x-client.footer />
     @endif

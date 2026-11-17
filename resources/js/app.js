@@ -16,9 +16,10 @@
 
 import { HSStaticMethods } from "preline/non-auto";
 import './pawpaw-animations';
+import './landing-idle-cat';
 import './clinic-animations';
 import './owner-dashboard-charts';
-import flatpickr from "flatpickr";
+import "./booking-datepicker";
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid';
 
 if (document.readyState === "loading") {

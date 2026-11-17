@@ -26,9 +26,13 @@
     .pawpaw-account-trigger, .pawpaw-account-menu [data-flux-menu-item] { transition: none; }
 }
 .clinic-shell {
+    --clinic-green: #1b5e43;
+    --clinic-body-font: 'Inter', sans-serif;
+    --clinic-display-font: 'Fredoka', 'Nunito', sans-serif;
+    --clinic-ui-font: 'Nunito', sans-serif;
     background: #fff8f5;
     color: #263c34;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--clinic-body-font);
 }
 .clinic-shell [data-flux-header] {
     background: #fff8f5;
@@ -97,7 +101,7 @@
 }
 .clinic-wrap { max-width: 1280px; margin-inline: auto; padding: 56px 40px 0; }
 .clinic-title, .clinic-section-title {
-    font-family: 'Fredoka', 'Nunito', sans-serif;
+    font-family: var(--clinic-display-font);
     color: var(--clinic-green);
     font-weight: 700;
     line-height: 1.14;
@@ -399,14 +403,14 @@
     .clinic-footer-button, .clinic-footer-peek.clinic-revealed { transition: none; }
     .clinic-footer-button:hover, .clinic-footer-button:active { transform: none; }
 }
-.clinic-shell #nprogress .bar { height: 4px; background: linear-gradient(90deg, #ee6d52 0%, #f3b48b 35%, #b8d5b0 65%, #1b5e43 100%); }
-.clinic-shell #nprogress .peg { box-shadow: 0 0 10px #86b596, 0 0 5px #ee6d52; }
-.clinic-shell #nprogress .spinner { display: none; }
+:root:has(body.clinic-shell) #nprogress .bar { height: 4px; background: linear-gradient(90deg, #ee6d52 0%, #f3b48b 35%, #b8d5b0 65%, #1b5e43 100%); }
+:root:has(body.clinic-shell) #nprogress .peg { box-shadow: 0 0 10px #86b596, 0 0 5px #ee6d52; }
+:root:has(body.clinic-shell) #nprogress .spinner { display: none; }
 .clinic-request-progress { position: fixed; inset: 0 0 auto; height: 4px; z-index: 1040; background: #e7ecdd; overflow: hidden; pointer-events: none; }
 .clinic-request-progress > span { display: block; height: 100%; width: 50%; border-radius: 999px; background: linear-gradient(90deg, #ee6d52, #f3b48b, #b8d5b0, #1b5e43); animation: clinic-loading 1.3s ease-in-out infinite; }
 @media (hover: hover) and (pointer: fine) {
-    .clinic-shell, .clinic-shell :is(a, button, label, [role="button"]), .clinic-shell :is(a, button, [role="button"]) * { cursor: url('/assets/paw-cursor.svg') 15 16, pointer; }
-    .clinic-shell :is(a, button, [role="button"]):active, .clinic-shell :is(a, button, [role="button"]):active * { cursor: url('/assets/paw-cursor-pressed.svg') 15 16, pointer; }
+    .clinic-shell, .clinic-shell :is(a, button, label, [role="button"]), .clinic-shell :is(a, button, [role="button"]) * { cursor: var(--landing-paw-cursor); }
+    .clinic-shell :is(a, button, [role="button"]):active, .clinic-shell :is(a, button, [role="button"]):active * { cursor: var(--landing-paw-pressed); }
     .clinic-shell :is(input, textarea, [contenteditable="true"]) { cursor: text; }
     .clinic-shell :is(button:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
 }
@@ -436,9 +440,9 @@
     .clinic-book-button:hover svg { translate: none; }
 }
 /* Clinic detail keeps the shared palette and groups care by category. */
-.clinic-detail::before, .clinic-detail::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: min(1000px, 110vw); height: 900px; border-radius: 50%; filter: blur(32px); }
-.clinic-detail::before { top: -220px; left: -300px; background: radial-gradient(ellipse, #ee6d5230 0%, #f4a58218 32%, transparent 70%); }
-.clinic-detail::after { top: -160px; right: -240px; background: radial-gradient(ellipse, #1b5e432b 0%, #1b5e4314 35%, transparent 70%); }
+.clinic-detail::before, .clinic-detail::after, .booking-page::before, .reservations-page::before, .booking-page::after, .reservations-page::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: min(1000px, 110vw); height: 900px; border-radius: 50%; filter: blur(32px); }
+.clinic-detail::before, .booking-page::before, .reservations-page::before { top: -220px; left: -300px; background: radial-gradient(ellipse, #ee6d5230 0%, #f4a58218 32%, transparent 70%); }
+.clinic-detail::after, .booking-page::after, .reservations-page::after { top: -160px; right: -240px; background: radial-gradient(ellipse, #1b5e432b 0%, #1b5e4314 35%, transparent 70%); }
 .clinic-detail .clinic-section-title > span { color: #e07a5f; }
 .clinic-detail .clinic-profile { margin-bottom: 72px; }
 .clinic-detail .clinic-profile-copy::before { content: none; }
