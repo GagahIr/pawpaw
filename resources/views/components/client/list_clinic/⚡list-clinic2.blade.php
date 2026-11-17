@@ -46,135 +46,105 @@ new #[Layout('layouts.client')] class extends Component {
     }
 };
 ?>
-
-<div class="min-h-screen py-12 px-4">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 mb-3">
-                Klinik yang Tersedia
-            </h1>
-            <p class="text-lg text-gray-600">
-                Temukan layanan kesehatan dan grooming terbaik untuk hewan kesayangan Anda
-            </p>
+<div class="clinic-page clinic-directory">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-request-progress" wire:loading.delay wire:target="search,selectCategory,gotoPage,previousPage,nextPage" aria-hidden="true"><span></span></div>
+    <p class="sr-only" role="status" wire:loading.delay wire:target="search,selectCategory,gotoPage,previousPage,nextPage">Sedang mencari teman perawatan untuk hewanmu.</p>
+    <section class="clinic-hero" aria-labelledby="clinic-heading">
+        <div class="clinic-hero-inner">
+            <div class="clinic-hero-copy">
+                <p class="clinic-eyebrow">TEMAN MERAWAT SI KESAYANGAN</p>
+                <h1 id="clinic-heading" class="clinic-title">Temukan klinik,<br><span class="clinic-hero-accent">berikan yang terbaik.<svg class="clinic-title-swoosh" viewBox="0 0 500 24" preserveAspectRatio="none" aria-hidden="true"><path d="M8 16Q160 2 310 12T490 8" pathLength="1" /></svg></span></h1>
+                <p class="clinic-intro">Dari perawatan kesehatan, grooming, hingga pet hotel. Temukan layanan yang pas untuk hewanmu.</p>
+                <div class="clinic-search">
+                    <img src="{{ asset('assets/img/searching.webp') }}" alt="" width="24" height="24">
+                    <label for="clinic-search" class="sr-only">Cari nama atau lokasi klinik</label>
+                    <input id="clinic-search" type="search" wire:model.live.debounce.400ms="search"
+                        placeholder="Cari nama atau lokasi klinik…" autocomplete="off">
+                </div>
+            </div>
+            <div class="clinic-hero-art clinic-hero-care" wire:ignore>
+                <div class="clinic-paw-trail" aria-hidden="true">
+                    @for ($step = 0; $step < 5; $step++)
+                        <img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="25" height="25" style="--paw-step: {{ $step }}">
+                    @endfor
+                </div>
+                <img class="clinic-hero-paw" src="{{ asset('assets/pawkucing.webp') }}" alt="" width="36" height="36" aria-hidden="true">
+                <object data-clinic-hero-object data="{{ asset('assets/pawpaw-hero-care.svg') }}" type="image/svg+xml" aria-label="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
+                    <img src="{{ asset('assets/pawpaw-hero-care.svg') }}" alt="Anjing dan kucing dengan layanan Klinik dan Medis, Grooming, serta Pet Hotel" width="1280" height="1180">
+                </object>
+            </div>
         </div>
-
-        <!-- Search & Filter -->
-        <div class="mb-8 space-y-4">
-            <input type="text" wire:model.live.debounce.400ms="search" placeholder="Cari klinik atau grooming..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE6D52]" />
-
-            <div class="flex flex-wrap gap-2">
-                @php
-                    $base = 'px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer';
-                    $active = 'bg-[#EE6D52] border-[#EE6D52] text-white';
-                    $idle = 'bg-white border-gray-300 text-gray-700 hover:border-[#EE6D52] hover:text-[#EE6D52]';
-                @endphp
-
+    </section>
+    <div class="clinic-wrap">
+        <section class="clinic-filter-band" aria-label="Filter kategori layanan">
+            @include('components.client.components.clinic-wave')
+            <div class="clinic-filters">
                 <button type="button" wire:click="selectCategory(null)"
-                    class="{{ $base }} {{ $categoryId === null ? $active : $idle }}">
-                    Semua
+                    aria-pressed="{{ $categoryId === null ? 'true' : 'false' }}"
+                    class="clinic-filter {{ $categoryId === null ? 'is-active' : '' }}">
+                    <flux:icon.squares-2x2 class="size-5" /> Semua
                 </button>
-
                 @foreach ($categories as $category)
                     <button type="button" wire:key="cat-{{ $category->id }}"
                         wire:click="selectCategory({{ $category->id }})"
-                        class="{{ $base }} {{ $categoryId === $category->id ? $active : $idle }}">
-                        {{ $category->name }}
+                        aria-pressed="{{ $categoryId === $category->id ? 'true' : 'false' }}"
+                        class="clinic-filter {{ $categoryId === $category->id ? 'is-active' : '' }}">
+                        @if (strtolower($category->name) === 'grooming')
+                            <flux:icon.scissors class="size-5" />
+                        @elseif (strtolower($category->name) === 'pet hotel')
+                            <flux:icon.home class="size-5" />
+                        @else
+                            <flux:icon.heart class="size-5" />
+                        @endif
+                        {{ strtolower($category->name) === 'clinic' ? 'Klinik / Medis' : $category->name }}
                     </button>
                 @endforeach
             </div>
-        </div>
+        </section>
 
-        <!-- Result Info -->
-        <div class="mb-6 text-sm text-gray-600">
-            Menampilkan
-            <span class="font-semibold">{{ $vendors->count() }}</span>
-            dari
-            <span class="font-semibold">{{ $vendors->total() }}</span>
-            mitra
-            @if ($search !== '')
-                untuk "{{ $search }}"
-            @endif
-        </div>
-
-        <div wire:loading.class="opacity-50" wire:target="search,selectCategory,gotoPage,previousPage,nextPage"
-            class="transition-opacity">
-            <!-- Vendor Grid -->
-            @if ($vendors->count())
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    @forelse ($vendors as $vendor)
-                        <a href="{{ route('client.vendor.detail', $vendor->slug) }}"
-                            class="group bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
-                            <!-- Header Info -->
-                            <div class="p-4 border-b border-gray-200">
-                                <img src="{{ asset('storage/' . $vendor->logo) }}" class="rounded-md" alt="">
-                                <h3
-                                    class="text-lg font-semibold text-gray-900 group-hover:text-[#EE6D52] transition-colors">
-                                    {{ $vendor->name }}
-                                </h3>
-                                <p class="text-sm text-gray-600 mt-1">
-                                    📍 {{ $vendor->address }}
-                                </p>
-                                <p class="text-sm text-gray-600 mt-1">
-                                    {{ $vendor->description }}
-                                </p>
-                            </div>
-
-                            <!-- Contact Info -->
-                            <div class="p-4 space-y-2 text-sm">
-                                <p class="text-gray-700">
-                                    <span class="font-medium">Kontak:</span> {{ $vendor->contact }}
-                                </p>
-                                @if ($vendor->description)
-                                    <p class="text-gray-600 line-clamp-2">
-                                        {{ $vendor->description }}
-                                    </p>
-                                @endif
-                                <div class="flex flex-wrap gap-1 pt-1">
-                                    @foreach ($vendor->vendorServices->pluck('categoryService.name')->filter()->unique() as $name)
-                                        <span
-                                            class="px-2 py-0.5 rounded-full bg-orange-50 text-[#EE6D52] text-xs">{{ $name }}</span>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <!-- Action -->
-                            <div class="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                                <span class="text-sm font-medium text-[#EE6D52]">
-                                    Lihat Detail
-                                </span>
-                                <svg class="w-4 h-4 text-[#EE6D52] group-hover:translate-x-1 transition-transform"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7">
-                                    </path>
-                                </svg>
-                            </div>
-                        </a>
-                    @empty
-                    @endforelse
+        <section class="clinic-results" aria-labelledby="clinic-results-heading">
+            <div class="clinic-results-header" aria-live="polite" aria-atomic="true">
+                <div>
+                    <p class="clinic-eyebrow">PILIH TEMPAT PERAWATANNYA</p>
+                    <h2 id="clinic-results-heading" class="clinic-section-title">Kenalan dengan klinik pilihanmu</h2>
                 </div>
-
-                <!-- Pagination -->
-                @if ($vendors->hasPages())
-                    <div class="flex justify-center">
-                        {{ $vendors->links() }}
+                <p class="clinic-result-count">Menampilkan {{ $vendors->count() }} dari {{ $vendors->total() }} klinik</p>
+            </div>
+            @if ($search !== '')
+                <p class="clinic-search-summary">Hasil pencarian untuk “{{ $search }}”</p>
+            @endif
+            <div wire:loading.class="opacity-50" wire:target="search,selectCategory,gotoPage,previousPage,nextPage" class="transition-opacity">
+                @if ($vendors->count())
+                    <div class="clinic-grid">
+                        @foreach ($vendors as $vendor)
+                            <a wire:key="vendor-{{ $vendor->id }}" href="{{ route('client.vendor.detail', $vendor->slug) }}" class="clinic-card">
+                                @include('components.client.components.clinic-media', ['vendor' => $vendor])
+                                <div class="clinic-card-body">
+                                    <h3>{{ $vendor->name }}</h3>
+                                    <p class="clinic-card-address"><flux:icon.map-pin class="size-4 shrink-0" /><span>{{ $vendor->address ?: 'Alamat belum tersedia' }}</span></p>
+                                    <div class="clinic-badges">
+                                        @foreach ($vendor->vendorServices->pluck('categoryService.name')->filter()->unique() as $name)
+                                            <span class="clinic-badge">{{ strtolower($name) === 'clinic' ? 'Klinik / Medis' : $name }}</span>
+                                        @endforeach
+                                    </div>
+                                    <div class="clinic-card-action"><span>Lihat Klinik<span class="sr-only"> {{ $vendor->name }}</span></span><span class="clinic-arrow" aria-hidden="true">↗</span></div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                    @if ($vendors->hasPages())
+                        <div class="clinic-pagination">{{ $vendors->onEachSide(1)->links('components.client.components.clinic-pagination') }}</div>
+                    @endif
+                @else
+                    <div class="clinic-empty">
+                        <img src="{{ asset('assets/img/searching.webp') }}" alt="" width="52" height="52">
+                        <h3>Klinik belum ditemukan</h3>
+                        <p>Coba nama, lokasi, atau kategori layanan lainnya, ya.</p>
                     </div>
                 @endif
-            @else
-                <!-- Empty State -->
-                <div class="text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                        </path>
-                    </svg>
-                    <p class="mt-4 text-gray-900 font-medium">Mitra tidak ditemukan</p>
-                    <p class="text-gray-500">Coba ubah filter pencarian Anda</p>
-                </div>
-            @endif
-        </div>
+            </div>
+        </section>
     </div>
+    @include('components.client.components.clinic-footer')
 </div>

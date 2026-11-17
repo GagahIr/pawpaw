@@ -82,6 +82,13 @@ new #[Layout('layouts.client')] class extends Component {
         return mb_strtolower((string) $this->selectedCategory) === 'pet hotel';
     }
 
+    /** @return list<int> Closed weekdays using the calendar's Sunday-first numbering. */
+    #[Computed]
+    public function closedWeekdays(): array
+    {
+        return collect(range(0, 6))->reject(fn(int $day): bool => $this->vendor->vendorOperatingHours->contains(fn($hour): bool => $hour->day_of_week->value === $day && !$hour->is_closed))->map(fn(int $day): int => ($day + 1) % 7)->values()->all();
+    }
+
     #[Computed]
     public function maxBookingDate(): string
     {
@@ -461,340 +468,448 @@ new #[Layout('layouts.client')] class extends Component {
 };
 ?>
 
-<div class="mx-auto max-w-2xl py-6 sm:py-10">
-    <a href="{{ route('client.vendor.detail', $vendor->slug) }}" wire:navigate
-        class="text-sm font-medium text-accent hover:underline">
-        &larr; Kembali ke {{ $vendor->name }}
-    </a>
+<div class="booking-page">
+    <div class="clinic-request-progress" wire:loading.delay aria-hidden="true"><span></span></div>
+    @include('components.client.components.clinic-atmosphere')
+    <div class="booking-wrap">
+        <a href="{{ route('client.vendor.detail', $vendor->slug) }}" wire:navigate class="clinic-back">
+            <flux:icon.arrow-left class="size-4" /> Kembali ke detail klinik
+        </a>
 
-    <flux:card class="mt-5 space-y-8">
-        <div>
-            <flux:heading size="xl">Buat reservasi</flux:heading>
-            <flux:subheading>{{ $vendor->name }} &middot; {{ $vendor->address }}</flux:subheading>
-        </div>
-
-        <form wire:submit="confirmReservation" class="space-y-8">
-
-            {{-- 1. Layanan --}}
-            <section class="space-y-3" aria-labelledby="step-service">
-                <div>
-                    <h2 id="step-service" class="text-sm font-semibold text-zinc-900">1. Pilih layanan</h2>
+        <div class="booking-content">
+            <header class="booking-intro" data-animate="fade-up" data-motion-once>
+                <span class="booking-eyebrow">SATU LANGKAH LEBIH DEKAT MERAWATNYA</span>
+                <div class="booking-title-row">
+                    <h1>Buat reservasi</h1>
+                    <svg class="booking-paw" viewBox="0 0 40 40" fill="currentColor" aria-hidden="true">
+                        <ellipse cx="10" cy="14" rx="4" ry="6"
+                            transform="rotate(-25 10 14)" />
+                        <ellipse cx="19" cy="9" rx="4" ry="6" />
+                        <ellipse cx="29" cy="13" rx="4" ry="6"
+                            transform="rotate(25 29 13)" />
+                        <path d="M11 29c0-5 6-13 10-12s11 9 9 14-7 1-10 2-9 1-9-4Z" />
+                    </svg>
                 </div>
-                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    @foreach ($vendor->vendorServices as $service)
-                        @php($active = (string) $service->id === $vendorServiceId)
-                        <button type="button" wire:click="selectService({{ $service->id }})"
-                            aria-pressed="{{ $active ? 'true' : 'false' }}"
-                            class="min-h-11 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
+                <p class="booking-vendor">{{ $vendor->name }}</p>
+                <p class="booking-address">{{ $vendor->address }}</p>
+                <p class="booking-description">Pilih perawatan dan jadwal yang pas untuk si kesayangan.</p>
+                <figure class="booking-companion booking-companion-planner" aria-hidden="true">
+                    <svg class="booking-companion-doodle" viewBox="0 0 40 40" fill="currentColor">
+                        <ellipse cx="10" cy="14" rx="4" ry="6"
+                            transform="rotate(-25 10 14)" />
+                        <ellipse cx="19" cy="9" rx="4" ry="6" />
+                        <ellipse cx="29" cy="13" rx="4" ry="6"
+                            transform="rotate(25 29 13)" />
+                        <path d="M11 29c0-5 6-13 10-12s11 9 9 14-7 1-10 2-9 1-9-4Z" />
+                    </svg>
+                    <span class="booking-companion-spark">✦</span>
+                    <span class="booking-companion-spark booking-companion-spark-small">✦</span>
+                    <img src="{{ asset('assets/calendar.webp') }}" alt="" width="145" height="153"
+                        draggable="false">
+                    <span class="booking-planner-ticket">Waktunya merawat <span>✦</span></span>
+                </figure>
+            </header>
+
+            <ol class="booking-journey" aria-label="Tahapan reservasi" data-animate="fade-up" data-animate-delay="0.08">
+                <li data-complete="{{ $vendorServiceId ? 'true' : 'false' }}"
+                    @if (!$vendorServiceId) aria-current="step" @endif>
+                    <span class="booking-journey-number" aria-hidden="true">01</span>
+                    <span><strong>Layanan</strong><small>Mulai dari kebutuhannya</small></span>
+                </li>
+                <li data-complete="{{ $vendorServiceItemId ? 'true' : 'false' }}"
+                    @if ($vendorServiceId && !$vendorServiceItemId) aria-current="step" @endif>
+                    <span class="booking-journey-number" aria-hidden="true">02</span>
+                    <span><strong>Perawatan</strong><small>Pilih yang paling pas</small></span>
+                </li>
+                <li data-complete="{{ $this->canSubmit ? 'true' : 'false' }}"
+                    @if ($vendorServiceItemId && !$this->canSubmit) aria-current="step" @endif>
+                    <span class="booking-journey-number" aria-hidden="true">03</span>
+                    <span><strong>Jadwal</strong><small>Siapkan waktu untuknya</small></span>
+                </li>
+            </ol>
+
+            <form wire:submit="confirmReservation" class="booking-layout">
+                <div class="booking-fields" data-animate="fade-up" data-animate-delay="0.12">
+
+                    {{-- 1. Layanan --}}
+                    <section class="space-y-3" aria-labelledby="step-service">
+                        <div>
+                            <h2 id="step-service" class="booking-section-title"><span
+                                    class="booking-step-number">01</span>Pilih layanan</h2>
+                        </div>
+                        <div class="booking-categories">
+                            @foreach ($vendor->vendorServices as $service)
+                                @php($active = (string) $service->id === $vendorServiceId)
+                                <button type="button" wire:click="selectService({{ $service->id }})"
+                                    aria-pressed="{{ $active ? 'true' : 'false' }}"
+                                    class="min-h-11 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
                             {{ $active ? 'border-accent bg-accent text-white shadow-sm' : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50' }}">
-                            {{ $service->categoryService->name }}
-                        </button>
-                    @endforeach
-                </div>
-                <flux:error name="vendorServiceId" />
-            </section>
+                                    {{ mb_strtolower($service->categoryService->name) === 'clinic' ? 'Klinik / Medis' : $service->categoryService->name }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <flux:error name="vendorServiceId" />
+                    </section>
 
-            @if ($vendorServiceId)
-                {{-- 2. Perawatan --}}
-                <section class="space-y-3" aria-labelledby="step-item">
-                    <h2 id="step-item" class="text-sm font-semibold text-zinc-900">2. Pilih perawatan</h2>
+                    @if ($vendorServiceId)
+                        {{-- 2. Perawatan --}}
+                        <section class="space-y-3" aria-labelledby="step-item">
+                            <h2 id="step-item" class="booking-section-title"><span
+                                    class="booking-step-number">02</span>Pilih perawatan</h2>
 
-                    <div class="space-y-2" role="radiogroup" aria-labelledby="step-item">
-                        @foreach ($this->selectedService->vendorServiceItems as $item)
-                            @php($active = (string) $item->id === $vendorServiceItemId)
-                            <button type="button" role="radio" aria-checked="{{ $active ? 'true' : 'false' }}"
-                                wire:click="selectItem({{ $item->id }})"
-                                class="flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
+                            <div class="booking-treatments" role="radiogroup" aria-labelledby="step-item">
+                                @foreach ($this->selectedService->vendorServiceItems as $item)
+                                    @php($active = (string) $item->id === $vendorServiceItemId)
+                                    <button type="button" role="radio"
+                                        aria-checked="{{ $active ? 'true' : 'false' }}"
+                                        wire:key="booking-treatment-{{ $item->id }}"
+                                        wire:click="selectItem({{ $item->id }})"
+                                        class="booking-choice flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
                                 {{ $active ? 'border-accent bg-accent/5 ring-1 ring-accent' : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50' }}">
-                                <span
-                                    class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border {{ $active ? 'border-accent bg-accent' : 'border-zinc-300' }}">
-                                    @if ($active)
-                                        <span class="size-2 rounded-full bg-white"></span>
-                                    @endif
-                                </span>
-                                <span class="min-w-0 flex-1">
-                                    <span class="block font-medium text-zinc-900">{{ $item->name }}</span>
-                                    <span class="mt-0.5 block text-sm text-zinc-600">
-                                        {{ $this->isPetHotel ? 'Per malam' : $item->duration . ' menit' }}
-                                    </span>
-                                    @if (!empty($item->description))
                                         <span
-                                            class="mt-1 line-clamp-2 block text-sm text-zinc-600">{{ $item->description }}</span>
-                                    @endif
-                                </span>
-                                <span class="shrink-0 font-semibold text-zinc-900">
-                                    Rp {{ number_format($item->price, 0, ',', '.') }}
-                                </span>
-                            </button>
-                        @endforeach
-                    </div>
-                    <flux:error name="vendorServiceItemId" />
-                </section>
-
-                {{-- 3. Jadwal --}}
-                @if ($vendorServiceItemId)
-                    <section class="space-y-5" aria-labelledby="step-schedule">
-                        <h2 id="step-schedule" class="text-sm font-semibold text-zinc-900">3. Pilih jadwal</h2>
-
-                        @if ($this->isPetHotel)
-                            {{-- ===== Pet hotel: check-in / check-out ===== --}}
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <flux:input wire:model.live="bookingDate" type="date" label="Tanggal check-in"
-                                        min="{{ now()->toDateString() }}" max="{{ $this->maxBookingDate }}" />
-                                    <flux:error name="bookingDate" />
-                                </div>
-                                <div>
-                                    <flux:input wire:model.live="endDate" type="date" label="Tanggal check-out"
-                                        min="{{ $bookingDate ?: now()->toDateString() }}"
-                                        max="{{ $this->maxEndDate }}" />
-                                    <flux:error name="endDate" />
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <p class="text-sm text-zinc-600">Atau pilih lama menginap</p>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ([1, 2, 3, 7, 14] as $nights)
-                                        @php($active = $endDate !== '' && $this->totalNights === $nights)
-                                        <button type="button" wire:click="setNights({{ $nights }})"
-                                            aria-pressed="{{ $active ? 'true' : 'false' }}"
-                                            class="min-h-11 rounded-lg border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
-                                            {{ $active ? 'border-accent bg-accent text-accent-content' : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100' }}">
-                                            {{ $nights }} malam
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            {{-- ===== Layanan harian: strip tanggal ===== --}}
-                            <div class="space-y-2">
-                                <p class="text-sm text-zinc-600">Tanggal kunjungan</p>
-                                <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2" role="group"
-                                    aria-label="Tanggal kunjungan">
-                                    @foreach ($this->dateStrip as $day)
-                                        @php($active = $bookingDate === $day['value'])
-                                        <button type="button" wire:click="selectDate('{{ $day['value'] }}')"
-                                            @disabled($day['closed'])
-                                            aria-pressed="{{ $active ? 'true' : 'false' }}"
-                                            class="flex min-h-16 w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-xl border px-2 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
-                                            {{ $active ? 'border-accent bg-accent text-white shadow-sm' : ($day['closed'] ? 'cursor-not-allowed border-zinc-200 bg-zinc-50 text-zinc-400' : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100') }}">
-                                            <span class="text-xs">{{ $day['day'] }}</span>
-                                            <span
-                                                class="text-lg font-semibold leading-tight">{{ $day['num'] }}</span>
-                                            <span class="text-xs">{{ $day['closed'] ? 'Tutup' : $day['month'] }}</span>
-                                        </button>
-                                    @endforeach
-                                </div>
-
-                                <details class="text-sm">
-                                    <summary class="cursor-pointer font-medium text-accent hover:underline">
-                                        Pilih tanggal lain
-                                    </summary>
-                                    <div class="mt-2 max-w-xs">
-                                        <flux:input wire:model.live="bookingDate" type="date"
-                                            min="{{ now()->toDateString() }}" max="{{ $this->maxBookingDate }}" />
-                                    </div>
-                                </details>
-                                <flux:error name="bookingDate" />
-                            </div>
-
-                            {{-- ===== Jam kunjungan ===== --}}
-                            <div class="min-h-40 space-y-3" wire:loading.class="opacity-60"
-                                wire:target="selectDate,bookingDate,nextDay,useNextAvailable,selectItem">
-                                <p class="text-sm text-zinc-600">Jam kunjungan</p>
-
-                                @php($status = $this->daySlots['status'])
-
-                                @if ($status === 'ok' || $status === 'full' || $status === 'passed')
-                                    @foreach ($this->groupedSlots as $group => $slots)
-                                        <div class="space-y-2">
-                                            <p class="text-xs font-medium text-zinc-600">{{ $group }}</p>
-                                            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                                                @foreach ($slots as $slot)
-                                                    @php($active = $timeSlot === (string) $slot['minutes'])
-                                                    <button type="button"
-                                                        wire:click="selectTime({{ $slot['minutes'] }})"
-                                                        @disabled($slot['disabled'])
-                                                        aria-pressed="{{ $active ? 'true' : 'false' }}"
-                                                        aria-label="Pilih jam {{ $slot['label'] }}{{ $slot['reason'] === 'booked' ? ', sudah terisi' : ($slot['reason'] === 'past' ? ', sudah lewat' : '') }}"
-                                                        class="min-h-11 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
-                                                        {{ $active ? 'border-accent bg-accent text-white shadow-sm' : ($slot['disabled'] ? 'cursor-not-allowed border-zinc-200 bg-zinc-50 text-zinc-400 line-through' : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-100') }}">
-                                                        {{ $slot['label'] }}
-                                                    </button>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @endif
-
-                                @if ($status !== 'ok')
-                                    {{-- Empty state: pesan sesuai penyebab --}}
-                                    <div
-                                        class="flex flex-col items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-center">
-                                        <p class="text-sm text-zinc-700">
-                                            @if ($status === 'closed')
-                                                Vendor tutup pada tanggal ini.
-                                            @elseif ($status === 'passed')
-                                                Jam operasional hari ini sudah lewat atau terlalu dekat.
-                                            @else
-                                                Semua jam pada tanggal ini sudah terisi.
+                                            class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border {{ $active ? 'border-accent bg-accent' : 'border-zinc-300' }}">
+                                            @if ($active)
+                                                <span class="size-2 rounded-full bg-white"></span>
                                             @endif
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block font-medium text-zinc-900">{{ $item->name }}</span>
+                                            <span class="mt-0.5 block text-sm text-zinc-600">
+                                                {{ $this->isPetHotel ? 'Per malam' : $item->duration . ' menit' }}
+                                            </span>
+                                            @if (!empty($item->description))
+                                                <span
+                                                    class="mt-1 line-clamp-2 block text-sm text-zinc-600">{{ $item->description }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="shrink-0 font-semibold text-zinc-900">
+                                            Rp {{ number_format($item->price, 0, ',', '.') }}
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                            <flux:error name="vendorServiceItemId" />
+                        </section>
+
+                        {{-- 3. Jadwal --}}
+                        @if ($vendorServiceItemId)
+                            <section class="space-y-5" aria-labelledby="step-schedule">
+                                <h2 id="step-schedule" class="booking-section-title"><span
+                                        class="booking-step-number">03</span>Pilih jadwal</h2>
+
+                                @if ($this->isPetHotel)
+                                    {{-- ===== Pet hotel: check-in / check-out ===== --}}
+                                    <div class="space-y-2">
+                                        <p class="booking-stay-label">Mau menginap berapa lama?</p>
+                                        <p class="booking-stay-help">Dihitung dari tanggal check-in. Kamu bisa
+                                            mengubahnya di bawah.</p>
+                                        <div class="booking-stay-options" role="group" aria-label="Lama menginap">
+                                            @foreach ([1, 2, 3, 7, 14] as $nights)
+                                                @php($active = $endDate !== '' && $this->totalNights === $nights)
+                                                <button type="button" class="booking-stay-option"
+                                                    wire:click="setNights({{ $nights }})"
+                                                    aria-pressed="{{ $active ? 'true' : 'false' }}">
+                                                    <svg class="booking-stay-moon" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                                                        <path d="M19.5 14A8 8 0 0 1 10 4.5 8 8 0 1 0 19.5 14Z" />
+                                                        <path
+                                                            d="m17 3 .7 1.8 1.8.7-1.8.7L17 8l-.7-1.8-1.8-.7 1.8-.7Z" />
+                                                    </svg>
+                                                    <span><strong>{{ $nights }}</strong> malam</span>
+                                                    <small>{{ match ($nights) {1 => 'Singgah singkat',2 => 'Rehat sejenak',3 => 'Lebih santai',7 => 'Satu minggu',14 => 'Dua minggu'} }}</small>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <p class="booking-date-alternative"><span>Atau pilih tanggalmu sendiri</span></p>
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <x-client.booking-date-picker :closed-weekdays="$this->closedWeekdays" model="bookingDate"
+                                                label="Tanggal check-in" :value="$bookingDate" :min="now()->toDateString()"
+                                                :max="$this->maxBookingDate" />
+                                            <flux:error name="bookingDate" />
+                                        </div>
+                                        <div>
+                                            <x-client.booking-date-picker :closed-weekdays="$this->closedWeekdays" model="endDate"
+                                                label="Tanggal check-out" :value="$endDate" :min="$bookingDate ?: now()->toDateString()"
+                                                :max="$this->maxEndDate" />
+                                            <flux:error name="endDate" />
+                                        </div>
+                                    </div>
+                                @else
+                                    {{-- Layanan harian memakai kartu pilihan dan kalender PawPaw yang sama. --}}
+                                    <div class="space-y-2">
+                                        <p class="booking-stay-label">Mau datang kapan?</p>
+                                        <p class="booking-stay-help">Pilih tanggal yang tersedia untuk si kesayangan.
+                                        </p>
+                                        <div class="booking-visit-dates" role="group"
+                                            aria-label="Tanggal kunjungan">
+                                            @foreach ($this->dateStrip as $day)
+                                                @php($active = $bookingDate === $day['value'])
+                                                <button type="button"
+                                                    wire:key="booking-visit-date-{{ $day['value'] }}"
+                                                    wire:click="selectDate('{{ $day['value'] }}')"
+                                                    @disabled($day['closed'])
+                                                    aria-pressed="{{ $active ? 'true' : 'false' }}"
+                                                    class="booking-stay-option booking-visit-date">
+                                                    <span class="booking-visit-day">{{ $day['day'] }}</span>
+                                                    <strong class="booking-visit-number">{{ $day['num'] }}</strong>
+                                                    <small>{{ $day['closed'] ? 'Tutup' : $day['month'] }}</small>
+                                                </button>
+                                            @endforeach
+                                        </div>
+
+                                        <p class="booking-date-alternative"><span>Atau pilih tanggalmu sendiri</span>
+                                        </p>
+                                        <div class="booking-visit-custom-date">
+                                            <x-client.booking-date-picker :closed-weekdays="$this->closedWeekdays" model="bookingDate"
+                                                label="Tanggal kunjungan" :value="$bookingDate" :min="now()->toDateString()"
+                                                :max="$this->maxBookingDate" />
+                                        </div>
+                                        <flux:error name="bookingDate" />
+                                    </div>
+
+                                    {{-- ===== Jam kunjungan ===== --}}
+                                    <div class="min-h-40 space-y-3" wire:loading.class="opacity-60"
+                                        wire:target="selectDate,bookingDate,nextDay,useNextAvailable,selectItem">
+                                        <p class="booking-stay-label">Pilih jam kunjungan</p>
+                                        <p class="booking-stay-help">Jam yang redup sudah lewat atau tidak tersedia.
                                         </p>
 
-                                        @if ($next = $this->nextAvailableDate)
-                                            <flux:button type="button" size="sm" variant="primary"
-                                                wire:click="useNextAvailable">
-                                                Lihat {{ $next['label'] }}
-                                            </flux:button>
-                                        @else
-                                            <p class="text-xs text-zinc-600">
-                                                Belum ada slot kosong dalam {{ 14 }} hari ke depan.
-                                            </p>
+                                        @php($status = $this->daySlots['status'])
+
+                                        @if ($status === 'ok' || $status === 'full' || $status === 'passed')
+                                            @foreach ($this->groupedSlots as $group => $slots)
+                                                <div class="space-y-2">
+                                                    <p class="booking-time-period"><svg viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="1.7"
+                                                            aria-hidden="true">
+                                                            <circle cx="12" cy="12" r="4" />
+                                                            <path
+                                                                d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+                                                        </svg>{{ $group }}</p>
+                                                    <div class="booking-time-options">
+                                                        @foreach ($slots as $slot)
+                                                            @php($active = $timeSlot === (string) $slot['minutes'])
+                                                            <button type="button"
+                                                                wire:click="selectTime({{ $slot['minutes'] }})"
+                                                                @disabled($slot['disabled'])
+                                                                aria-pressed="{{ $active ? 'true' : 'false' }}"
+                                                                aria-label="Pilih jam {{ $slot['label'] }}{{ $slot['reason'] === 'booked' ? ', sudah terisi' : ($slot['reason'] === 'past' ? ', sudah lewat' : '') }}"
+                                                                class="booking-stay-option booking-time-option">
+                                                                <span class="booking-time-value"><svg
+                                                                        viewBox="0 0 24 24" fill="none"
+                                                                        stroke="currentColor" stroke-width="1.7"
+                                                                        aria-hidden="true">
+                                                                        <circle cx="12" cy="12" r="9" />
+                                                                        <path d="M12 7v5l3 2" />
+                                                                    </svg>{{ $slot['label'] }}</span>
+                                                                <small>{{ $active ? 'Dipilih' : ($slot['disabled'] ? ($slot['reason'] === 'booked' ? 'Terisi' : 'Lewat') : 'Tersedia') }}</small>
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         @endif
+
+                                        @if ($status !== 'ok')
+                                            {{-- Empty state: pesan sesuai penyebab --}}
+                                            <div class="booking-schedule-empty">
+                                                <p class="text-sm text-zinc-700">
+                                                    @if ($status === 'closed')
+                                                        Vendor tutup pada tanggal ini.
+                                                    @elseif ($status === 'passed')
+                                                        Jam operasional hari ini sudah lewat atau terlalu dekat.
+                                                    @else
+                                                        Semua jam pada tanggal ini sudah terisi.
+                                                    @endif
+                                                </p>
+
+                                                @if ($next = $this->nextAvailableDate)
+                                                    <flux:button type="button" size="sm" variant="primary"
+                                                        class="booking-primary" wire:click="useNextAvailable">
+                                                        Lihat {{ $next['label'] }}
+                                                    </flux:button>
+                                                @else
+                                                    <p class="text-xs text-zinc-600">
+                                                        Belum ada slot kosong dalam {{ 14 }} hari ke depan.
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        <flux:error name="timeSlot" />
                                     </div>
                                 @endif
-
-                                <flux:error name="timeSlot" />
-                            </div>
+                            </section>
                         @endif
-                    </section>
-                @endif
-            @endif
+                    @endif
 
-            {{-- Ringkasan biaya + tombol (selalu tampil, sticky di mobile) --}}
-            <div
-                class="sticky bottom-0 -mx-6 -mb-6 space-y-3 rounded-b-xl border-t border-zinc-200 bg-white/95 px-6 py-4 backdrop-blur sm:static sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+                </div>
 
-                @if ($this->selectedItem && $this->canSubmit)
-                    <div
-                        class="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-                        <div class="min-w-0">
-                            <p class="text-sm text-zinc-600">Estimasi biaya</p>
-                            <p class="text-xl font-bold text-zinc-900">
-                                Rp {{ number_format($this->totalPrice, 0, ',', '.') }}
-                            </p>
-                            @if ($this->isPetHotel)
-                                <p class="text-xs text-zinc-600">
-                                    Rp {{ number_format($this->selectedItem->price, 0, ',', '.') }}
-                                    &times; {{ $this->totalNights }} malam
-                                </p>
+                <aside class="booking-summary" aria-labelledby="booking-summary-title" data-animate="soft-pop"
+                    data-animate-delay="0.12">
+                    <div class="booking-summary-sticker"><img src="{{ asset('assets/calendar.webp') }}"
+                            alt="" width="28" height="28" aria-hidden="true"> Pilihan si kesayangan
+                    </div>
+                    <div class="booking-summary-heading">
+                        <span class="booking-eyebrow">SEBELUM MELANJUTKAN</span>
+                        <h2 id="booking-summary-title">Ringkasan reservasi</h2>
+                    </div>
+                    <p class="booking-summary-vendor">{{ $vendor->name }}</p>
+                    @if (!$this->canSubmit)
+                        <div class="booking-summary-preview">
+                            @if ($this->selectedItem)
+                                <strong>{{ $this->selectedItem->name }}</strong>
+                                <span>Rp
+                                    {{ number_format($this->selectedItem->price, 0, ',', '.') }}{{ $this->isPetHotel ? ' / malam' : ' / kunjungan' }}</span>
+                            @else
+                                <p>Perawatan dan jadwal pilihanmu akan tampil di sini.</p>
                             @endif
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-semibold text-zinc-900">{{ $this->selectedItem->name }}</p>
-                            <p class="text-xs text-zinc-600">
+                    @endif
+
+                    @if ($this->selectedItem && $this->canSubmit)
+                        <div class="booking-cost"
+                            wire:key="booking-cost-{{ $vendorServiceItemId }}-{{ $bookingDate }}-{{ $endDate }}-{{ $timeSlot }}">
+                            <div class="min-w-0">
+                                <p class="text-sm text-zinc-600">Estimasi biaya</p>
+                                <p class="text-xl font-bold text-zinc-900">
+                                    Rp {{ number_format($this->totalPrice, 0, ',', '.') }}
+                                </p>
                                 @if ($this->isPetHotel)
-                                    {{ \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('D MMM') }}
-                                    &ndash;
-                                    {{ \Carbon\Carbon::parse($endDate)->locale('id')->isoFormat('D MMM') }}
-                                @else
-                                    {{ $this->timeRange }}
+                                    <p class="text-xs text-zinc-600">
+                                        Rp {{ number_format($this->selectedItem->price, 0, ',', '.') }}
+                                        &times; {{ $this->totalNights }} malam
+                                    </p>
                                 @endif
-                            </p>
-                        </div>
-                    </div>
-                @endif
-
-                <flux:button type="submit" variant="primary" class="w-full py-3 text-base"
-                    :disabled="!$this->canSubmit" wire:loading.attr="disabled" wire:target="confirmReservation">
-                    <span wire:loading.remove wire:target="confirmReservation">Lanjut pesan</span>
-                    <span wire:loading wire:target="confirmReservation">Memeriksa...</span>
-                </flux:button>
-
-                @if ($this->helperText !== '')
-                    <p class="text-center text-sm text-zinc-600" aria-live="polite">{{ $this->helperText }}</p>
-                @endif
-            </div>
-        </form>
-    </flux:card>
-
-    {{-- Modal konfirmasi (nota) --}}
-    <flux:modal name="confirm-reservation" class="min-w-[22rem] md:min-w-md">
-        <div class="space-y-6">
-            <div class="border-b border-zinc-100 pb-4 text-center">
-                <flux:heading size="lg" class="!text-xl !font-bold">Nota reservasi</flux:heading>
-                <p class="mt-1 text-sm text-zinc-600">Pastikan detail pesanan sudah sesuai</p>
-            </div>
-
-            @php($confirmItem = $this->selectedItem)
-
-            <div class="space-y-4 rounded-xl border border-zinc-100 bg-zinc-50 p-5 shadow-sm">
-                <div class="border-b border-zinc-200 pb-4">
-                    <h3 class="text-lg font-bold text-zinc-900">{{ $confirmItem?->name ?? '-' }}</h3>
-                    <p class="text-sm text-zinc-600">{{ $vendor->name }} &middot;
-                        {{ $this->selectedCategory ?? '-' }}
-                    </p>
-                </div>
-
-                <dl class="space-y-3 text-sm">
-                    @if ($this->isPetHotel)
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Check-in</dt>
-                            <dd class="text-right font-medium text-zinc-900">
-                                {{ $bookingDate ? \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Check-out</dt>
-                            <dd class="text-right font-medium text-zinc-900">
-                                {{ $endDate ? \Carbon\Carbon::parse($endDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Durasi</dt>
-                            <dd class="text-right font-medium text-zinc-900">{{ $this->totalNights }} malam</dd>
-                        </div>
-                    @else
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Tanggal</dt>
-                            <dd class="text-right font-medium text-zinc-900">
-                                {{ $bookingDate ? \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Jam</dt>
-                            <dd class="text-right font-medium text-zinc-900">{{ $this->timeRange ?? '-' }}</dd>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Estimasi pengerjaan</dt>
-                            <dd class="text-right font-medium text-zinc-900">{{ $confirmItem?->duration ?? '-' }}
-                                menit
-                            </dd>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-zinc-900">{{ $this->selectedItem->name }}</p>
+                                <p class="text-xs text-zinc-600">
+                                    @if ($this->isPetHotel)
+                                        {{ \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('D MMM') }}
+                                        &ndash;
+                                        {{ \Carbon\Carbon::parse($endDate)->locale('id')->isoFormat('D MMM') }}
+                                    @else
+                                        {{ $this->timeRange }}
+                                    @endif
+                                </p>
+                            </div>
                         </div>
                     @endif
-                </dl>
 
-                <div class="mt-4 space-y-1 border-t border-dashed border-zinc-300 pt-4">
-                    @if ($confirmItem && $this->isPetHotel)
-                        <div class="flex justify-between text-sm text-zinc-600">
-                            <span>Rp {{ number_format($confirmItem->price, 0, ',', '.') }} &times;
-                                {{ max(1, $this->totalNights) }} malam</span>
-                        </div>
+                    <flux:button type="submit" variant="primary" class="booking-primary w-full py-3 text-base"
+                        :disabled="!$this->canSubmit" wire:loading.attr="disabled" wire:target="confirmReservation">
+                        <span wire:loading.remove wire:target="confirmReservation">Tinjau reservasi</span>
+                        <span wire:loading wire:target="confirmReservation">Memeriksa...</span>
+                    </flux:button>
+
+                    @if ($this->helperText !== '')
+                        <p class="text-center text-sm text-zinc-600" aria-live="polite">{{ $this->helperText }}</p>
                     @endif
-                    <div class="flex items-center justify-between">
-                        <span class="font-medium text-zinc-700">Total tagihan</span>
-                        <span class="text-xl font-bold text-accent">
-                            {{ $confirmItem ? 'Rp ' . number_format($this->totalPrice, 0, ',', '.') : '-' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <p class="text-center text-xs text-zinc-600">
-                Reservasi akan menunggu konfirmasi dari vendor.
-            </p>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <flux:modal.close>
-                    <flux:button variant="subtle">Ubah data</flux:button>
-                </flux:modal.close>
-                <flux:button wire:click="reserve" variant="primary" wire:loading.attr="disabled"
-                    wire:target="reserve">
-                    <span wire:loading.remove wire:target="reserve">Konfirmasi pesanan</span>
-                    <span wire:loading wire:target="reserve">Memproses...</span>
-                </flux:button>
-            </div>
+                    <p class="booking-payment-note">Menunggu konfirmasi klinik. Pembayaran layanan dilakukan langsung
+                        di klinik.</p>
+                </aside>
+            </form>
         </div>
-    </flux:modal>
+
+        {{-- Modal konfirmasi (nota) --}}
+        <flux:modal name="confirm-reservation" class="booking-confirm-modal">
+            <div class="space-y-6">
+                <div class="booking-confirm-heading">
+                    <div class="booking-confirm-mascot" aria-hidden="true">
+                        <img src="{{ asset('assets/booking-puppy.webp') }}" alt="" width="86"
+                            height="100">
+                        <span>✦</span>
+                    </div>
+                    <div>
+                        <p class="booking-eyebrow">UNTUK SI PALING DISAYANG</p>
+                        <flux:heading size="lg" class="!text-xl !font-bold">Periksa reservasi</flux:heading>
+                        <p class="booking-confirm-subtitle">Sudah pas? Kirim ke klinik pilihanmu.</p>
+                    </div>
+                </div>
+
+                @php($confirmItem = $this->selectedItem)
+
+                <div class="booking-confirm-ticket space-y-4">
+                    <div class="border-b border-zinc-200 pb-4">
+                        <h3 class="text-lg font-bold text-zinc-900">{{ $confirmItem?->name ?? '-' }}</h3>
+                        <p class="text-sm text-zinc-600">{{ $vendor->name }} &middot;
+                            {{ mb_strtolower((string) $this->selectedCategory) === 'clinic' ? 'Klinik / Medis' : $this->selectedCategory ?? '-' }}
+                        </p>
+                    </div>
+
+                    <dl class="space-y-3 text-sm">
+                        @if ($this->isPetHotel)
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Check-in</dt>
+                                <dd class="text-right font-medium text-zinc-900">
+                                    {{ $bookingDate ? \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Check-out</dt>
+                                <dd class="text-right font-medium text-zinc-900">
+                                    {{ $endDate ? \Carbon\Carbon::parse($endDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Durasi</dt>
+                                <dd class="text-right font-medium text-zinc-900">{{ $this->totalNights }} malam</dd>
+                            </div>
+                        @else
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Tanggal</dt>
+                                <dd class="text-right font-medium text-zinc-900">
+                                    {{ $bookingDate ? \Carbon\Carbon::parse($bookingDate)->locale('id')->isoFormat('ddd, D MMM YYYY') : '-' }}
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Jam</dt>
+                                <dd class="text-right font-medium text-zinc-900">{{ $this->timeRange ?? '-' }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-zinc-600">Estimasi pengerjaan</dt>
+                                <dd class="text-right font-medium text-zinc-900">{{ $confirmItem?->duration ?? '-' }}
+                                    menit
+                                </dd>
+                            </div>
+                        @endif
+                    </dl>
+
+                    <div class="mt-4 space-y-1 border-t border-dashed border-zinc-300 pt-4">
+                        @if ($confirmItem && $this->isPetHotel)
+                            <div class="flex justify-between text-sm text-zinc-600">
+                                <span>Rp {{ number_format($confirmItem->price, 0, ',', '.') }} &times;
+                                    {{ max(1, $this->totalNights) }} malam</span>
+                            </div>
+                        @endif
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-zinc-700">Estimasi total</span>
+                            <span class="text-xl font-bold text-accent">
+                                {{ $confirmItem ? 'Rp ' . number_format($this->totalPrice, 0, ',', '.') : '-' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="booking-confirm-notice"><img src="{{ asset('assets/calendar.webp') }}" alt=""
+                        width="25" height="25" aria-hidden="true"> Klinik akan memeriksa jadwalmu sebelum
+                    mengonfirmasi reservasi.</p>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <flux:modal.close>
+                        <flux:button variant="subtle">Ubah data</flux:button>
+                    </flux:modal.close>
+                    <flux:button wire:click="reserve" variant="primary" class="booking-primary"
+                        wire:loading.attr="disabled" wire:target="reserve">
+                        <span wire:loading.remove wire:target="reserve">Kirim permintaan reservasi</span>
+                        <span wire:loading wire:target="reserve">Memproses...</span>
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+    </div>
+    @include('components.client.components.clinic-footer')
 </div>

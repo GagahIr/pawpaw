@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @import "flatpickr/dist/flatpickr.min.css";
+@import "./clinic.css";
+@import "./landing.css";
+@import "./booking.css";
+/* Shared customer reservation and history styles. */
+@import "./my-bookings.css";
 
 @import '../../vendor/livewire/flux/dist/flux.css';
 @custom-variant dark (&:where(.dark, .dark *));

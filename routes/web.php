@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\GoogleLoginController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\Vendor\MidtransNotificationController;
 use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureSuperAdmin;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 $domain = config('app.domain');
 
 Route::domain($domain)->group(function () {
-    Route::get('/', fn () => view('landing_page.pages.home'))->name('landing_page');
+    Route::get('/', LandingPageController::class)->name('landing_page');
     Route::get('/terms-and-privacy', fn () => view('landing_page.pages.terms-and-privacy'))->name('terms-and-privacy');
     Route::get('/terms', fn () => redirect()->route('terms-and-privacy', ['tab' => 'terms']))->name('terms');
     Route::get('/privacy', fn () => redirect()->route('terms-and-privacy', ['tab' => 'privacy']))->name('privacy');
