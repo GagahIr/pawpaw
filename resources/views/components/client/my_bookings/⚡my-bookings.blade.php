@@ -222,252 +222,273 @@ new #[Layout('layouts.client')] class extends Component {
     <div class="clinic-request-progress" wire:loading.delay aria-hidden="true"><span></span></div>
     @include('components.client.components.clinic-atmosphere')
     <div class="reservations-wrap">
-    <header class="reservations-intro" data-animate="fade-up" data-motion-once>
-        <div>
-            <p class="clinic-eyebrow">SETIAP PERAWATAN, TERSIMPAN DI SINI</p>
-            <h1>Reservasi saya <span>&amp; Riwayat</span></h1>
-            <p class="reservations-lead">Dari jadwal berikutnya sampai perawatan yang sudah selesai. Temani si kesayangan, kami bantu ingatkan rencananya.</p>
-            <a href="{{ route('client.clinic') }}" wire:navigate class="reservations-explore">Cari perawatan lagi <flux:icon.arrow-right class="size-4" /></a>
-        </div>
-        <div class="reservations-art" aria-hidden="true">
-            <span class="reservations-art-blob"></span>
-            <img src="{{ asset('assets/list.webp') }}" alt="" width="152" height="193">
-            <span class="reservations-art-paw"><img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="42" height="42"></span>
-            <span class="reservations-art-star">✦</span>
-            <span class="reservations-art-note">Rencana kecil, sayang besar.</span>
-        </div>
-    </header>
-    <section class="reservations-controls" aria-label="Cari dan filter reservasi">
-
-
-    {{-- Tab --}}
-    <div role="tablist" aria-label="Jenis reservasi" class="reservations-tabs">
-        @foreach (['active' => 'Aktif', 'history' => 'Riwayat'] as $key => $label)
-            @php($isCurrent = $tab === $key)
-            <button type="button" role="tab" aria-selected="{{ $isCurrent ? 'true' : 'false' }}"
-                wire:click="$set('tab', '{{ $key }}')"
-                class="reservations-tab {{ $isCurrent ? 'is-active' : '' }}">
-                <flux:icon name="{{ $key === 'active' ? 'calendar-days' : 'clock' }}" class="size-5" />
-                {{ $label }}
-            </button>
-        @endforeach
-    </div>
-
-    {{-- Filter --}}
-    <div class="reservations-filters space-y-4">
-        <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass"
-            placeholder="Cari nama klinik atau layanan" aria-label="Cari reservasi berdasarkan klinik atau layanan" class="reservations-search" />
-
-        {{-- Chip status --}}
-        <div class="reservations-status-filters" role="group" aria-label="Filter status">
-            @foreach ($statusOptions as $value => $label)
-                @php($on = $status === (string) $value)
-                <button type="button" wire:click="$set('status', '{{ $value }}')"
-                    aria-pressed="{{ $on ? 'true' : 'false' }}"
-                    class="reservations-status {{ $on ? 'is-active' : '' }}">
-                    {{ $label }}
-                </button>
-            @endforeach
-        </div>
-
-        {{-- Filter lanjutan --}}
-        <details wire:ignore.self class="reservations-advanced" @if ($this->advancedCount > 0) open @endif>
-            <summary
-                class="flex min-h-11 cursor-pointer items-center justify-between px-4 text-sm font-medium text-zinc-800">
-                <span class="reservations-filter-label"><flux:icon.adjustments-horizontal class="size-5" /> Filter lainnya</span><flux:icon.chevron-down class="reservations-filter-chevron size-4" />
-                @if ($this->advancedCount > 0)
-                    <flux:badge size="sm" color="green">{{ $this->advancedCount }} aktif</flux:badge>
-                @endif
-            </summary>
-
-            <div class="grid gap-4 border-t border-zinc-100 p-4 sm:grid-cols-2">
-                <div class="space-y-1">
-                    <label for="f-type" class="text-sm font-medium text-zinc-700">Jenis layanan</label>
-                    <select id="f-type" wire:model.live="type" class="{{ $selectClass }}">
-                        <option value="">Semua layanan</option>
-                        <option value="clinic">Klinik</option>
-                        <option value="grooming">Grooming</option>
-                        <option value="pet_hotel">Pet hotel</option>
-                    </select>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="f-sort" class="text-sm font-medium text-zinc-700">Urutkan</label>
-                    <select id="f-sort" wire:model.live="sort" class="{{ $selectClass }}">
-                        <option value="newest">Terbaru dipesan</option>
-                        <option value="soonest">Jadwal terdekat</option>
-                        <option value="latest">Jadwal terjauh</option>
-                    </select>
-                </div>
-
-                <x-client.booking-date-picker model="dateFrom" label="Jadwal dari" :value="$dateFrom" :max="$dateTo" />
-                <x-client.booking-date-picker model="dateTo" label="Jadwal sampai" :value="$dateTo" :min="$dateFrom" />
+        <header class="reservations-intro" data-animate="fade-up" data-motion-once>
+            <div>
+                <p class="clinic-eyebrow">SETIAP PERAWATAN, TERSIMPAN DI SINI</p>
+                <h1>Reservasi saya <span>&amp; Riwayat</span></h1>
+                <p class="reservations-lead">Dari jadwal berikutnya sampai perawatan yang sudah selesai. Temani si
+                    kesayangan, kami bantu ingatkan rencananya.</p>
+                <a href="{{ route('client.clinic') }}" wire:navigate class="reservations-explore">Cari perawatan lagi
+                    <flux:icon.arrow-right class="size-4" /></a>
             </div>
-        </details>
-
-        @if ($this->hasFilters)
-            <div class="flex items-center justify-between text-sm">
-                <span class="text-zinc-600"
-                    aria-live="polite">{{ $items->count() }}{{ $this->result['has_more'] ? '+' : '' }} reservasi
-                    ditemukan</span>
-                <button type="button" wire:click="resetFilters"
-                    class="font-medium text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                    Reset filter
-                </button>
+            <div class="reservations-art" aria-hidden="true">
+                <span class="reservations-art-blob"></span>
+                <img src="{{ asset('assets/list.webp') }}" alt="" width="152" height="193">
+                <span class="reservations-art-paw"><img src="{{ asset('assets/pawkucing.webp') }}" alt=""
+                        width="42" height="42"></span>
+                <span class="reservations-art-star">✦</span>
+                <span class="reservations-art-note">Rencana kecil, sayang besar.</span>
             </div>
-        @endif
-    </div>
+        </header>
+        <section class="reservations-controls" aria-label="Cari dan filter reservasi">
 
-    </section>
 
-    {{-- Daftar --}}
-    <div wire:loading.class="opacity-60"
-        wire:target="search,status,type,dateFrom,dateTo,sort,tab,resetFilters,loadMore">
-        @if ($items->isEmpty())
-            <div class="reservations-empty">
-                <div class="reservations-empty-art" aria-hidden="true">
-                    <img src="{{ asset($this->hasFilters ? 'assets/img/searching.webp' : 'assets/calendar.webp') }}" alt="" width="110" height="110">
-                    <span>✦</span>
-                </div>
-
-                @if ($this->hasFilters)
-                    <p class="mt-4 text-lg font-medium text-zinc-900">Tidak ada reservasi yang cocok</p>
-                    <p class="mt-1 max-w-xs text-sm text-zinc-600">Coba ubah kata kunci atau longgarkan filter.</p>
-                    <flux:button wire:click="resetFilters" variant="outline" class="mt-6">Reset filter</flux:button>
-                @elseif ($tab === 'active')
-                    <p class="mt-4 text-lg font-medium text-zinc-900">Belum ada reservasi aktif</p>
-                    <p class="mt-1 max-w-xs text-sm text-zinc-600">
-                        Reservasi klinik, grooming, atau pet hotel Anda akan muncul di sini.
-                    </p>
-                    <flux:button href="{{ route('client.clinic') }}" wire:navigate variant="primary" class="mt-6">
-                        Cari layanan
-                    </flux:button>
-                @else
-                    <p class="mt-4 text-lg font-medium text-zinc-900">Belum ada riwayat</p>
-                    <p class="mt-1 max-w-xs text-sm text-zinc-600">
-                        Reservasi yang selesai, dibatalkan, atau kedaluwarsa akan tampil di sini.
-                    </p>
-                @endif
-            </div>
-        @else
-            <div class="reservations-grid">
-                @foreach ($items as $booking)
-                    @php($st = $statusMap[$booking['status']] ?? ['label' => ucfirst($booking['status']), 'color' => 'zinc', 'icon' => 'information-circle', 'hint' => null])
-
-                    <flux:card wire:key="{{ $booking['type'] }}-{{ $booking['id'] }}" class="reservation-card space-y-4">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <flux:badge :color="$st['color']" :icon="$st['icon']" size="sm">
-                                {{ $st['label'] }}</flux:badge>
-                            <span class="text-xs text-zinc-600">
-                                {{ $booking['code'] }}
-                                @if ($booking['created_human'])
-                                    &middot; Dipesan {{ $booking['created_human'] }}
-                                @endif
-                            </span>
-                        </div>
-
-                        <div class="min-w-0">
-                            <h3 class="reservation-card-title">
-                                {{ $booking['service_item_name'] }}</h3>
-                            <p class="text-sm text-zinc-600">
-                                {{ $booking['category_label'] }} &middot;
-                                @if ($booking['vendor_slug'])
-                                    <a href="{{ route('client.vendor.detail', $booking['vendor_slug']) }}"
-                                        wire:navigate class="hover:underline">{{ $booking['vendor_name'] }}</a>
-                                @else
-                                    {{ $booking['vendor_name'] }}
-                                @endif
-                            </p>
-                        </div>
-
-                        <div class="reservation-card-schedule">
-                            <flux:icon name="calendar-days" class="size-5 shrink-0 text-accent" />
-                            <div class="min-w-0">
-                                <p class="font-medium text-zinc-900">{{ $booking['date_label'] }}</p>
-                                <p class="text-sm text-zinc-600">
-                                    {{ $booking['time_label'] ? 'Pukul ' . $booking['time_label'] : $booking['nights'] . ' malam' }}
-                                </p>
-                            </div>
-                        </div>
-
-                        @if ($booking['total_price'])
-                            <div class="reservation-card-price flex items-baseline justify-between gap-4">
-                                <span class="text-sm text-zinc-600">
-                                    @if (($booking['nights'] ?? 0) > 1)
-                                        Rp {{ number_format($booking['unit_price'], 0, ',', '.') }} &times;
-                                        {{ $booking['nights'] }} malam
-                                    @else
-                                        Total
-                                    @endif
-                                </span>
-                                <span class="text-lg font-bold text-zinc-900">Rp
-                                    {{ number_format($booking['total_price'], 0, ',', '.') }}</span>
-                            </div>
-                        @endif
-
-                        @if ($st['hint'])
-                            <p class="text-sm text-zinc-600">
-                                @if ($booking['status'] === 'pending')
-                                    <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span> akan segera mengonfirmasi.
-                                @elseif ($booking['status'] === 'confirmed')
-                                    Datang 10 menit lebih awal ke <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
-                                @elseif ($booking['status'] === 'rejected')
-                                    Ditolak oleh <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
-                                @elseif ($booking['status'] === 'expired')
-                                    <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span> belum sempat mengonfirmasi.
-                                @else
-                                    {{ $st['hint'] }}
-                                @endif
-                            </p>
-                        @endif
-
-                        <div class="reservation-card-actions flex flex-wrap gap-2 pt-4">
-                            <flux:button size="sm" variant="outline" icon="document-text"
-                                wire:click="showDetail('{{ $booking['type'] }}', {{ $booking['id'] }})">
-                                Detail reservasi
-                            </flux:button>
-
-                            @if ($tab === 'active')
-                                @if ($booking['whatsapp_url'])
-                                    <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
-                                        href="{{ $booking['whatsapp_url'] }}" target="_blank" rel="noopener">Hubungi
-                                        klinik</flux:button>
-                                @endif
-                                @if ($booking['maps_url'])
-                                    <flux:button size="sm" variant="outline" icon="map-pin"
-                                        href="{{ $booking['maps_url'] }}" target="_blank" rel="noopener">Lihat rute
-                                    </flux:button>
-                                @endif
-                                @if ($booking['status'] === 'pending')
-                                    <flux:button size="sm" variant="danger" class="ml-auto"
-                                        wire:click="askCancel('{{ $booking['type'] }}', {{ $booking['id'] }})">
-                                        Batalkan
-                                    </flux:button>
-                                @endif
-                            @elseif ($booking['vendor_slug'])
-                                {{-- Riwayat: ajak pengguna memesan lagi, terutama yang kedaluwarsa/dibatalkan --}}
-                                <flux:button size="sm"
-                                    variant="{{ in_array($booking['status'], ['expired', 'cancelled', 'rejected']) ? 'primary' : 'outline' }}"
-                                    href="{{ route('client.vendor.detail', $booking['vendor_slug']) }}" wire:navigate>
-                                    Pesan lagi
-                                </flux:button>
-                            @endif
-                        </div>
-                    </flux:card>
+            {{-- Tab --}}
+            <div role="tablist" aria-label="Jenis reservasi" class="reservations-tabs">
+                @foreach (['active' => 'Aktif', 'history' => 'Riwayat'] as $key => $label)
+                    @php($isCurrent = $tab === $key)
+                    <button type="button" role="tab" aria-selected="{{ $isCurrent ? 'true' : 'false' }}"
+                        wire:click="$set('tab', '{{ $key }}')"
+                        class="reservations-tab {{ $isCurrent ? 'is-active' : '' }}">
+                        <flux:icon name="{{ $key === 'active' ? 'calendar-days' : 'clock' }}" class="size-5" />
+                        {{ $label }}
+                    </button>
                 @endforeach
             </div>
 
-            @if ($this->result['has_more'])
-                <div class="mt-6 flex justify-center">
-                    <flux:button wire:click="loadMore" variant="outline" wire:loading.attr="disabled"
-                        wire:target="loadMore">
-                        <span wire:loading.remove wire:target="loadMore">Tampilkan lebih banyak</span>
-                        <span wire:loading wire:target="loadMore">Memuat...</span>
-                    </flux:button>
+            {{-- Filter --}}
+            <div class="reservations-filters space-y-4">
+                <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass"
+                    placeholder="Cari nama klinik atau layanan"
+                    aria-label="Cari reservasi berdasarkan klinik atau layanan" class="reservations-search" />
+
+                {{-- Chip status --}}
+                <div class="reservations-status-filters" role="group" aria-label="Filter status">
+                    @foreach ($statusOptions as $value => $label)
+                        @php($on = $status === (string) $value)
+                        <button type="button" wire:click="$set('status', '{{ $value }}')"
+                            aria-pressed="{{ $on ? 'true' : 'false' }}"
+                            class="reservations-status {{ $on ? 'is-active' : '' }}">
+                            {{ $label }}
+                        </button>
+                    @endforeach
                 </div>
+
+                {{-- Filter lanjutan --}}
+                <details wire:ignore.self class="reservations-advanced" @if ($this->advancedCount > 0) open @endif>
+                    <summary
+                        class="flex min-h-11 cursor-pointer items-center justify-between px-4 text-sm font-medium text-zinc-800">
+                        <span class="reservations-filter-label"><flux:icon.adjustments-horizontal class="size-5" />
+                            Filter lainnya</span><flux:icon.chevron-down class="reservations-filter-chevron size-4" />
+                        @if ($this->advancedCount > 0)
+                            <flux:badge size="sm" color="green">{{ $this->advancedCount }} aktif</flux:badge>
+                        @endif
+                    </summary>
+
+                    <div class="grid gap-4 border-t border-zinc-100 p-4 sm:grid-cols-2">
+                        <div class="space-y-1">
+                            <label for="f-type" class="text-sm font-medium text-zinc-700">Jenis layanan</label>
+                            <select id="f-type" wire:model.live="type" class="{{ $selectClass }}">
+                                <option value="">Semua layanan</option>
+                                <option value="clinic">Klinik</option>
+                                <option value="grooming">Grooming</option>
+                                <option value="pet_hotel">Pet hotel</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label for="f-sort" class="text-sm font-medium text-zinc-700">Urutkan</label>
+                            <select id="f-sort" wire:model.live="sort" class="{{ $selectClass }}">
+                                <option value="newest">Terbaru dipesan</option>
+                                <option value="soonest">Jadwal terdekat</option>
+                                <option value="latest">Jadwal terjauh</option>
+                            </select>
+                        </div>
+
+                        <x-client.booking-date-picker model="dateFrom" label="Jadwal dari" :value="$dateFrom"
+                            :max="$dateTo" />
+                        <x-client.booking-date-picker model="dateTo" label="Jadwal sampai" :value="$dateTo"
+                            :min="$dateFrom" />
+                    </div>
+                </details>
+
+                @if ($this->hasFilters)
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-zinc-600"
+                            aria-live="polite">{{ $items->count() }}{{ $this->result['has_more'] ? '+' : '' }}
+                            reservasi
+                            ditemukan</span>
+                        <button type="button" wire:click="resetFilters"
+                            class="font-medium text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                            Reset filter
+                        </button>
+                    </div>
+                @endif
+            </div>
+
+        </section>
+
+        {{-- Daftar --}}
+        <div wire:loading.class="opacity-60"
+            wire:target="search,status,type,dateFrom,dateTo,sort,tab,resetFilters,loadMore">
+            @if ($items->isEmpty())
+                <div class="reservations-empty">
+                    <div class="reservations-empty-art" aria-hidden="true">
+                        <img src="{{ asset($this->hasFilters ? 'assets/img/searching.webp' : 'assets/calendar.webp') }}"
+                            alt="" width="110" height="110">
+                        <span>✦</span>
+                    </div>
+
+                    @if ($this->hasFilters)
+                        <p class="mt-4 text-lg font-medium text-zinc-900">Tidak ada reservasi yang cocok</p>
+                        <p class="mt-1 max-w-xs text-sm text-zinc-600">Coba ubah kata kunci atau longgarkan filter.</p>
+                        <flux:button wire:click="resetFilters" variant="outline" class="mt-6">Reset filter
+                        </flux:button>
+                    @elseif ($tab === 'active')
+                        <p class="mt-4 text-lg font-medium text-zinc-900">Belum ada reservasi aktif</p>
+                        <p class="mt-1 max-w-xs text-sm text-zinc-600">
+                            Reservasi klinik, grooming, atau pet hotel Anda akan muncul di sini.
+                        </p>
+                        <flux:button href="{{ route('client.clinic') }}" wire:navigate variant="primary"
+                            class="mt-6">
+                            Cari layanan
+                        </flux:button>
+                    @else
+                        <p class="mt-4 text-lg font-medium text-zinc-900">Belum ada riwayat</p>
+                        <p class="mt-1 max-w-xs text-sm text-zinc-600">
+                            Reservasi yang selesai, dibatalkan, atau kedaluwarsa akan tampil di sini.
+                        </p>
+                    @endif
+                </div>
+            @else
+                <div class="reservations-grid">
+                    @foreach ($items as $booking)
+                        @php($st = $statusMap[$booking['status']] ?? ['label' => ucfirst($booking['status']), 'color' => 'zinc', 'icon' => 'information-circle', 'hint' => null])
+
+                        <flux:card wire:key="{{ $booking['type'] }}-{{ $booking['id'] }}"
+                            class="reservation-card space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <flux:badge :color="$st['color']" :icon="$st['icon']" size="sm">
+                                    {{ $st['label'] }}</flux:badge>
+                                <span class="text-xs text-zinc-600">
+                                    {{ $booking['code'] }}
+                                    @if ($booking['created_human'])
+                                        &middot; Dipesan {{ $booking['created_human'] }}
+                                    @endif
+                                </span>
+                            </div>
+
+                            <div class="min-w-0">
+                                <h3 class="reservation-card-title">
+                                    {{ $booking['service_item_name'] }}</h3>
+                                <p class="text-sm text-zinc-600">
+                                    {{ $booking['category_label'] }} &middot;
+                                    @if ($booking['vendor_slug'])
+                                        <a href="{{ route('client.vendor.detail', $booking['vendor_slug']) }}"
+                                            wire:navigate class="hover:underline">{{ $booking['vendor_name'] }}</a>
+                                    @else
+                                        {{ $booking['vendor_name'] }}
+                                    @endif
+                                </p>
+                            </div>
+
+                            <div class="reservation-card-schedule">
+                                <flux:icon name="calendar-days" class="size-5 shrink-0 text-accent" />
+                                <div class="min-w-0">
+                                    <p class="font-medium text-zinc-900">{{ $booking['date_label'] }}</p>
+                                    <p class="text-sm text-zinc-600">
+                                        {{ $booking['time_label'] ? 'Pukul ' . $booking['time_label'] : $booking['nights'] . ' malam' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if ($booking['total_price'])
+                                <div class="reservation-card-price flex items-baseline justify-between gap-4">
+                                    <span class="text-sm text-zinc-600">
+                                        @if (($booking['nights'] ?? 0) > 1)
+                                            Rp {{ number_format($booking['unit_price'], 0, ',', '.') }} &times;
+                                            {{ $booking['nights'] }} malam
+                                        @else
+                                            Total
+                                        @endif
+                                    </span>
+                                    <span class="text-lg font-bold text-zinc-900">Rp
+                                        {{ number_format($booking['total_price'], 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+
+                            @if ($st['hint'])
+                                <p class="text-sm text-zinc-600">
+                                    @if ($booking['status'] === 'pending')
+                                        <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>
+                                        akan
+                                        segera mengonfirmasi.
+                                    @elseif ($booking['status'] === 'confirmed')
+                                        Datang 10 menit lebih awal ke <span
+                                            class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
+                                    @elseif ($booking['status'] === 'rejected')
+                                        Ditolak oleh <span
+                                            class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>.
+                                    @elseif ($booking['status'] === 'expired')
+                                        <span class="font-medium text-zinc-800">{{ $booking['vendor_name'] }}</span>
+                                        belum
+                                        sempat mengonfirmasi.
+                                    @else
+                                        {{ $st['hint'] }}
+                                    @endif
+                                </p>
+                            @endif
+
+                            <div class="reservation-card-actions flex flex-wrap gap-2 pt-4">
+                                <flux:button size="sm" variant="outline" icon="document-text"
+                                    wire:click="showDetail('{{ $booking['type'] }}', {{ $booking['id'] }})">
+                                    Detail reservasi
+                                </flux:button>
+
+                                @if ($tab === 'active')
+                                    @if ($booking['whatsapp_url'])
+                                        <flux:button size="sm" variant="outline"
+                                            icon="chat-bubble-left-ellipsis" href="{{ $booking['whatsapp_url'] }}"
+                                            target="_blank" rel="noopener">Hubungi
+                                            klinik</flux:button>
+                                    @endif
+                                    @if ($booking['maps_url'])
+                                        <flux:button size="sm" variant="outline" icon="map-pin"
+                                            href="{{ $booking['maps_url'] }}" target="_blank" rel="noopener">Lihat
+                                            rute
+                                        </flux:button>
+                                    @endif
+                                    @if ($booking['status'] === 'pending')
+                                        <flux:button size="sm" variant="danger" class="ml-auto"
+                                            wire:click="askCancel('{{ $booking['type'] }}', {{ $booking['id'] }})">
+                                            Batalkan
+                                        </flux:button>
+                                    @endif
+                                @elseif ($booking['vendor_slug'])
+                                    {{-- Riwayat: ajak pengguna memesan lagi, terutama yang kedaluwarsa/dibatalkan --}}
+                                    <flux:button size="sm"
+                                        variant="{{ in_array($booking['status'], ['expired', 'cancelled', 'rejected']) ? 'primary' : 'outline' }}"
+                                        href="{{ route('client.vendor.detail', $booking['vendor_slug']) }}"
+                                        wire:navigate>
+                                        Pesan lagi
+                                    </flux:button>
+                                @endif
+                            </div>
+                        </flux:card>
+                    @endforeach
+                </div>
+
+                @if ($this->result['has_more'])
+                    <div class="mt-6 flex justify-center">
+                        <flux:button wire:click="loadMore" variant="outline" wire:loading.attr="disabled"
+                            wire:target="loadMore">
+                            <span wire:loading.remove wire:target="loadMore">Tampilkan lebih banyak</span>
+                            <span wire:loading wire:target="loadMore">Memuat...</span>
+                        </flux:button>
+                    </div>
+                @endif
             @endif
-        @endif
-    </div>
+        </div>
 
     </div>
 
@@ -475,7 +496,8 @@ new #[Layout('layouts.client')] class extends Component {
     <flux:modal name="cancel-booking" class="reservations-modal reservations-cancel-modal">
         <div class="space-y-6">
             <div>
-                <div class="reservations-modal-symbol" aria-hidden="true"><flux:icon.calendar-days class="size-7" /></div>
+                <div class="reservations-modal-symbol" aria-hidden="true"><flux:icon.calendar-days class="size-7" />
+                </div>
                 <flux:heading size="lg">Batalkan reservasi?</flux:heading>
                 <flux:text class="mt-2">
                     Reservasi yang dibatalkan tidak bisa dikembalikan. Anda bisa membuat reservasi baru kapan saja.
@@ -501,7 +523,8 @@ new #[Layout('layouts.client')] class extends Component {
                 {{-- Header Modal: pr-10 agar tidak menabrak tombol close (X) --}}
                 <div class="pr-10">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{{ $selectedBooking['code'] }}</span>
+                        <span
+                            class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{{ $selectedBooking['code'] }}</span>
                         <flux:badge size="sm" color="{{ $detailSt['color'] }}">
                             {{ $detailSt['label'] }}
                         </flux:badge>
@@ -510,30 +533,36 @@ new #[Layout('layouts.client')] class extends Component {
                         {{ $selectedBooking['service_item_name'] }}
                     </flux:heading>
                     <flux:text class="text-sm text-zinc-600">
-                        {{ $selectedBooking['category_label'] }} &middot; <span class="font-medium text-zinc-800">{{ $selectedBooking['vendor_name'] }}</span>
+                        {{ $selectedBooking['category_label'] }} &middot; <span
+                            class="font-medium text-zinc-800">{{ $selectedBooking['vendor_name'] }}</span>
                     </flux:text>
                 </div>
 
                 {{-- Riwayat & Status (Desain Card Bersih, Tanpa Garis Melenceng) --}}
                 <div class="reservation-detail-status rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 space-y-3">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 pb-1 border-b border-zinc-200/70">
+                    <h4
+                        class="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 pb-1 border-b border-zinc-200/70">
                         <flux:icon name="clock" class="size-4 text-emerald-700" />
                         Riwayat & Status Reservasi
                     </h4>
 
                     <div class="space-y-2.5">
                         {{-- 1. Tahap Pembuatan --}}
-                        <div class="flex items-start gap-3 rounded-lg border border-zinc-200/80 bg-white p-3 shadow-xs">
-                            <div class="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5">
+                        <div
+                            class="flex items-start gap-3 rounded-lg border border-zinc-200/80 bg-white p-3 shadow-xs">
+                            <div
+                                class="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5">
                                 <flux:icon name="check" class="size-3.5" />
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center justify-between gap-1">
                                     <p class="text-xs font-semibold text-zinc-900">Reservasi Diajukan</p>
-                                    <span class="text-[11px] text-zinc-500 font-medium">{{ $selectedBooking['created_at_formatted'] ?? '-' }}</span>
+                                    <span
+                                        class="text-[11px] text-zinc-500 font-medium">{{ $selectedBooking['created_at_formatted'] ?? '-' }}</span>
                                 </div>
                                 <p class="text-xs text-zinc-500 mt-0.5">
-                                    Permintaan berhasil dikirim ke <span class="font-medium text-zinc-700">{{ $selectedBooking['vendor_name'] }}</span>
+                                    Permintaan berhasil dikirim ke <span
+                                        class="font-medium text-zinc-700">{{ $selectedBooking['vendor_name'] }}</span>
                                     @if (!empty($selectedBooking['created_human']))
                                         <span class="text-zinc-400">({{ $selectedBooking['created_human'] }})</span>
                                     @endif
@@ -542,21 +571,26 @@ new #[Layout('layouts.client')] class extends Component {
                         </div>
 
                         {{-- 2. Status Terkini --}}
-                        <div class="flex items-start gap-3 rounded-lg border {{ $this->statusStyle($selectedBooking['status'])['card'] }} p-3 shadow-xs">
-                            <div class="flex size-7 shrink-0 items-center justify-center rounded-full {{ $this->statusStyle($selectedBooking['status'])['icon_bg'] }} mt-0.5">
-                                <flux:icon name="{{ $this->statusStyle($selectedBooking['status'])['icon'] }}" class="size-3.5" />
+                        <div
+                            class="flex items-start gap-3 rounded-lg border {{ $this->statusStyle($selectedBooking['status'])['card'] }} p-3 shadow-xs">
+                            <div
+                                class="flex size-7 shrink-0 items-center justify-center rounded-full {{ $this->statusStyle($selectedBooking['status'])['icon_bg'] }} mt-0.5">
+                                <flux:icon name="{{ $this->statusStyle($selectedBooking['status'])['icon'] }}"
+                                    class="size-3.5" />
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center justify-between gap-1">
                                     <div class="flex items-center gap-1.5">
                                         <p class="text-xs font-semibold text-zinc-900">Status Terkini</p>
-                                        <flux:badge size="sm" color="{{ $detailSt['color'] }}">{{ $detailSt['label'] }}</flux:badge>
+                                        <flux:badge size="sm" color="{{ $detailSt['color'] }}">
+                                            {{ $detailSt['label'] }}</flux:badge>
                                     </div>
                                     <span class="text-[11px] text-zinc-500 font-medium">
-                                        {{ $selectedBooking['updated_at_formatted'] ?? $selectedBooking['created_at_formatted'] ?? '-' }}
+                                        {{ $selectedBooking['updated_at_formatted'] ?? ($selectedBooking['created_at_formatted'] ?? '-') }}
                                     </span>
                                 </div>
-                                <p class="text-xs {{ $this->statusStyle($selectedBooking['status'])['text'] }} mt-1 leading-relaxed">
+                                <p
+                                    class="text-xs {{ $this->statusStyle($selectedBooking['status'])['text'] }} mt-1 leading-relaxed">
                                     {{ $this->statusMessage($selectedBooking) }}
                                 </p>
                             </div>
@@ -565,86 +599,87 @@ new #[Layout('layouts.client')] class extends Component {
                 </div>
 
                 {{-- Detail Jadwal & Pesanan --}}
-                <div class="reservation-detail-ticket rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-1 border-b border-zinc-200/70">
+                <div
+                    class="reservation-detail-ticket rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
+                    <h4
+                        class="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-1 border-b border-zinc-200/70">
                         Rincian Jadwal & Layanan
                     </h4>
 
-                    <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-600">Nama Klinik</span>
-                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['vendor_name'] }}</span>
-                    </div>
+                    <span class="text-zinc-600">Nama Klinik</span>
 
-                    <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-600">Layanan</span>
-                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['service_item_name'] }} ({{ $selectedBooking['category_label'] }})</span>
-                    </div>
-
-                    <div class="flex justify-between items-start gap-4">
-                        <span class="text-zinc-600">Jadwal Tanggal</span>
-                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['date_label'] }}</span>
-                    </div>
-
-                    @if ($selectedBooking['time_label'])
-                        <div class="flex justify-between items-start gap-4">
-                            <span class="text-zinc-600">Jam Kunjungan</span>
-                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['time_label'] }} WIB</span>
-                        </div>
-                    @endif
-
-                    @if ($selectedBooking['nights'])
-                        <div class="flex justify-between items-start gap-4">
-                            <span class="text-zinc-600">Durasi Menginap</span>
-                            <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['nights'] }} malam</span>
-                        </div>
-                    @endif
-
-                    <div class="reservation-detail-total border-t border-dashed border-zinc-300 pt-3">
-                        @if (($selectedBooking['nights'] ?? 0) > 1)
-                            <div class="flex justify-between text-xs text-zinc-500 mb-1">
-                                <span>Tarif per malam</span>
-                                <span>Rp {{ number_format($selectedBooking['unit_price'], 0, ',', '.') }} &times; {{ $selectedBooking['nights'] }} malam</span>
-                            </div>
-                        @endif
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-bold text-zinc-900">Total Tagihan</span>
-                            <span class="text-xl font-bold text-accent">
-                                Rp {{ number_format($selectedBooking['total_price'], 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
+                    <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['service_item_name'] }}
+                        ({{ $selectedBooking['category_label'] }})</span>
                 </div>
 
-                {{-- Action Footer --}}
-                <div class="flex flex-wrap justify-between items-center gap-3 pt-2">
-                    <div class="flex flex-wrap gap-2">
-                        @if ($selectedBooking['whatsapp_url'])
-                            <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
-                                href="{{ $selectedBooking['whatsapp_url'] }}" target="_blank" rel="noopener">
-                                Hubungi WhatsApp
-                            </flux:button>
-                        @endif
-                        @if ($selectedBooking['maps_url'])
-                            <flux:button size="sm" variant="outline" icon="map-pin"
-                                href="{{ $selectedBooking['maps_url'] }}" target="_blank" rel="noopener">
-                                Rute Lokasi
-                            </flux:button>
-                        @endif
-                    </div>
+                <div class="flex justify-between items-start gap-4">
+                    <span class="text-zinc-600">Jadwal Tanggal</span>
+                    <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['date_label'] }}</span>
+                </div>
 
-                    <div class="flex items-center gap-2">
-                        @if ($selectedBooking['status'] === 'pending')
-                            <flux:button size="sm" variant="danger"
-                                wire:click="askCancel('{{ $selectedBooking['type'] }}', {{ $selectedBooking['id'] }})">
-                                Batalkan
-                            </flux:button>
-                        @endif
-                        <flux:modal.close>
-                            <flux:button size="sm" variant="primary">Tutup</flux:button>
-                        </flux:modal.close>
+                @if ($selectedBooking['time_label'])
+                    <div class="flex justify-between items-start gap-4">
+                        <span class="text-zinc-600">Jam Kunjungan</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['time_label'] }}
+                            WIB</span>
                     </div>
+                @endif
+
+                @if ($selectedBooking['nights'])
+                    <div class="flex justify-between items-start gap-4">
+                        <span class="text-zinc-600">Durasi Menginap</span>
+                        <span class="font-medium text-zinc-900 text-right">{{ $selectedBooking['nights'] }}
+                            malam</span>
+                    </div>
+                @endif
+
+                <div class="reservation-detail-total border-t border-dashed border-zinc-300 pt-3">
+                    @if (($selectedBooking['nights'] ?? 0) > 1)
+                        <div class="flex justify-between text-xs text-zinc-500 mb-1">
+                            <span>Tarif per malam</span>
+                            <span>Rp {{ number_format($selectedBooking['unit_price'], 0, ',', '.') }} &times;
+                                {{ $selectedBooking['nights'] }} malam</span>
+                        </div>
+                    @endif
+                    <div class="flex justify-between items-baseline">
+                        <span class="font-bold text-zinc-900">Total Tagihan</span>
+                        <span class="text-xl font-bold text-accent">
+                            Rp {{ number_format($selectedBooking['total_price'], 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Action Footer --}}
+            <div class="flex flex-wrap justify-between items-center gap-3 pt-2">
+                <div class="flex flex-wrap gap-2">
+                    @if ($selectedBooking['whatsapp_url'])
+                        <flux:button size="sm" variant="outline" icon="chat-bubble-left-ellipsis"
+                            href="{{ $selectedBooking['whatsapp_url'] }}" target="_blank" rel="noopener">
+                            Hubungi WhatsApp
+                        </flux:button>
+                    @endif
+                    @if ($selectedBooking['maps_url'])
+                        <flux:button size="sm" variant="outline" icon="map-pin"
+                            href="{{ $selectedBooking['maps_url'] }}" target="_blank" rel="noopener">
+                            Rute Lokasi
+                        </flux:button>
+                    @endif
+                </div>
+
+                <div class="flex items-center gap-2">
+                    @if ($selectedBooking['status'] === 'pending')
+                        <flux:button size="sm" variant="danger"
+                            wire:click="askCancel('{{ $selectedBooking['type'] }}', {{ $selectedBooking['id'] }})">
+                            Batalkan
+                        </flux:button>
+                    @endif
+                    <flux:modal.close>
+                        <flux:button size="sm" variant="primary">Tutup</flux:button>
+                    </flux:modal.close>
                 </div>
             </div>
         @endif
     </flux:modal>
+    @include('components.client.components.clinic-footer')
 </div>

@@ -240,8 +240,10 @@ new #[Layout('layouts.client')] class extends Component {
 };
 ?>
 
-<div class="min-h-screen py-8 sm:py-10">
-    <div class="max-w-5xl mx-auto space-y-6">
+<div class="clinic-page">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-wrap">
+        <div class="max-w-5xl mx-auto space-y-6 px-4 py-6 sm:py-10">
 
         <!-- Breadcrumb -->
         <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs sm:text-sm text-zinc-500">
@@ -595,6 +597,6 @@ new #[Layout('layouts.client')] class extends Component {
                 </div>
             </div>
         </div>
-
     </div>
+    @include('components.client.components.clinic-footer')
 </div>
