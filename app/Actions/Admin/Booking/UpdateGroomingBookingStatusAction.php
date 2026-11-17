@@ -21,10 +21,11 @@ class UpdateGroomingBookingStatusAction
 
             $allowedTransitions = [
                 'pending' => ['confirmed', 'rejected'],
-                'confirmed' => ['completed'],
+                'confirmed' => ['completed', 'no_show'],
                 'completed' => [],
                 'cancelled' => [],
                 'rejected' => [],
+                'no_show' => [],
             ];
 
             if (! in_array($status, array_keys($allowedTransitions), true)) {
