@@ -12,13 +12,14 @@ class VendorFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->company();
+
         return [
             'name' => $name,
             'slug' => Str::slug($name),
             'address' => $this->faker->address(),
             'contact' => $this->faker->phoneNumber(),
             'email' => $this->faker->unique()->companyEmail(),
-            'description' => $this->faker->paragraph(),
+            'description' => Str::limit($this->faker->paragraph(), 255, ''),
             'logo' => null,
             'latitude' => $this->faker->latitude(),
             'longitude' => $this->faker->longitude(),

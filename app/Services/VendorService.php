@@ -12,6 +12,14 @@ class VendorService
 {
     public function getVendors(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
+        return $this->buildVendorQuery($filters)->paginate($perPage);
+    }
+
+    /**
+     * @param  array{search?: string, category_id?: int|null, verified?: bool, active_subscription?: bool}  $filters
+     */
+    private function buildVendorQuery(array $filters): Builder
+    {
         $search = trim($filters['search'] ?? '');
         $categoryId = $filters['category_id'] ?? null;
         $verified = $filters['verified'] ?? false;
@@ -46,8 +54,7 @@ class VendorService
                 ->where('status_subscription', 'active')
                 ->where('subscription_expired_at', '>', now()))
             ->whereHas('vendorServices', fn ($q) => $q->where('status_service', true))
-            ->orderBy('name')
-            ->paginate($perPage);
+            ->orderBy('name');
     }
 
     public function getCategories(): Collection
