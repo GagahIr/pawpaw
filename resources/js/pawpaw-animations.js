@@ -6,6 +6,7 @@ const duration = 550;
 const recoveryBuffer = 200;
 const offsets = {
     'fade-up': 'translateY(24px)',
+    'soft-pop': 'scale(.98)',
     'fade-left': 'translateX(24px)',
     'fade-right': 'translateX(-24px)',
 };

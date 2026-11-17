@@ -6,6 +6,7 @@ use App\Enums\DayOfWeek;
 use App\Enums\StaffPosition;
 use App\Enums\VendorSubscriptionStatus;
 use App\Enums\VendorVerificationStatus;
+use App\Models\CategoryService;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
@@ -53,7 +54,10 @@ class VendorSeeder extends Seeder
             }
 
             // C. Buat 2 Kategori Service (Grooming / Clinic / Pet Hotel)
-            $serviceFactory = VendorService::factory(2);
+            $categoryIds = CategoryService::query()->inRandomOrder()->limit(2)->pluck('id');
+            $serviceFactory = VendorService::factory($categoryIds->count())->sequence(
+                ...$categoryIds->map(fn (int $categoryId): array => ['category_service_id' => $categoryId])->all(),
+            );
 
             if ($vendor->status_subscription === VendorSubscriptionStatus::Active) {
                 $serviceFactory = $serviceFactory->state(['status_service' => true]);

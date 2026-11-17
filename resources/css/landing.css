@@ -275,12 +275,12 @@
 }
 
 /* Landing cursor matches the clinic assets, including during Vite development. */
-.clinic-landing-shell { --landing-paw-cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20transform%3D%22translate(16%2016)%20scale(1)%20translate(-16%20-16)%22%20fill%3D%22%23ee6d52%22%20stroke%3D%22%23fff8f5%22%20stroke-width%3D%221.3%22%3E%3Cellipse%20cx%3D%227%22%20cy%3D%2211%22%20rx%3D%223.5%22%20ry%3D%224.5%22%20transform%3D%22rotate(-25%207%2011)%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226.5%22%20rx%3D%223.4%22%20ry%3D%224.4%22%2F%3E%3Cellipse%20cx%3D%2222%22%20cy%3D%228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20transform%3D%22rotate(20%2022%208)%22%2F%3E%3Cellipse%20cx%3D%2227%22%20cy%3D%2215%22%20rx%3D%223%22%20ry%3D%224%22%20transform%3D%22rotate(35%2027%2015)%22%2F%3E%3Cpath%20d%3D%22M7%2023c0-4%205-11%209-10s10%208%208%2012-6%201-9%202-8%201-8-4Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 15 16, pointer; --landing-paw-pressed: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20transform%3D%22translate(16%2016)%20scale(0.9)%20translate(-16%20-16)%22%20fill%3D%22%231b5e43%22%20stroke%3D%22%23fff8f5%22%20stroke-width%3D%221.3%22%3E%3Cellipse%20cx%3D%227%22%20cy%3D%2211%22%20rx%3D%223.5%22%20ry%3D%224.5%22%20transform%3D%22rotate(-25%207%2011)%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226.5%22%20rx%3D%223.4%22%20ry%3D%224.4%22%2F%3E%3Cellipse%20cx%3D%2222%22%20cy%3D%228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20transform%3D%22rotate(20%2022%208)%22%2F%3E%3Cellipse%20cx%3D%2227%22%20cy%3D%2215%22%20rx%3D%223%22%20ry%3D%224%22%20transform%3D%22rotate(35%2027%2015)%22%2F%3E%3Cpath%20d%3D%22M7%2023c0-4%205-11%209-10s10%208%208%2012-6%201-9%202-8%201-8-4Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 15 16, pointer; }
+:is(.clinic-landing-shell, .clinic-shell) { --landing-paw-cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20transform%3D%22translate(16%2016)%20scale(1)%20translate(-16%20-16)%22%20fill%3D%22%23ee6d52%22%20stroke%3D%22%23fff8f5%22%20stroke-width%3D%221.3%22%3E%3Cellipse%20cx%3D%227%22%20cy%3D%2211%22%20rx%3D%223.5%22%20ry%3D%224.5%22%20transform%3D%22rotate(-25%207%2011)%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226.5%22%20rx%3D%223.4%22%20ry%3D%224.4%22%2F%3E%3Cellipse%20cx%3D%2222%22%20cy%3D%228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20transform%3D%22rotate(20%2022%208)%22%2F%3E%3Cellipse%20cx%3D%2227%22%20cy%3D%2215%22%20rx%3D%223%22%20ry%3D%224%22%20transform%3D%22rotate(35%2027%2015)%22%2F%3E%3Cpath%20d%3D%22M7%2023c0-4%205-11%209-10s10%208%208%2012-6%201-9%202-8%201-8-4Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 15 16, pointer; --landing-paw-pressed: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20transform%3D%22translate(16%2016)%20scale(0.9)%20translate(-16%20-16)%22%20fill%3D%22%231b5e43%22%20stroke%3D%22%23fff8f5%22%20stroke-width%3D%221.3%22%3E%3Cellipse%20cx%3D%227%22%20cy%3D%2211%22%20rx%3D%223.5%22%20ry%3D%224.5%22%20transform%3D%22rotate(-25%207%2011)%22%2F%3E%3Cellipse%20cx%3D%2214%22%20cy%3D%226.5%22%20rx%3D%223.4%22%20ry%3D%224.4%22%2F%3E%3Cellipse%20cx%3D%2222%22%20cy%3D%228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20transform%3D%22rotate(20%2022%208)%22%2F%3E%3Cellipse%20cx%3D%2227%22%20cy%3D%2215%22%20rx%3D%223%22%20ry%3D%224%22%20transform%3D%22rotate(35%2027%2015)%22%2F%3E%3Cpath%20d%3D%22M7%2023c0-4%205-11%209-10s10%208%208%2012-6%201-9%202-8%201-8-4Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") 15 16, pointer; }
 @media (hover: hover) and (pointer: fine) {
-    .clinic-landing-shell, .clinic-landing-shell :is(a, button, label, summary, [role="button"]), .clinic-landing-shell :is(a, button, label, summary, [role="button"]) * { cursor: var(--landing-paw-cursor); }
-    .clinic-landing-shell :is(a, button, summary, [role="button"]):active, .clinic-landing-shell :is(a, button, summary, [role="button"]):active * { cursor: var(--landing-paw-pressed); }
-    .clinic-landing-shell :is(input, textarea, [contenteditable="true"]) { cursor: text; }
-    .clinic-landing-shell :is(button:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+    :is(.clinic-landing-shell, .clinic-shell), :is(.clinic-landing-shell, .clinic-shell) :is(a, button, label, summary, [role="button"]), :is(.clinic-landing-shell, .clinic-shell) :is(a, button, label, summary, [role="button"]) * { cursor: var(--landing-paw-cursor); }
+    :is(.clinic-landing-shell, .clinic-shell) :is(a, button, summary, [role="button"]):active, :is(.clinic-landing-shell, .clinic-shell) :is(a, button, summary, [role="button"]):active * { cursor: var(--landing-paw-pressed); }
+    :is(.clinic-landing-shell, .clinic-shell) :is(input, textarea, [contenteditable="true"]) { cursor: text; }
+    :is(.clinic-landing-shell, .clinic-shell) :is(button:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
 }
 .landing-faq-mascot { position: relative; width: min(calc(100% - 28px), 300px); height: 260px; margin-top: 32px; border: 1px dashed #aac39f; border-radius: 48px 72px 28px 40px; background: #eaf0df; overflow: visible; }
 .landing-faq-cat-frame { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
@@ -309,4 +309,16 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .landing-faq-item::details-content { transition: none; }
+}
+
+/* A decorative, click-through visitor appears only after seven idle seconds. */
+.landing-idle-cat { position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right)); bottom: 0; width: 140px; height: 120px; pointer-events: none; user-select: none; transform: translateY(calc(100% + 24px)); transition: transform .3s ease-in; }
+.landing-idle-cat > img { position: absolute; bottom: -20px; left: 0; width: 140px; height: 140px; object-fit: contain; }
+.landing-idle-cat.is-peeking { transform: translateY(0); transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
+@media (max-width: 639px) {
+    .landing-idle-cat { width: 100px; height: 86px; right: max(12px, env(safe-area-inset-right)); }
+    .landing-idle-cat > img { width: 100px; height: 100px; bottom: -14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .landing-idle-cat { display: none; transition: none; }
 }

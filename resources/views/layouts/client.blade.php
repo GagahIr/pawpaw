@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>PawPaw</title>
     @php
-        $isClinicPage = request()->routeIs('client.clinic', 'client.vendor.detail');
+        $isClinicPage = request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking', 'client.my-bookings');
     @endphp
     @if ($isClinicPage)
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="{{ $isClinicPage ? 'clinic-shell' : 'bg-[#FFF]' }} {{ $isClinicPage ? 'clinic-browse-shell' : '' }}">
+<body class="{{ $isClinicPage ? 'clinic-shell' : 'bg-[#FFF]' }} {{ $isClinicPage ? 'clinic-browse-shell' : '' }} {{ request()->routeIs('client.clinic.booking') ? 'clinic-booking-shell' : '' }}">
 
     <div>
         @include('components.client.components.clinic-header')
