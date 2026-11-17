@@ -218,48 +218,63 @@ new #[Layout('layouts.client')] class extends Component {
 @endphp
 
 {{-- Polling hanya di tab aktif agar status pending berubah tanpa refresh --}}
-<div class="mx-auto max-w-3xl px-4 py-6 sm:py-10" @if ($tab === 'active') wire:poll.30s @endif>
-    <div class="mb-6">
-        <flux:heading size="xl">Reservasi saya</flux:heading>
-        <flux:subheading>Pantau jadwal dan status reservasi Anda</flux:subheading>
-    </div>
+<div class="reservations-page" @if ($tab === 'active') wire:poll.30s @endif>
+    <div class="clinic-request-progress" wire:loading.delay aria-hidden="true"><span></span></div>
+    @include('components.client.components.clinic-atmosphere')
+    <div class="reservations-wrap">
+    <header class="reservations-intro" data-animate="fade-up" data-motion-once>
+        <div>
+            <p class="clinic-eyebrow">SETIAP PERAWATAN, TERSIMPAN DI SINI</p>
+            <h1>Reservasi saya <span>&amp; Riwayat</span></h1>
+            <p class="reservations-lead">Dari jadwal berikutnya sampai perawatan yang sudah selesai. Temani si kesayangan, kami bantu ingatkan rencananya.</p>
+            <a href="{{ route('client.clinic') }}" wire:navigate class="reservations-explore">Cari perawatan lagi <flux:icon.arrow-right class="size-4" /></a>
+        </div>
+        <div class="reservations-art" aria-hidden="true">
+            <span class="reservations-art-blob"></span>
+            <img src="{{ asset('assets/list.webp') }}" alt="" width="152" height="193">
+            <span class="reservations-art-paw"><img src="{{ asset('assets/pawkucing.webp') }}" alt="" width="42" height="42"></span>
+            <span class="reservations-art-star">✦</span>
+            <span class="reservations-art-note">Rencana kecil, sayang besar.</span>
+        </div>
+    </header>
+    <section class="reservations-controls" aria-label="Cari dan filter reservasi">
+
 
     {{-- Tab --}}
-    <div role="tablist" aria-label="Jenis reservasi" class="mb-5 flex gap-6 border-b border-zinc-200">
+    <div role="tablist" aria-label="Jenis reservasi" class="reservations-tabs">
         @foreach (['active' => 'Aktif', 'history' => 'Riwayat'] as $key => $label)
             @php($isCurrent = $tab === $key)
             <button type="button" role="tab" aria-selected="{{ $isCurrent ? 'true' : 'false' }}"
                 wire:click="$set('tab', '{{ $key }}')"
-                class="-mb-px min-h-11 border-b-2 px-1 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
-                {{ $isCurrent ? 'border-accent text-accent' : 'border-transparent text-zinc-600 hover:border-zinc-300 hover:text-zinc-900' }}">
+                class="reservations-tab {{ $isCurrent ? 'is-active' : '' }}">
+                <flux:icon name="{{ $key === 'active' ? 'calendar-days' : 'clock' }}" class="size-5" />
                 {{ $label }}
             </button>
         @endforeach
     </div>
 
     {{-- Filter --}}
-    <div class="mb-6 space-y-3">
+    <div class="reservations-filters space-y-4">
         <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass"
-            placeholder="Cari nama klinik atau layanan" />
+            placeholder="Cari nama klinik atau layanan" aria-label="Cari reservasi berdasarkan klinik atau layanan" class="reservations-search" />
 
         {{-- Chip status --}}
-        <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="group" aria-label="Filter status">
+        <div class="reservations-status-filters" role="group" aria-label="Filter status">
             @foreach ($statusOptions as $value => $label)
                 @php($on = $status === (string) $value)
                 <button type="button" wire:click="$set('status', '{{ $value }}')"
                     aria-pressed="{{ $on ? 'true' : 'false' }}"
-                    class="min-h-10 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1
-                    {{ $on ? 'border-accent bg-accent text-white' : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100' }}">
+                    class="reservations-status {{ $on ? 'is-active' : '' }}">
                     {{ $label }}
                 </button>
             @endforeach
         </div>
 
         {{-- Filter lanjutan --}}
-        <details class="rounded-lg border border-zinc-200 bg-white" @if ($this->advancedCount > 0) open @endif>
+        <details wire:ignore.self class="reservations-advanced" @if ($this->advancedCount > 0) open @endif>
             <summary
                 class="flex min-h-11 cursor-pointer items-center justify-between px-4 text-sm font-medium text-zinc-800">
-                <span>Filter lainnya</span>
+                <span class="reservations-filter-label"><flux:icon.adjustments-horizontal class="size-5" /> Filter lainnya</span><flux:icon.chevron-down class="reservations-filter-chevron size-4" />
                 @if ($this->advancedCount > 0)
                     <flux:badge size="sm" color="green">{{ $this->advancedCount }} aktif</flux:badge>
                 @endif
@@ -285,9 +300,8 @@ new #[Layout('layouts.client')] class extends Component {
                     </select>
                 </div>
 
-                <flux:input wire:model.live="dateFrom" type="date" label="Jadwal dari" max="{{ $dateTo ?: '' }}" />
-                <flux:input wire:model.live="dateTo" type="date" label="Jadwal sampai"
-                    min="{{ $dateFrom ?: '' }}" />
+                <x-client.booking-date-picker model="dateFrom" label="Jadwal dari" :value="$dateFrom" :max="$dateTo" />
+                <x-client.booking-date-picker model="dateTo" label="Jadwal sampai" :value="$dateTo" :min="$dateFrom" />
             </div>
         </details>
 
@@ -304,13 +318,17 @@ new #[Layout('layouts.client')] class extends Component {
         @endif
     </div>
 
+    </section>
+
     {{-- Daftar --}}
     <div wire:loading.class="opacity-60"
         wire:target="search,status,type,dateFrom,dateTo,sort,tab,resetFilters,loadMore">
         @if ($items->isEmpty())
-            <div class="flex flex-col items-center py-14 text-center">
-                <flux:icon name="{{ $this->hasFilters ? 'magnifying-glass' : 'calendar-days' }}"
-                    class="size-14 text-zinc-300" />
+            <div class="reservations-empty">
+                <div class="reservations-empty-art" aria-hidden="true">
+                    <img src="{{ asset($this->hasFilters ? 'assets/img/searching.webp' : 'assets/calendar.webp') }}" alt="" width="110" height="110">
+                    <span>✦</span>
+                </div>
 
                 @if ($this->hasFilters)
                     <p class="mt-4 text-lg font-medium text-zinc-900">Tidak ada reservasi yang cocok</p>
@@ -332,11 +350,11 @@ new #[Layout('layouts.client')] class extends Component {
                 @endif
             </div>
         @else
-            <div class="space-y-3">
+            <div class="reservations-grid">
                 @foreach ($items as $booking)
                     @php($st = $statusMap[$booking['status']] ?? ['label' => ucfirst($booking['status']), 'color' => 'zinc', 'icon' => 'information-circle', 'hint' => null])
 
-                    <flux:card wire:key="{{ $booking['type'] }}-{{ $booking['id'] }}" class="space-y-4">
+                    <flux:card wire:key="{{ $booking['type'] }}-{{ $booking['id'] }}" class="reservation-card space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <flux:badge :color="$st['color']" :icon="$st['icon']" size="sm">
                                 {{ $st['label'] }}</flux:badge>
@@ -349,7 +367,7 @@ new #[Layout('layouts.client')] class extends Component {
                         </div>
 
                         <div class="min-w-0">
-                            <h3 class="truncate text-lg font-semibold text-zinc-900">
+                            <h3 class="reservation-card-title">
                                 {{ $booking['service_item_name'] }}</h3>
                             <p class="text-sm text-zinc-600">
                                 {{ $booking['category_label'] }} &middot;
@@ -362,7 +380,7 @@ new #[Layout('layouts.client')] class extends Component {
                             </p>
                         </div>
 
-                        <div class="flex items-center gap-3 rounded-lg bg-zinc-50 px-4 py-3">
+                        <div class="reservation-card-schedule">
                             <flux:icon name="calendar-days" class="size-5 shrink-0 text-accent" />
                             <div class="min-w-0">
                                 <p class="font-medium text-zinc-900">{{ $booking['date_label'] }}</p>
@@ -373,7 +391,7 @@ new #[Layout('layouts.client')] class extends Component {
                         </div>
 
                         @if ($booking['total_price'])
-                            <div class="flex items-baseline justify-between gap-4">
+                            <div class="reservation-card-price flex items-baseline justify-between gap-4">
                                 <span class="text-sm text-zinc-600">
                                     @if (($booking['nights'] ?? 0) > 1)
                                         Rp {{ number_format($booking['unit_price'], 0, ',', '.') }} &times;
@@ -403,7 +421,7 @@ new #[Layout('layouts.client')] class extends Component {
                             </p>
                         @endif
 
-                        <div class="flex flex-wrap gap-2 border-t border-zinc-100 pt-4">
+                        <div class="reservation-card-actions flex flex-wrap gap-2 pt-4">
                             <flux:button size="sm" variant="outline" icon="document-text"
                                 wire:click="showDetail('{{ $booking['type'] }}', {{ $booking['id'] }})">
                                 Detail reservasi
@@ -451,10 +469,13 @@ new #[Layout('layouts.client')] class extends Component {
         @endif
     </div>
 
+    </div>
+
     {{-- Konfirmasi pembatalan --}}
-    <flux:modal name="cancel-booking" class="min-w-[22rem] md:min-w-md">
+    <flux:modal name="cancel-booking" class="reservations-modal reservations-cancel-modal">
         <div class="space-y-6">
             <div>
+                <div class="reservations-modal-symbol" aria-hidden="true"><flux:icon.calendar-days class="size-7" /></div>
                 <flux:heading size="lg">Batalkan reservasi?</flux:heading>
                 <flux:text class="mt-2">
                     Reservasi yang dibatalkan tidak bisa dikembalikan. Anda bisa membuat reservasi baru kapan saja.
@@ -473,7 +494,7 @@ new #[Layout('layouts.client')] class extends Component {
     </flux:modal>
 
     {{-- Detail Reservasi --}}
-    <flux:modal name="detail-booking" class="min-w-[22rem] md:min-w-lg">
+    <flux:modal name="detail-booking" class="reservations-modal reservations-detail-modal">
         @if ($selectedBooking)
             @php($detailSt = $statusMap[$selectedBooking['status']] ?? $statusMap['pending'])
             <div class="space-y-6">
@@ -494,7 +515,7 @@ new #[Layout('layouts.client')] class extends Component {
                 </div>
 
                 {{-- Riwayat & Status (Desain Card Bersih, Tanpa Garis Melenceng) --}}
-                <div class="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 space-y-3">
+                <div class="reservation-detail-status rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 space-y-3">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 pb-1 border-b border-zinc-200/70">
                         <flux:icon name="clock" class="size-4 text-emerald-700" />
                         Riwayat & Status Reservasi
@@ -544,7 +565,7 @@ new #[Layout('layouts.client')] class extends Component {
                 </div>
 
                 {{-- Detail Jadwal & Pesanan --}}
-                <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
+                <div class="reservation-detail-ticket rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-3 text-sm">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-1 border-b border-zinc-200/70">
                         Rincian Jadwal & Layanan
                     </h4>
@@ -578,7 +599,7 @@ new #[Layout('layouts.client')] class extends Component {
                         </div>
                     @endif
 
-                    <div class="border-t border-dashed border-zinc-300 pt-3">
+                    <div class="reservation-detail-total border-t border-dashed border-zinc-300 pt-3">
                         @if (($selectedBooking['nights'] ?? 0) > 1)
                             <div class="flex justify-between text-xs text-zinc-500 mb-1">
                                 <span>Tarif per malam</span>

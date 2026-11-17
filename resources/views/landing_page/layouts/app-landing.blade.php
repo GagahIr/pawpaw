@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -14,14 +14,23 @@
 
 </head>
 
-<body class="bg-[#FFF8F5]">
-    <x-client.navbar />
+<body class="{{ request()->routeIs('landing_page') ? 'clinic-shell clinic-browse-shell clinic-landing-shell' : 'bg-[#FFF8F5]' }}">
+    @if (request()->routeIs('landing_page'))
+        @include('components.client.components.clinic-header', ['isClinicPage' => true, 'isLandingPage' => true])
+    @else
+        <x-client.navbar />
+    @endif
 
-    <main>
+    <main class="{{ request()->routeIs('landing_page') ? 'clinic-landing-main' : '' }}">
         @yield('content')
     </main>
 
-    <x-client.footer />
+    @if (request()->routeIs('landing_page'))
+        @include('components.client.components.clinic-footer')
+        @include('landing_page.components.idle-cat')
+    @else
+        <x-client.footer />
+    @endif
 
     @livewireScripts
     @fluxScripts

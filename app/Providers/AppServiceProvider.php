@@ -4,11 +4,14 @@ namespace App\Providers;
 
 use App\Http\Middleware\ResolveVendor;
 use App\Services\ClientUserProvider;
+use App\Services\VendorService;
 use App\Services\VendorUserProvider;
 use App\Supports\VendorContext;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\View as ViewInstance;
 use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,5 +34,9 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('vendor-aware-eloquent', fn (Application $app, array $config): VendorUserProvider => new VendorUserProvider($app['hash'], $config['model']));
 
         Livewire::addPersistentMiddleware([ResolveVendor::class]);
+
+        View::composer('components.client.components.clinic-footer', function (ViewInstance $view): void {
+            $view->with('footerCategories', $view->getData()['categories'] ?? app(VendorService::class)->getCategories());
+        });
     }
 }

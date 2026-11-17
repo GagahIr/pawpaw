@@ -1,46 +1,109 @@
-import { animate, inView } from "motion";
-
-const ANIMATIONS = {
-    "fade-up": { from: { opacity: 0, y: 24 }, to: { opacity: 1, y: 0 } },
-    "fade-left": { from: { opacity: 0, x: 40 }, to: { opacity: 1, x: 0 } },
-    "fade-right": { from: { opacity: 0, x: -40 }, to: { opacity: 1, x: 0 } },
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const seen = new WeakSet();
+const observed = new Set();
+const active = new Map();
+const duration = 550;
+const recoveryBuffer = 200;
+const offsets = {
+    'fade-up': 'translateY(24px)',
+    'soft-pop': 'scale(.98)',
+    'fade-left': 'translateX(24px)',
+    'fade-right': 'translateX(-24px)',
 };
+let observer;
+
+function stopAnimation(element) {
+    const playback = active.get(element);
+    if (!playback) return;
+
+    active.delete(element);
+    window.clearTimeout(playback.timeout);
+    playback.animation.cancel();
+}
+
+function animateEntry(element) {
+    if (reducedMotion.matches) return;
+
+    if (element.hasAttribute('data-motion-once')) {
+        element.classList.add('is-motion-entered');
+    }
+
+    if (!element.hasAttribute('data-animate') || typeof element.animate !== 'function') return;
+
+    try {
+        const requestedDelay = Number(element.dataset.animateDelay);
+        const delay = Number.isFinite(requestedDelay) ? Math.max(0, Math.min(requestedDelay, .3)) * 1000 : 0;
+        const animation = element.animate([
+            { opacity: 0, transform: offsets[element.dataset.animate] || offsets['fade-up'] },
+            { opacity: 1, transform: 'none' },
+        ], {
+            duration,
+            delay,
+            easing: 'cubic-bezier(0, 0, 0.58, 1)',
+            fill: 'backwards',
+        });
+        const timeout = window.setTimeout(() => stopAnimation(element), duration + delay + recoveryBuffer);
+        active.set(element, { animation, timeout });
+        animation.finished.then(() => stopAnimation(element), () => stopAnimation(element));
+    } catch {
+        stopAnimation(element);
+    }
+}
+
+function getObserver() {
+    if (observer) return observer;
+    if (typeof IntersectionObserver !== 'function') return null;
+
+    try {
+        observer = new IntersectionObserver((entries, entryObserver) => {
+            entries.forEach(({ target, isIntersecting }) => {
+                if (!isIntersecting || !observed.has(target)) return;
+                entryObserver.unobserve(target);
+                observed.delete(target);
+                seen.add(target);
+                animateEntry(target);
+            });
+        }, { rootMargin: '0px 0px -24px 0px' });
+    } catch {
+        return null;
+    }
+    return observer;
+}
 
 function initScrollAnimations() {
-    const elements = document.querySelectorAll("[data-animate]");
+    document.querySelectorAll('[data-animate], [data-motion-once]').forEach((element) => {
+        if (seen.has(element) || observed.has(element)) return;
+        if (reducedMotion.matches || typeof element.animate !== 'function') {
+            seen.add(element);
+            return;
+        }
 
-    elements.forEach((el) => {
-        const type = el.dataset.animate;
-        const delay = parseFloat(el.dataset.animateDelay || "0");
-        const preset = ANIMATIONS[type] || ANIMATIONS["fade-up"];
-
-        // State awal (sebelum masuk viewport)
-        Object.assign(el.style, {
-            opacity: 0,
-            transform:
-                preset.from.y !== undefined
-                    ? `translateY(${preset.from.y}px)`
-                    : preset.from.x !== undefined
-                    ? `translateX(${preset.from.x}px)`
-                    : "none",
-        });
-
-        inView(
-            el,
-            () => {
-                animate(
-                    el,
-                    { opacity: 1, x: 0, y: 0 },
-                    { duration: 0.6, delay, easing: "ease-out" }
-                );
-            },
-            { margin: "-10% 0px -10% 0px" }
-        );
+        const entryObserver = getObserver();
+        if (!entryObserver) return;
+        try {
+            entryObserver.observe(element);
+            observed.add(element);
+        } catch {
+            seen.add(element);
+        }
     });
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initScrollAnimations);
+function resetAnimations() {
+    observer?.disconnect();
+    observer = undefined;
+    observed.clear();
+    active.forEach((_, element) => stopAnimation(element));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initScrollAnimations, { once: true });
 } else {
     initScrollAnimations();
 }
+document.addEventListener('livewire:navigated', initScrollAnimations);
+document.addEventListener('livewire:navigating', resetAnimations);
+reducedMotion.addEventListener('change', () => {
+    resetAnimations();
+    initScrollAnimations();
+});
