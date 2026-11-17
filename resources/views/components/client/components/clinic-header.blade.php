@@ -1,5 +1,6 @@
 @php
     $isLandingPage = $isLandingPage ?? false;
+    $isClinicPage = $isClinicPage ?? false;
     $clientUser = auth('client')->user();
     $clientUsername = $clientUser?->username ?? ($clientUser?->name ?? 'User');
 @endphp
