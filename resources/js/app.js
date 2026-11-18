@@ -19,6 +19,7 @@ import './pawpaw-animations';
 import './landing-idle-cat';
 import './clinic-animations';
 import './owner-dashboard-charts';
+import './super-admin-dashboard-charts';
 import "./booking-datepicker";
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid';
 
