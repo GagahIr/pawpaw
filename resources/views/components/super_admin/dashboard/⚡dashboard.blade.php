@@ -2,14 +2,70 @@
 
 use App\Actions\SuperAdmin\Dashboard\GetSuperAdminDashboardAnalyticsAction;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new #[Layout('layouts.super-admin')] class extends Component {
+    #[Url(as: 'periode', except: 'this_month')]
+    public string $datePreset = 'this_month';
+
+    #[Url(as: 'dari', except: '')]
+    public string $customStartDate = '';
+
+    #[Url(as: 'sampai', except: '')]
+    public string $customEndDate = '';
+
+    public string $draftStartDate = '';
+
+    public string $draftEndDate = '';
+
+    public function mount(): void
+    {
+        $this->draftStartDate = $this->customStartDate !== ''
+            ? $this->customStartDate
+            : now()->startOfMonth()->toDateString();
+        $this->draftEndDate = $this->customEndDate !== ''
+            ? $this->customEndDate
+            : now()->endOfMonth()->toDateString();
+    }
+
+    public function selectDatePreset(string $preset): void
+    {
+        $allowedPresets = ['this_month', 'last_month', 'last_7_days', 'last_30_days', 'last_12_months', 'this_year'];
+
+        if (! in_array($preset, $allowedPresets, true)) {
+            return;
+        }
+
+        $this->datePreset = $preset;
+        $this->customStartDate = '';
+        $this->customEndDate = '';
+    }
+
+    public function applyCustomDateRange(): void
+    {
+        $this->validate([
+            'draftStartDate' => ['required', 'date'],
+            'draftEndDate' => ['required', 'date', 'after_or_equal:draftStartDate'],
+        ], [
+            'draftStartDate.required' => 'Tanggal mulai harus diisi.',
+            'draftEndDate.required' => 'Tanggal akhir harus diisi.',
+            'draftEndDate.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal mulai.',
+        ]);
+
+        $this->customStartDate = $this->draftStartDate;
+        $this->customEndDate = $this->draftEndDate;
+        $this->datePreset = 'custom';
+        $this->dispatch('date-range-applied');
+    }
+
     public function with(GetSuperAdminDashboardAnalyticsAction $action): array
     {
+        $dateRange = $action->resolveDateRange($this->datePreset, $this->customStartDate, $this->customEndDate);
+
         return [
-            'analytics' => $action->getOverview(),
-            'monthLabel' => now()->locale('id')->translatedFormat('F Y'),
+            'dateRange' => $dateRange,
+            'analytics' => $action->getOverview($dateRange),
         ];
     }
 
@@ -66,9 +122,111 @@ new #[Layout('layouts.super-admin')] class extends Component {
 
 <div class="space-y-6">
     {{-- Header --}}
-    <div>
-        <flux:heading size="xl">Dashboard</flux:heading>
-        <flux:subheading>Ringkasan platform PawPaw. Angka bulanan menghitung {{ $monthLabel }}.</flux:subheading>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <flux:heading size="xl">Dashboard</flux:heading>
+            <flux:subheading>Ringkasan platform PawPaw. Pendapatan, booking, dan pembayaran mengikuti periode terpilih.</flux:subheading>
+        </div>
+
+        {{-- Date Range Filter Popover --}}
+        <div x-data="{ openDateMenu: false }" x-on:date-range-applied.window="openDateMenu = false" class="relative shrink-0 self-start">
+            <button
+                type="button"
+                @click="openDateMenu = !openDateMenu"
+                :aria-expanded="openDateMenu.toString()"
+                aria-haspopup="dialog"
+                class="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 shadow-xs transition hover:border-[#1B5E43]/40 hover:bg-zinc-50"
+            >
+                <flux:icon name="calendar-days" class="size-4 text-[#1B5E43]" />
+                <span>{{ $dateRange['range_label'] }}</span>
+                <flux:icon name="chevron-down" class="size-4 text-zinc-400 transition-transform" x-bind:class="openDateMenu ? 'rotate-180' : ''" />
+            </button>
+
+            <div
+                x-cloak
+                x-show="openDateMenu"
+                @click.outside="openDateMenu = false"
+                @keydown.escape.window="openDateMenu = false"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-1"
+                style="display: none"
+                class="absolute right-0 z-30 mt-2 w-80 max-w-[calc(100vw-2.5rem)] rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg"
+            >
+                <p class="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">Pilih Rentang Periode</p>
+
+                @php
+                    $presetOptions = [
+                        'this_month' => 'Bulan ini',
+                        'last_month' => 'Bulan lalu',
+                        'last_7_days' => '7 hari terakhir',
+                        'last_30_days' => '30 hari terakhir',
+                        'last_12_months' => '12 bulan terakhir',
+                        'this_year' => 'Tahun ini',
+                    ];
+                @endphp
+
+                <div class="grid grid-cols-2 gap-1.5">
+                    @foreach ($presetOptions as $presetKey => $presetLabel)
+                        <button
+                            type="button"
+                            wire:click="selectDatePreset('{{ $presetKey }}')"
+                            @click="openDateMenu = false"
+                            @class([
+                                'cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-semibold transition',
+                                'bg-[#1B5E43] text-white' => $dateRange['preset'] === $presetKey,
+                                'bg-zinc-50 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900' => $dateRange['preset'] !== $presetKey,
+                            ])
+                        >
+                            {{ $presetLabel }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="my-3 border-t border-zinc-100"></div>
+
+                <form wire:submit="applyCustomDateRange" class="space-y-2.5">
+                    <p class="text-xs font-semibold text-zinc-900">Rentang tanggal kustom</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label for="super-admin-start-date" class="mb-1 block text-[11px] font-medium text-zinc-500">Dari</label>
+                            <input
+                                id="super-admin-start-date"
+                                type="date"
+                                wire:model="draftStartDate"
+                                class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-900 focus:border-[#1B5E43] focus:outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label for="super-admin-end-date" class="mb-1 block text-[11px] font-medium text-zinc-500">Sampai</label>
+                            <input
+                                id="super-admin-end-date"
+                                type="date"
+                                wire:model="draftEndDate"
+                                class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-900 focus:border-[#1B5E43] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    @error('draftStartDate')
+                        <p class="text-[11px] text-red-600">{{ $message }}</p>
+                    @enderror
+                    @error('draftEndDate')
+                        <p class="text-[11px] text-red-600">{{ $message }}</p>
+                    @enderror
+
+                    <button
+                        type="submit"
+                        class="w-full cursor-pointer rounded-xl bg-[#1B5E43] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#164C36]"
+                    >
+                        Terapkan Tanggal
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     {{-- 1. Key Metrics --}}
@@ -76,14 +234,14 @@ new #[Layout('layouts.super-admin')] class extends Component {
         <article class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs">
             <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                    <p class="text-xs font-medium text-zinc-500">Total pendapatan bulan ini</p>
+                    <p class="text-xs font-medium text-zinc-500">Total pendapatan</p>
                     <p class="mt-2 truncate text-2xl font-bold text-zinc-900">{{ $this->formatRupiah($analytics['metrics']['revenue']) }}</p>
                 </div>
                 <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#DCEBE1] text-[#1B5E43]">
                     <flux:icon name="banknotes" class="size-5" />
                 </span>
             </div>
-            <p class="mt-3 text-xs text-zinc-500">Pembayaran langganan berstatus berhasil</p>
+            <p class="mt-3 text-xs text-zinc-500">Langganan berhasil dibayar, {{ $dateRange['range_label'] }}</p>
         </article>
 
         <article class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs">
@@ -116,14 +274,14 @@ new #[Layout('layouts.super-admin')] class extends Component {
         <article class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs">
             <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                    <p class="text-xs font-medium text-zinc-500">Total booking bulan ini</p>
+                    <p class="text-xs font-medium text-zinc-500">Total booking</p>
                     <p class="mt-2 text-2xl font-bold text-zinc-900">{{ number_format($analytics['metrics']['bookings'], 0, ',', '.') }}</p>
                 </div>
                 <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                     <flux:icon name="calendar-days" class="size-5" />
                 </span>
             </div>
-            <p class="mt-3 text-xs text-zinc-500">Klinik, grooming, dan pet hotel</p>
+            <p class="mt-3 text-xs text-zinc-500">Klinik, grooming, dan pet hotel pada periode ini</p>
         </article>
     </section>
 
@@ -137,29 +295,31 @@ new #[Layout('layouts.super-admin')] class extends Component {
         >
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h2 class="text-base font-semibold text-zinc-900">Tren pendapatan 12 bulan</h2>
-                    <p class="mt-0.5 text-xs text-zinc-500">Total pembayaran berhasil per bulan</p>
+                    <h2 class="text-base font-semibold text-zinc-900">Tren pendapatan</h2>
+                    <p class="mt-0.5 text-xs text-zinc-500">{{ $analytics['revenue']['subtitle'] }}, {{ $dateRange['range_label'] }}</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
                     <div>
                         <p class="flex items-center gap-1.5 text-zinc-500">
-                            <span class="size-2 rounded-full bg-zinc-400"></span> Bulan lalu
+                            <span class="size-2 rounded-full bg-zinc-400"></span> Periode sebelumnya
                         </p>
-                        <p class="mt-0.5 text-sm font-semibold text-zinc-700">{{ $this->formatRupiah($analytics['revenue']['last_month']) }}</p>
+                        <p class="mt-0.5 text-sm font-semibold text-zinc-700">{{ $this->formatRupiah($analytics['revenue']['previous_total']) }}</p>
+                        <p class="text-[0.7rem] text-zinc-400">{{ $dateRange['prev_range_label'] }}</p>
                     </div>
                     <div>
                         <p class="flex items-center gap-1.5 text-zinc-500">
-                            <span class="size-2 rounded-full bg-[#1B5E43]"></span> Bulan ini
+                            <span class="size-2 rounded-full bg-[#1B5E43]"></span> Periode ini
                         </p>
-                        <p class="mt-0.5 text-sm font-semibold text-zinc-900">{{ $this->formatRupiah($analytics['revenue']['this_month']) }}</p>
+                        <p class="mt-0.5 text-sm font-semibold text-zinc-900">{{ $this->formatRupiah($analytics['revenue']['current_total']) }}</p>
+                        <p class="text-[0.7rem] text-zinc-400">{{ $dateRange['range_label'] }}</p>
                     </div>
                     @php($change = $analytics['revenue']['change_percent'])
                     @if ($change === null)
                         <span class="rounded-full bg-zinc-100 px-2.5 py-1 font-semibold text-zinc-600">Belum ada pembanding</span>
                     @else
                         <span class="rounded-full px-2.5 py-1 font-semibold {{ $change >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">
-                            {{ $change >= 0 ? '▲' : '▼' }} {{ number_format(abs($change), 1, ',', '.') }}% dari bulan lalu
+                            {{ $change >= 0 ? '▲' : '▼' }} {{ number_format(abs($change), 1, ',', '.') }}% {{ $dateRange['comparison_label'] }}
                         </span>
                     @endif
                 </div>
@@ -167,7 +327,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
 
             @if (! $analytics['revenue']['has_data'])
                 <div class="mb-2 rounded-2xl border border-zinc-100 bg-zinc-50 px-3.5 py-2 text-xs text-zinc-500">
-                    Belum ada pembayaran berhasil dalam 12 bulan terakhir. Grafik terisi otomatis saat mitra membayar langganan.
+                    Belum ada pembayaran berhasil pada periode ini. Coba pilih rentang yang lebih panjang.
                 </div>
             @endif
 
@@ -183,7 +343,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
             class="flex flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-xs lg:col-span-4"
         >
             <h2 class="text-base font-semibold text-zinc-900">Kesehatan pembayaran</h2>
-            <p class="mt-0.5 text-xs text-zinc-500">Jumlah transaksi per status, {{ $monthLabel }}</p>
+            <p class="mt-0.5 text-xs text-zinc-500">Jumlah transaksi per status, {{ $dateRange['range_label'] }}</p>
 
             <div wire:ignore class="mt-4 flex w-full flex-1 items-center">
                 <div x-ref="canvas" class="min-h-[260px] w-full"></div>
@@ -231,7 +391,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
 
         <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs lg:col-span-7">
             <h2 class="text-base font-semibold text-zinc-900">Distribusi booking</h2>
-            <p class="mt-0.5 text-xs text-zinc-500">{{ $analytics['metrics']['bookings'] }} booking pada {{ $monthLabel }}, berdasarkan tanggal kunjungan</p>
+            <p class="mt-0.5 text-xs text-zinc-500">{{ $analytics['metrics']['bookings'] }} booking pada {{ $dateRange['range_label'] }}, berdasarkan tanggal kunjungan</p>
 
             <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
                 @foreach ([
@@ -260,7 +420,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
         <div class="rounded-xl border border-zinc-200 bg-white shadow-xs">
             <div class="border-b border-zinc-100 px-6 py-4">
                 <h2 class="text-base font-semibold text-zinc-900">Top 5 mitra</h2>
-                <p class="mt-0.5 text-xs text-zinc-500">Berdasarkan total pendapatan sepanjang waktu</p>
+                <p class="mt-0.5 text-xs text-zinc-500">Berdasarkan total pendapatan pada periode terpilih</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -290,7 +450,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada mitra dengan pembayaran berhasil.</td>
+                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada mitra dengan pembayaran berhasil pada periode ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -302,7 +462,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
         <div class="rounded-xl border border-zinc-200 bg-white shadow-xs">
             <div class="border-b border-zinc-100 px-6 py-4">
                 <h2 class="text-base font-semibold text-zinc-900">Pembayaran terbaru</h2>
-                <p class="mt-0.5 text-xs text-zinc-500">Lima transaksi langganan terakhir</p>
+                <p class="mt-0.5 text-xs text-zinc-500">Lima transaksi langganan terakhir pada periode terpilih</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -328,7 +488,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada pembayaran.</td>
+                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada pembayaran pada periode ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -382,7 +542,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
         <div class="rounded-xl border border-zinc-200 bg-white shadow-xs">
             <div class="border-b border-zinc-100 px-6 py-4">
                 <h2 class="text-base font-semibold text-zinc-900">Booking terbaru</h2>
-                <p class="mt-0.5 text-xs text-zinc-500">Lima booking terakhir dari semua layanan</p>
+                <p class="mt-0.5 text-xs text-zinc-500">Lima booking terakhir dari semua layanan pada periode terpilih</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -408,7 +568,7 @@ new #[Layout('layouts.super-admin')] class extends Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada booking.</td>
+                                <td colspan="4" class="px-6 py-8 text-center text-sm text-zinc-500">Belum ada booking pada periode ini.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -420,8 +580,9 @@ new #[Layout('layouts.super-admin')] class extends Component {
     {{-- 7. Growth stats --}}
     <section class="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Statistik pertumbuhan">
         <article class="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs">
-            <p class="text-xs font-medium text-zinc-500">Mitra baru bulan ini</p>
+            <p class="text-xs font-medium text-zinc-500">Mitra baru</p>
             <p class="mt-1.5 text-xl font-bold text-zinc-900">{{ number_format($analytics['growth']['new_vendors'], 0, ',', '.') }}</p>
+            <p class="mt-1 text-[0.7rem] text-zinc-400">Mitra yang bergabung pada periode ini</p>
         </article>
 
         <article class="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs">
@@ -429,13 +590,13 @@ new #[Layout('layouts.super-admin')] class extends Component {
             <p class="mt-1.5 text-xl font-bold text-zinc-900">
                 {{ $analytics['growth']['payment_success_rate'] === null ? '-' : number_format($analytics['growth']['payment_success_rate'], 1, ',', '.') . '%' }}
             </p>
-            <p class="mt-1 text-[0.7rem] text-zinc-400">Transaksi yang sudah final bulan ini</p>
+            <p class="mt-1 text-[0.7rem] text-zinc-400">Transaksi yang sudah final pada periode ini</p>
         </article>
 
         <article class="rounded-xl border border-zinc-200 bg-white p-4 shadow-xs">
             <p class="text-xs font-medium text-zinc-500">Rata-rata booking per mitra aktif</p>
             <p class="mt-1.5 text-xl font-bold text-zinc-900">{{ number_format($analytics['growth']['avg_booking_per_vendor'], 1, ',', '.') }}</p>
-            <p class="mt-1 text-[0.7rem] text-zinc-400">Booking bulan ini dibagi mitra aktif</p>
+            <p class="mt-1 text-[0.7rem] text-zinc-400">Booking periode ini dibagi mitra aktif saat ini</p>
         </article>
     </section>
 </div>

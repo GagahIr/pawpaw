@@ -2,7 +2,6 @@ import { createReactiveApexComponent, formatRupiahAxis, formatRupiahFull } from 
 
 const FONT_FAMILY = '"Instrument Sans", ui-sans-serif, system-ui, sans-serif';
 const BRAND_GREEN = '#1B5E43';
-const MUTED_GREY = '#A1A1AA';
 
 function toNumbers(list) {
     return Array.isArray(list) ? list.map((value) => Number(value) || 0) : [];
@@ -12,7 +11,7 @@ function buildRevenueOptions(payload) {
     const categories = Array.isArray(payload?.categories) ? payload.categories : [];
     const revenues = toNumbers(payload?.revenues);
     const maxRevenue = Math.max(0, ...revenues);
-    const lastIndex = revenues.length - 1;
+    const isDense = revenues.length > 14;
 
     return {
         chart: {
@@ -28,15 +27,11 @@ function buildRevenueOptions(payload) {
         colors: [BRAND_GREEN],
         stroke: { width: 3, curve: 'smooth' },
         markers: {
-            size: 3.5,
+            size: isDense ? 0 : 4,
             colors: [BRAND_GREEN],
             strokeColors: '#FFFFFF',
             strokeWidth: 2,
-            hover: { size: 7 },
-            discrete: [
-                { seriesIndex: 0, dataPointIndex: lastIndex - 1, fillColor: MUTED_GREY, strokeColor: '#FFFFFF', size: 6 },
-                { seriesIndex: 0, dataPointIndex: lastIndex, fillColor: BRAND_GREEN, strokeColor: '#FFFFFF', size: 7 },
-            ],
+            hover: { size: 7, sizeOffset: 0 },
         },
         dataLabels: { enabled: false },
         grid: {
@@ -47,11 +42,13 @@ function buildRevenueOptions(payload) {
         },
         xaxis: {
             categories,
+            tickAmount: categories.length > 12 ? 10 : undefined,
             axisBorder: { show: false },
             axisTicks: { show: false },
             tooltip: { enabled: false },
             labels: {
-                rotate: -35,
+                rotate: categories.length > 8 && categories.length <= 12 ? -35 : 0,
+                rotateAlways: false,
                 hideOverlappingLabels: true,
                 style: { colors: '#71717A', fontSize: '12px', fontWeight: 500 },
             },
