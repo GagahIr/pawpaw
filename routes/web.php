@@ -48,6 +48,8 @@ Route::domain($domain)->prefix('super-admin')->name('super_admin.')->group(funct
 
     Route::middleware(['auth:web', EnsureSuperAdmin::class])->group(function () {
         Route::livewire('/dashboard', 'super_admin.dashboard.dashboard')->name('dashboard');
+        Route::livewire('/manage-users', 'super_admin.manage_user.manage-user')->name('manage_users');
+        Route::livewire('/manage-transactions', 'super_admin.manage_transaction.manage-transaction')->name('manage_transactions');
         Route::livewire('/manage-vendors', 'super_admin.manage_vendor.manage-vendor')->name('manage_vendors');
         Route::livewire('/verification-vendors', 'super_admin.verification_vendor.verification-vendor')->name('verification_vendors');
 
