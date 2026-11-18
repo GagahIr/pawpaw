@@ -5,33 +5,38 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    private const TABLES = ['bookings_clinic', 'bookings_grooming', 'bookings_pet_hotel'];
+
+    private const OLD_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled', 'rejected'];
+
+    /**
+     * CHECK constraint ini hanya ada di PostgreSQL. Di SQLite (database test) kolom status
+     * berupa string biasa sehingga status no_show sudah bisa dipakai tanpa constraint.
+     */
     public function up(): void
     {
-        // bookings_clinic - remove old check constraint and add new one
-        DB::statement('ALTER TABLE bookings_clinic DROP CONSTRAINT IF EXISTS bookings_clinic_status_check');
-        DB::statement("ALTER TABLE bookings_clinic ADD CONSTRAINT bookings_clinic_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text, 'no_show'::text]))");
-
-        // bookings_grooming
-        DB::statement('ALTER TABLE bookings_grooming DROP CONSTRAINT IF EXISTS bookings_grooming_status_check');
-        DB::statement("ALTER TABLE bookings_grooming ADD CONSTRAINT bookings_grooming_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text, 'no_show'::text]))");
-
-        // bookings_pet_hotel
-        DB::statement('ALTER TABLE bookings_pet_hotel DROP CONSTRAINT IF EXISTS bookings_pet_hotel_status_check');
-        DB::statement("ALTER TABLE bookings_pet_hotel ADD CONSTRAINT bookings_pet_hotel_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text, 'no_show'::text]))");
+        $this->replaceStatusConstraint([...self::OLD_STATUSES, 'no_show']);
     }
 
     public function down(): void
     {
-        // bookings_clinic - revert to old check constraint
-        DB::statement('ALTER TABLE bookings_clinic DROP CONSTRAINT IF EXISTS bookings_clinic_status_check');
-        DB::statement("ALTER TABLE bookings_clinic ADD CONSTRAINT bookings_clinic_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text]))");
+        $this->replaceStatusConstraint(self::OLD_STATUSES);
+    }
 
-        // bookings_grooming
-        DB::statement('ALTER TABLE bookings_grooming DROP CONSTRAINT IF EXISTS bookings_grooming_status_check');
-        DB::statement("ALTER TABLE bookings_grooming ADD CONSTRAINT bookings_grooming_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text]))");
+    /**
+     * @param  list<string>  $statuses
+     */
+    private function replaceStatusConstraint(array $statuses): void
+    {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
 
-        // bookings_pet_hotel
-        DB::statement('ALTER TABLE bookings_pet_hotel DROP CONSTRAINT IF EXISTS bookings_pet_hotel_status_check');
-        DB::statement("ALTER TABLE bookings_pet_hotel ADD CONSTRAINT bookings_pet_hotel_status_check CHECK (status::text = ANY (ARRAY['pending'::text, 'confirmed'::text, 'completed'::text, 'cancelled'::text, 'rejected'::text]))");
+        $allowed = implode(', ', array_map(fn (string $status): string => "'{$status}'::text", $statuses));
+
+        foreach (self::TABLES as $table) {
+            DB::statement("ALTER TABLE {$table} DROP CONSTRAINT IF EXISTS {$table}_status_check");
+            DB::statement("ALTER TABLE {$table} ADD CONSTRAINT {$table}_status_check CHECK (status::text = ANY (ARRAY[{$allowed}]))");
+        }
     }
 };
