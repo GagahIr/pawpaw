@@ -148,7 +148,7 @@ new class extends Component {
                             alt="PawPaw">
                     </div> --}}
                     <div class="text-center">
-                        <flux:heading size="xl">Pendaftaran Mitra</flux:heading>
+                        <flux:heading size="xl" class="clinic-auth-title" level="1">Pendaftaran Mitra</flux:heading>
                         <flux:subheading
                             x-text="step === 1 ? 'Ceritakan tentang bisnis pet care Anda.' : step === 2 ? 'Lengkapi data pemilik dan akun untuk masuk.' : 'Periksa kembali data sebelum menyelesaikan pendaftaran.'">
                             Ceritakan tentang bisnis pet care Anda.
@@ -157,8 +157,9 @@ new class extends Component {
 
                     <div class="space-y-6 px-0 sm:px-20 lg:px-28">
                         <nav aria-label="Langkah pendaftaran">
-                            <div class="flex items-center">
+                            <ol class="clinic-auth-steps">
                                 @foreach ($steps as $num => $label)
+                                    <li :class="{ 'is-complete': step > {{ $num }} }">
                                     <div class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors"
                                         :class="{
                                             'bg-[#1a5c40] text-white': step > {{ $num }},
@@ -176,19 +177,6 @@ new class extends Component {
                                         </span>
                                         <span x-show="step <= {{ $num }}">{{ $num }}</span>
                                     </div>
-
-                                    @if (!$loop->last)
-                                        <div class="mx-2 h-0.5 flex-1 rounded-full transition-colors"
-                                            :class="step > {{ $num }} ?
-                                                'bg-[#1a5c40]' :
-                                                'bg-zinc-200 dark:bg-zinc-700'">
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-
-                            <div class="mt-1.5 grid grid-cols-3 gap-2">
-                                @foreach ($steps as $num => $label)
                                     <span class="text-center text-xs transition-colors"
                                         :class="step === {{ $num }} ?
                                             'font-bold text-[#1a5c40] dark:text-[#25825a]' :
@@ -196,8 +184,9 @@ new class extends Component {
                                                 'text-zinc-400 dark:text-zinc-600')">
                                         {{ $label }}
                                     </span>
+                                    </li>
                                 @endforeach
-                            </div>
+                            </ol>
                         </nav>
                     </div>
 

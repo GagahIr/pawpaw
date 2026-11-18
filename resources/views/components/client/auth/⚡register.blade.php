@@ -142,7 +142,7 @@ new class extends Component {
                     </flux:link>
 
                     <div class="text-center">
-                        <flux:heading size="xl" level="1">Daftar Akun Pelanggan</flux:heading>
+                        <flux:heading size="xl" level="1" class="clinic-auth-title">Daftar Akun Pelanggan</flux:heading>
                         <flux:subheading>
                             Buat akun untuk mempermudah reservasi dokter hewan dan perawatan anabul.
                         </flux:subheading>
@@ -173,7 +173,7 @@ new class extends Component {
                                     </div>
 
                                     <div class="min-w-0 space-y-1">
-                                        <flux:heading id="client-register-heading" level="1"
+                                        <flux:heading id="client-register-heading" level="2"
                                             class="!text-base !font-bold !text-[#303A35]">
                                             Informasi Akun Pelanggan
                                         </flux:heading>

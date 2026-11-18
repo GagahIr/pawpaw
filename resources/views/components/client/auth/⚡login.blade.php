@@ -121,7 +121,7 @@ new class extends Component {
                     </flux:link>
 
                     <div class="text-center">
-                        <flux:heading size="xl" level="1">Masuk Akun Pelanggan</flux:heading>
+                        <flux:heading size="xl" level="1" class="clinic-auth-title">Masuk Akun Pelanggan</flux:heading>
                         <flux:subheading>
                             Masuk untuk reservasi dokter hewan, cek riwayat kesehatan, dan perawatan anabul kesayangan Anda.
                         </flux:subheading>

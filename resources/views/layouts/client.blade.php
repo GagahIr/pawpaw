@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>PawPaw</title>
     @php
-        $isClinicPage = request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking', 'client.my-bookings');
+        $isClinicPage = request()->routeIs('client.clinic', 'client.vendor.detail', 'client.clinic.booking', 'client.my-bookings', 'client.profile');
     @endphp
     @if ($isClinicPage)
         <link rel="preconnect" href="https://fonts.googleapis.com">

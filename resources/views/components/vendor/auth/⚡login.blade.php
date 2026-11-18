@@ -189,7 +189,7 @@ new #[Layout('layouts.app')] class extends Component {
                 </flux:link>
 
                 <div class="text-center">
-                    <flux:heading size="xl">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
+                    <flux:heading size="xl" class="clinic-auth-title" level="1">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
                     <flux:subheading>Silakan masuk menggunakan akun pemilik atau front office Anda.</flux:subheading>
                 </div>
 
