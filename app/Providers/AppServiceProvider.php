@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Http\Middleware\ResolveVendor;
+use App\Models\BookingClinic;
+use App\Models\BookingGrooming;
+use App\Models\BookingPetHotel;
+use App\Observers\BookingObserver;
 use App\Services\ClientUserProvider;
 use App\Services\VendorService;
 use App\Services\VendorUserProvider;
@@ -38,5 +42,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('components.client.components.clinic-footer', function (ViewInstance $view): void {
             $view->with('footerCategories', $view->getData()['categories'] ?? app(VendorService::class)->getCategories());
         });
+        // Register observers untuk auto-increment fake_booking
+        BookingClinic::observe(BookingObserver::class);
+        BookingGrooming::observe(BookingObserver::class);
+        BookingPetHotel::observe(BookingObserver::class);
     }
 }

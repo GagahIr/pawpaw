@@ -30,6 +30,7 @@ final class GroomingBookingsTable extends PowerGridComponent
         'completed' => 'Selesai',
         'cancelled' => 'Dibatalkan',
         'rejected' => 'Ditolak',
+        'no_show' => 'Tidak Hadir',
     ];
 
     private const STATUS_CLASSES = [
@@ -38,6 +39,7 @@ final class GroomingBookingsTable extends PowerGridComponent
         'completed' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
         'cancelled' => 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700/40 dark:text-zinc-300',
         'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+        'no_show' => 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
     ];
 
     public function setUp(): array
@@ -169,6 +171,10 @@ final class GroomingBookingsTable extends PowerGridComponent
     {
         $base = 'inline-flex items-center justify-center px-2.5 py-1 text-xs font-medium rounded-md transition-colors ';
 
+        // Cek apakah jadwal booking sudah lewat (booking_date + time_slot)
+        $bookingDateTime = $row->booking_date->copy()->addMinutes($row->time_slot);
+        $isPastSchedule = now()->greaterThan($bookingDateTime);
+
         return [
             Button::add('confirm')
                 ->slot('Konfirmasi')
@@ -187,6 +193,12 @@ final class GroomingBookingsTable extends PowerGridComponent
                 ->class($base.'text-green-700 bg-green-50 hover:bg-green-100 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50')
                 ->dispatch('updateBookingStatus', ['rowId' => $row->id, 'status' => 'completed'])
                 ->can($row->status === 'confirmed'),
+
+            Button::add('no_show')
+                ->slot('Tidak Hadir')
+                ->class($base.'text-orange-700 bg-orange-50 hover:bg-orange-100 dark:text-orange-300 dark:bg-orange-900/30 dark:hover:bg-orange-900/50')
+                ->dispatch('updateBookingStatus', ['rowId' => $row->id, 'status' => 'no_show'])
+                ->can($row->status === 'confirmed' && $isPastSchedule),
         ];
     }
 }

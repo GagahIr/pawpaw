@@ -21,33 +21,30 @@ new #[Layout('layouts.client')] class extends Component
 };
 ?>
 
-<div class="min-h-screen py-12 px-4">
-    <div class="max-w-4xl mx-auto">
-        {{-- Header --}}
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Riwayat Reservasi</h1>
-            <p class="text-gray-600 mt-1">Daftar booking yang telah selesai atau dibatalkan</p>
-        </div>
+<div class="clinic-page">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-wrap">
+        <div class="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Riwayat Reservasi</h1>
+            <p class="text-gray-600 mb-8">Daftar booking yang telah selesai atau dibatalkan</p>
 
-        @if ($bookings->isEmpty())
-            {{-- Empty State --}}
-            <div class="text-center py-16">
-                <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="mt-4 text-lg font-medium text-gray-900">Belum ada riwayat reservasi</p>
-                <p class="text-gray-500 mt-1">Booking yang telah selesai atau dibatalkan akan muncul di sini</p>
-                <a href="{{ route('client.clinic') }}"
-                    class="inline-block mt-6 px-6 py-2.5 bg-[#EE6D52] text-white rounded-lg font-medium hover:bg-[#d95b42] transition-colors">
-                    Cari Klinik
-                </a>
-            </div>
-        @else
-            {{-- Booking Cards --}}
-            <div class="space-y-4">
-                @foreach ($bookings as $booking)
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            @if ($bookings->isEmpty())
+                <div class="text-center py-16">
+                    <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="mt-4 text-lg font-medium text-gray-900">Belum ada riwayat reservasi</p>
+                    <p class="text-gray-500 mt-1">Booking yang telah selesai atau dibatalkan akan muncul di sini</p>
+                    <a href="{{ route('client.clinic') }}"
+                        class="inline-block mt-6 px-6 py-2.5 bg-[#EE6D52] text-white rounded-lg font-medium hover:bg-[#d95b42] transition-colors">
+                        Cari Klinik
+                    </a>
+                </div>
+            @else
+                <div class="space-y-4">
+                    @foreach ($bookings as $booking)
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                         <div class="p-5">
                             <div class="flex items-start justify-between gap-4">
                                 {{-- Left: Info --}}
@@ -116,5 +113,7 @@ new #[Layout('layouts.client')] class extends Component
                 @endforeach
             </div>
         @endif
+        </div>
     </div>
+    @include('components.client.components.clinic-footer')
 </div>

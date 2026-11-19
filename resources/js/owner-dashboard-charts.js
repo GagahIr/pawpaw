@@ -8,13 +8,13 @@ function loadApexCharts() {
     return apexChartsModulePromise;
 }
 
-function formatRupiahFull(value) {
+export function formatRupiahFull(value) {
     const numeric = Math.round(Number(value) || 0);
 
     return 'Rp ' + numeric.toLocaleString('id-ID');
 }
 
-function formatRupiahAxis(value) {
+export function formatRupiahAxis(value) {
     const numeric = Number(value) || 0;
 
     if (numeric >= 1_000_000_000) {
@@ -371,7 +371,7 @@ function buildContributionOptions(payload) {
     };
 }
 
-function createReactiveApexComponent(optionsBuilder) {
+export function createReactiveApexComponent(optionsBuilder) {
     return () => ({
         chart: null,
         observer: null,

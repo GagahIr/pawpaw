@@ -419,4 +419,5 @@ new #[Layout('layouts.client')] class extends Component {
         </div>
         <div class="profile-session"><div><strong>Selesai mengelola akun?</strong><p>Keluar jika perangkat ini digunakan bersama.</p></div><form method="POST" action="{{ route('client.logout') }}">@csrf<button type="submit" class="profile-button profile-button-exit"><flux:icon.arrow-right-start-on-rectangle class="size-4" />Keluar dari akun</button></form></div>
     </div>
+    @include('components.client.components.clinic-footer')
 </div>

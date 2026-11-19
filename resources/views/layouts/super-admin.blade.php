@@ -17,6 +17,8 @@
 
         $breadcrumbs = match (true) {
             request()->routeIs('super_admin.dashboard') => [['label' => 'Dashboard']],
+            request()->routeIs('super_admin.manage_users') => [['label' => 'Manage Users']],
+            request()->routeIs('super_admin.manage_transactions') => [['label' => 'Manage Transaksi']],
             request()->routeIs('super_admin.manage_vendors') => [['label' => 'Manage Mitra']],
             default => [['label' => 'Dashboard']],
         };
@@ -49,6 +51,12 @@
                 <flux:sidebar.nav>
                     <flux:sidebar.item icon="squares-2x2" href="{{ route('super_admin.dashboard') }}"
                         :current="request()->routeIs('super_admin.dashboard')">Dashboard</flux:sidebar.item>
+
+                    <flux:sidebar.item icon="users" href="{{ route('super_admin.manage_users') }}"
+                        :current="request()->routeIs('super_admin.manage_users')">Manage Users</flux:sidebar.item>
+
+                    <flux:sidebar.item icon="credit-card" href="{{ route('super_admin.manage_transactions') }}"
+                        :current="request()->routeIs('super_admin.manage_transactions')">Manage Transaksi</flux:sidebar.item>
 
                     <flux:sidebar.item icon="cog-6-tooth" href="{{ route('super_admin.manage_vendors') }}"
                         :current="request()->routeIs('super_admin.manage_vendors')">Manage Mitra</flux:sidebar.item>
