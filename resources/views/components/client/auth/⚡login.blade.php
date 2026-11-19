@@ -8,9 +8,10 @@ use Flux\Flux;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new class extends Component {
+new #[Layout('layouts.client')] class extends Component {
     public string $identifier = '';
     public string $password = '';
     public bool $remember = false;
@@ -108,17 +109,12 @@ new class extends Component {
 
 ?>
 
-<div x-data="{
-    notice: '',
-}">
-    <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
-        <div class="flex min-h-screen">
-            <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-                <div class="w-full max-w-xl space-y-6">
-                    <flux:link href="{{ url('/') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
-                        <flux:icon.arrow-left variant="micro" />
-                        Kembali ke Beranda
-                    </flux:link>
+<div class="clinic-page">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-wrap">
+        <div class="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+            <div x-data="{ notice: '' }">
+                <div class="w-full max-w-xl mx-auto space-y-6">
 
                     <div class="text-center">
                         <flux:heading size="xl" level="1" class="clinic-auth-title">Masuk Akun Pelanggan</flux:heading>
@@ -204,8 +200,7 @@ new class extends Component {
                                 Mitra</flux:link>
                         </flux:text>
                     </div>
-                </div>
-            </div>
+        </div>
         </div>
     </div>
 </div>
