@@ -3,6 +3,7 @@
 use App\Http\Controllers\Client\GoogleLoginController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\Vendor\MidtransNotificationController;
+use App\Http\Middleware\CheckFakeBookingLimit;
 use App\Http\Middleware\EnsureClient;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureVendorPaidSubscription;
@@ -25,11 +26,12 @@ Route::domain($domain)->group(function () {
     Route::livewire('/vendor-login', 'vendor.auth.domain');
     Route::redirect('/akun/profil', '/profile');
     Route::post('/api/midtrans/notification', [MidtransNotificationController::class, 'handle'])->name('midtrans.notification');
+    Route::get('/client-blocked-account', fn () => view('client.blocked-account'))->name('client.blocked-account');
     // Route::post('/api/midtrans/notification', [MidtransNotificationController::class, 'handle'])
     //     ->name('midtrans.notification')
     //     ->withoutMiddleware('web');
 
-    Route::middleware(['auth:client', EnsureClient::class])->group(function () {
+    Route::middleware(['auth:client', EnsureClient::class, CheckFakeBookingLimit::class])->group(function () {
         Route::livewire('/client-dashboard', 'client.dashboard.dashboard')->name('client.dashboard');
         Route::livewire('/clinic', 'client.list_clinic.list-clinic2')->name('client.clinic');
         Route::livewire('/my-bookings', 'client.my_bookings.my-bookings')->name('client.my-bookings');
