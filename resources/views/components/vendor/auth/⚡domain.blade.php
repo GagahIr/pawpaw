@@ -99,7 +99,7 @@ new #[Layout('layouts.app')] class extends Component {
 
         {{-- Heading & Subheading --}}
         <div class="text-center space-y-2">
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-white">
+            <flux:heading size="xl" class="clinic-auth-title font-bold tracking-tight text-zinc-900 dark:text-white" level="1">
                 Masuk ke Akun
             </flux:heading>
             <flux:subheading class="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">

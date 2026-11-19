@@ -111,6 +111,10 @@ new #[Layout('layouts.client')] class extends Component {
 
     public function save(ProfileClientAction $action, ImageService $imageService): void
     {
+        if (is_string($this->formData['phone_number'] ?? null)) {
+            $this->formData['phone_number'] = preg_replace('/[\s()-]+/', '', trim($this->formData['phone_number']));
+        }
+
         $this->validate();
 
         $data = [
@@ -240,363 +244,180 @@ new #[Layout('layouts.client')] class extends Component {
 };
 ?>
 
-<div class="clinic-page">
+<div class="profile-page" x-data="{
+    activeSection: 'informasi-pribadi',
+    updateSection() {
+        const security = document.getElementById('keamanan-akun');
+        this.activeSection = security && security.getBoundingClientRect().top <= 200 ? 'keamanan-akun' : 'informasi-pribadi';
+    }
+}" x-init="$nextTick(() => updateSection())" @scroll.window.throttle.150ms="updateSection()">
+    <div class="clinic-request-progress" wire:loading.delay aria-hidden="true"><span></span></div>
     @include('components.client.components.clinic-atmosphere')
-    <div class="clinic-wrap">
-        <div class="max-w-5xl mx-auto space-y-6 px-4 py-6 sm:py-10">
-
-        <!-- Breadcrumb -->
-        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs sm:text-sm text-zinc-500">
-            <a href="{{ route('landing_page') }}" class="hover:text-zinc-800 transition">Beranda</a>
-            <span class="text-zinc-400">›</span>
-            <span class="text-zinc-800 font-medium">Profil saya</span>
+    <div class="profile-wrap">
+        <nav aria-label="Breadcrumb" class="profile-breadcrumb">
+            <a href="{{ route('landing_page') }}" wire:navigate>Beranda</a>
+            <span aria-hidden="true">/</span><span aria-current="page">Profil saya</span>
         </nav>
+        <header class="profile-intro" data-animate="fade-up" data-motion-once>
+            <p class="profile-eyebrow">AKUN PELANGGAN</p>
+            <h1>Kenalan lebih dekat<span>, yuk.</span></h1>
+            <p>Informasimu tersimpan rapi, perawatan si kesayangan jadi lebih praktis.</p>
+            <img class="profile-intro-paw" src="{{ asset('assets/pawkucing.webp') }}" alt="" width="42" height="42" aria-hidden="true">
+        </header>
 
-        <!-- Header -->
-        <div>
-            <p class="text-xs font-bold tracking-wider text-[#EE6D52] uppercase mb-1">
-                AKUN PELANGGAN
-            </p>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-[#1B3C2A] tracking-tight">
-                Kenalan lebih dekat, yuk.
-            </h1>
-            <p class="mt-2 text-sm sm:text-base text-zinc-500">
-                Kelola informasi dirimu untuk reservasi yang lebih praktis.
-            </p>
-        </div>
-
-        <!-- Main Content (2 Columns) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-            <!-- Left Column: Avatar & Navigation Menu -->
-            <div class="lg:col-span-4 space-y-6">
-                <!-- Avatar Card -->
-                <div class="bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 flex flex-col items-center text-center shadow-sm">
-                    <!-- Avatar Display -->
-                    <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden flex items-center justify-center">
-                        @if ($avatar)
-                            <img src="{{ $avatar->temporaryUrl() }}" alt="Preview Foto"
-                                class="w-full h-full object-cover" />
-                        @elseif ($user?->avatar)
-                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}"
-                                class="w-full h-full object-cover" />
+        <div class="profile-layout">
+            <aside class="profile-identity" aria-label="Identitas akun">
+                <div class="profile-identity-card">
+                    <div class="profile-avatar-blob">
+                        @if ($avatar && ! $errors->has('avatar'))
+                            <div class="profile-avatar-preview" x-data="{ failed: false }" wire:key="profile-avatar-preview-{{ $avatar->getFilename() }}">
+                                <span aria-hidden="true">{{ $this->getInitials() }}</span>
+                                <img src="{{ $avatar->temporaryUrl() }}" alt="Pratinjau foto profil baru" x-show="!failed" x-on:error="failed = true">
+                            </div>
                         @else
-                            <div class="w-full h-full bg-[#FCECE5] flex items-center justify-center">
-                                <span class="text-[#1B3C2A] font-extrabold text-3xl tracking-wider">
-                                    {{ $this->getInitials() }}
-                                </span>
-                            </div>
+                            <x-client.components.account-avatar :user="$user" class="profile-avatar-image" />
                         @endif
+                        <span class="profile-avatar-spark" aria-hidden="true">✦</span>
                     </div>
-
-                    <!-- Name & Username -->
-                    <h3 class="mt-4 text-xl sm:text-2xl font-bold text-[#1B3C2A]">
-                        {{ $user?->name }}
-                    </h3>
-                    <p class="mt-1 text-sm text-zinc-500 font-normal">
-                        {{ '@' . ($user?->username ?? 'username') }}
-                    </p>
-
-                    <!-- Role Badge -->
-                    <div class="mt-3">
-                        <span class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold bg-[#E8F3EE] text-[#1B3C2A]">
-                            Pelanggan PawPaw
-                        </span>
+                    <div class="profile-identity-copy">
+                        <h2>{{ $user?->name }}</h2>
+                        <p class="profile-username">{{ '@'.($user?->username ?? '') }}</p>
+                        <span class="profile-role">Pelanggan PawPaw</span>
                     </div>
-
-                    <!-- Ubah Foto Action -->
-                    <div class="mt-4 w-full flex flex-col items-center">
-                        <label for="client-avatar-input"
-                            class="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                            Ubah foto
-                        </label>
-                        <input type="file" id="client-avatar-input" wire:model="avatar"
-                            accept="image/jpeg,image/png,image/webp" class="hidden" />
-
-                        @if ($avatar)
-                            <p class="mt-2 text-xs text-green-600 font-medium">
-                                ✓ Foto siap disimpan
-                            </p>
+                    <div class="profile-photo-picker" x-data="{ uploading: false, progress: 0, uploadError: false }"
+                        x-on:livewire-upload-start="uploading = true; uploadError = false; progress = 0"
+                        x-on:livewire-upload-finish="uploading = false"
+                        x-on:livewire-upload-cancel="uploading = false"
+                        x-on:livewire-upload-error="uploading = false; uploadError = true"
+                        x-on:livewire-upload-progress="progress = $event.detail.progress">
+                        <input type="file" id="client-avatar-input" wire:model="avatar" class="sr-only"
+                            accept="image/jpeg,image/png,image/webp" aria-describedby="profile-photo-help profile-photo-error" wire:loading.attr="disabled" wire:target="save">
+                        <label for="client-avatar-input" class="profile-button profile-button-outline"><flux:icon.camera class="size-4" />Ubah foto</label>
+                        <p id="profile-photo-help" class="profile-help">JPG, PNG, atau WebP · Maks. 2 MB</p>
+                        <div x-show="uploading" x-cloak role="status" class="profile-upload-status">
+                            <span>Mengunggah foto… <span x-text="progress + '%'"></span></span>
+                            <progress max="100" :value="progress" aria-label="Progres unggah foto"></progress>
+                        </div>
+                        <p x-show="uploadError" x-cloak role="alert" class="profile-error">Foto belum berhasil diunggah. Coba pilih lagi.</p>
+                        @if ($avatar && ! $errors->has('avatar'))
+                            <p class="profile-photo-ready" role="status">Foto siap. Tekan Simpan perubahan di formulir.</p>
                         @endif
-
-                        <flux:error name="avatar" class="mt-2 text-xs text-red-600" />
+                        <div id="profile-photo-error"><flux:error name="avatar" /></div>
                     </div>
-
-                    <!-- Separator -->
-                    <div class="w-full border-t border-zinc-200/80 my-6"></div>
-
-                    <!-- Join Date (No Location) -->
-                    <p class="text-xs sm:text-sm text-zinc-500 font-normal">
-                        Bergabung sejak {{ $user?->created_at ? $user->created_at->format('d M Y') : '-' }}
-                    </p>
+                    <p class="profile-joined">Bergabung sejak <span>{{ $user?->created_at ? $user->created_at->locale('id')->isoFormat('D MMMM YYYY') : '—' }}</span></p>
                 </div>
-
-                <!-- Navigation Menu (Informasi pribadi, Keamanan akun, Keluar dari akun) -->
-                <div class="space-y-1" x-data="{ activeSection: 'profile' }">
-                    <a href="#informasi-pribadi"
-                        @click="activeSection = 'profile'"
-                        :class="activeSection === 'profile' ? 'bg-[#EAF1EC] text-[#1B3C2A] font-semibold' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 font-medium'"
-                        class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition cursor-pointer">
-                        <flux:icon icon="user" class="size-5" />
-                        <span>Informasi pribadi</span>
+                <nav class="profile-section-nav" aria-label="Bagian profil">
+                    <a href="#informasi-pribadi" :aria-current="activeSection === 'informasi-pribadi' ? 'location' : null" :class="{ 'is-active': activeSection === 'informasi-pribadi' }">
+                        <flux:icon.user class="size-5" />Informasi pribadi<flux:icon.arrow-down class="size-4" />
                     </a>
+                    <a href="#keamanan-akun" :aria-current="activeSection === 'keamanan-akun' ? 'location' : null" :class="{ 'is-active': activeSection === 'keamanan-akun' }">
+                        <flux:icon.shield-check class="size-5" />Keamanan akun<flux:icon.arrow-down class="size-4" />
+                    </a>
+                </nav>
+            </aside>
 
-                    <form method="POST" action="{{ route('client.logout') }}">
-                        @csrf
-                        <button type="submit"
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-[#C2410C] hover:bg-red-50/80 transition cursor-pointer text-left">
-                            <flux:icon icon="arrow-right-start-on-rectangle" class="size-5 text-[#C2410C]" />
-                            <span>Keluar dari akun</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Right Column: Personal Info & Security Cards -->
-            <div class="lg:col-span-8 space-y-6">
-                <!-- Card 1: Informasi pribadi -->
-                <div id="informasi-pribadi" class="scroll-mt-6 bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 shadow-sm">
-                    <!-- Top Bar: Title & Edit Action -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-200/80">
-                        <div>
-                            <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">
-                                Informasi pribadi
-                            </h2>
-                            <p class="mt-1 text-xs sm:text-sm text-zinc-500">
-                                Data ini digunakan klinik untuk menghubungimu terkait reservasi.
-                            </p>
-                        </div>
-
-                        <div>
-                            @if (! $isEditing)
-                                <button type="button" wire:click="startEditing"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                                    <span>Edit profil</span>
-                                    <flux:icon icon="pencil" class="size-4 text-[#2D5945]" />
-                                </button>
-                            @else
-                                <div class="flex items-center gap-2">
-                                    <button type="button" wire:click="cancelEditing"
-                                        class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                        Batal
-                                    </button>
-                                    <button type="submit" form="client-profile-form"
-                                        class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                        <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
-                                        <span wire:loading wire:target="save">Menyimpan...</span>
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Form Inputs (No Address field) -->
-                    <form id="client-profile-form" wire:submit="save" class="mt-6 space-y-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <!-- Nama Lengkap -->
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                    Nama lengkap <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model.blur="formData.name"
-                                    @disabled(! $isEditing)
-                                    placeholder="Amanda Dealova"
-                                    class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
-                                <flux:error name="formData.name" class="mt-1" />
-                            </div>
-
-                            <!-- Username -->
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                    Username <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model.blur="formData.username"
-                                    @disabled(! $isEditing)
-                                    placeholder="amandadealova"
-                                    class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
-                                <flux:error name="formData.username" class="mt-1" />
-                            </div>
-
-                            <!-- Email -->
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                    Email <span class="text-red-500">*</span>
-                                </label>
-                                <input type="email" wire:model.blur="formData.email"
-                                    @disabled(! $isEditing)
-                                    placeholder="amanda.dealova@example.com"
-                                    class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
-                                <flux:error name="formData.email" class="mt-1" />
-                            </div>
-
-                            <!-- Nomor WhatsApp / Telepon -->
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                    Nomor WhatsApp / telepon
-                                </label>
-                                <input type="text" wire:model.blur="formData.phone_number"
-                                    @disabled(! $isEditing)
-                                    placeholder="0812 3456 7890"
-                                    class="w-full rounded-2xl border px-4 py-3 text-sm transition outline-none {{ $isEditing ? 'border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20' : 'border-[#EAE4DC] bg-[#FCFAF6] text-zinc-800 cursor-not-allowed' }}" />
-                                <flux:error name="formData.phone_number" class="mt-1" />
-                            </div>
-                        </div>
-
-                        <!-- Mobile Action Buttons when Editing -->
-                        @if ($isEditing)
-                            <div class="pt-4 border-t border-zinc-100 flex justify-end gap-3 sm:hidden">
-                                <button type="button" wire:click="cancelEditing"
-                                    class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                    <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
-                                    <span wire:loading wire:target="save">Menyimpan...</span>
-                                </button>
-                            </div>
+            <div class="profile-content">
+                <section id="informasi-pribadi" class="profile-panel" aria-labelledby="profile-information-heading">
+                    <div class="profile-panel-heading">
+                        <span class="profile-section-icon" aria-hidden="true"><flux:icon.user class="size-6" /></span>
+                        <div><h2 id="profile-information-heading">Informasi pribadi</h2><p>Supaya klinik mudah menghubungimu terkait reservasi.</p></div>
+                        @if (! $isEditing)
+                            <button type="button" wire:click="startEditing" class="profile-button profile-button-outline"><flux:icon.pencil class="size-4" />Edit profil</button>
+                        @else
+                            <span class="profile-edit-badge" role="status">Mode edit</span>
                         @endif
-                    </form>
-                </div>
-
-                <!-- Card 2: Keamanan Akun -->
-                <div id="keamanan-akun" class="scroll-mt-6 bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-8 shadow-sm">
-                    <!-- Header: Shield Icon & Title -->
-                    <div class="flex items-center gap-2 mb-4">
-                        <flux:icon icon="shield-check" class="size-6 text-[#1B3C2A]" />
-                        <h2 class="text-xl sm:text-2xl font-bold text-[#1B3C2A]">
-                            Keamanan akun
-                        </h2>
                     </div>
-
-                    <!-- Row: Kata Sandi & Action Button -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-semibold text-zinc-800">
-                                Kata sandi
-                            </h3>
-                            <p class="mt-0.5 text-xs sm:text-sm text-zinc-500">
-                                Gunakan kata sandi unik untuk menjaga akunmu tetap aman.
-                            </p>
-                        </div>
-
-                        <div>
-                            @if (! $isChangingPassword)
-                                <button type="button" wire:click="startChangingPassword"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[#2D5945] text-[#2D5945] hover:bg-[#2D5945]/5 text-sm font-semibold transition cursor-pointer">
-                                    <span>Ubah kata sandi</span>
-                                    <flux:icon icon="lock-closed" class="size-4 text-[#2D5945]" />
-                                </button>
-                            @else
-                                <button type="button" wire:click="cancelChangingPassword"
-                                    class="px-4 py-2 rounded-full text-zinc-600 hover:text-zinc-900 text-sm font-medium transition cursor-pointer">
-                                    Batal
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Form Ubah Kata Sandi (Expandable) -->
-                    @if ($isChangingPassword)
-                        <form wire:submit="updatePassword" class="mt-6 pt-6 border-t border-zinc-100 space-y-4">
-                            @if (! empty($user?->password))
-                                <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                        Kata sandi saat ini <span class="text-red-500">*</span>
-                                    </label>
-                                    <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="currentPassword"
-                                            placeholder="Masukkan kata sandi saat ini"
-                                            class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
-                                        <button type="button" @click="show = !show"
-                                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
-                                            aria-label="Tampilkan kata sandi">
-                                            <template x-if="!show">
-                                                <flux:icon icon="eye" class="size-4" />
-                                            </template>
-                                            <template x-if="show">
-                                                <flux:icon icon="eye-slash" class="size-4" />
-                                            </template>
-                                        </button>
+                    @php
+                        $profileFields = [
+                            'name' => ['label' => 'Nama lengkap', 'type' => 'text', 'autocomplete' => 'name', 'max' => 100, 'help' => '', 'placeholder' => 'Nama lengkapmu'],
+                            'username' => ['label' => 'Username', 'type' => 'text', 'autocomplete' => 'username', 'max' => 50, 'help' => '4–50 karakter: huruf, angka, tanda - atau _.', 'placeholder' => 'Username pilihanmu'],
+                            'email' => ['label' => 'Email', 'type' => 'email', 'autocomplete' => 'email', 'max' => 255, 'help' => 'Gunakan email aktif yang bisa kamu akses.', 'placeholder' => 'nama@contoh.com'],
+                            'phone_number' => ['label' => 'WhatsApp / telepon', 'type' => 'tel', 'autocomplete' => 'tel', 'max' => 30, 'help' => '10–20 digit, misalnya 081234567890 atau +6281234567890.', 'placeholder' => '081234567890'],
+                        ];
+                    @endphp
+                    @if ($isEditing)
+                        <form id="client-profile-form" wire:submit="save" class="profile-edit-form">
+                            <p class="profile-form-note">Perbarui informasi yang diperlukan. <span aria-hidden="true">*</span> menandai kolom wajib.</p>
+                            <div class="profile-fields">
+                                @foreach ($profileFields as $key => $field)
+                                    <div class="profile-field" wire:key="profile-field-{{ $key }}">
+                                        <label for="profile-{{ $key }}">{{ $field['label'] }} @if ($key !== 'phone_number')<span aria-hidden="true">*</span>@endif</label>
+                                        <input id="profile-{{ $key }}" name="{{ $key }}" type="{{ $field['type'] }}" wire:model.blur="formData.{{ $key }}"
+                                            autocomplete="{{ $field['autocomplete'] }}" maxlength="{{ $field['max'] }}" placeholder="{{ $field['placeholder'] }}"
+                                            @required($key !== 'phone_number') @if ($key === 'phone_number') inputmode="tel" @endif
+                                            aria-invalid="{{ $errors->has('formData.'.$key) ? 'true' : 'false' }}" aria-describedby="profile-{{ $key }}-help profile-{{ $key }}-error">
+                                        <p id="profile-{{ $key }}-help" class="profile-help">{{ $field['help'] }}</p>
+                                        <div id="profile-{{ $key }}-error"><flux:error name="formData.{{ $key }}" /></div>
                                     </div>
-                                    <flux:error name="currentPassword" class="mt-1" />
-                                </div>
-                            @else
-                                <p class="text-xs text-amber-700 bg-amber-50 rounded-xl p-3 border border-amber-200">
-                                    Akun Anda terhubung tanpa kata sandi awal (Google Login). Silakan buat kata sandi baru untuk akun Anda.
-                                </p>
-                            @endif
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                        Kata sandi baru <span class="text-red-500">*</span>
-                                    </label>
-                                    <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="newPassword"
-                                            placeholder="Minimal 8 karakter"
-                                            class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
-                                        <button type="button" @click="show = !show"
-                                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
-                                            aria-label="Tampilkan kata sandi">
-                                            <template x-if="!show">
-                                                <flux:icon icon="eye" class="size-4" />
-                                            </template>
-                                            <template x-if="show">
-                                                <flux:icon icon="eye-slash" class="size-4" />
-                                            </template>
-                                        </button>
-                                    </div>
-                                    <flux:error name="newPassword" class="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-semibold text-zinc-600 uppercase tracking-wider mb-2">
-                                        Konfirmasi kata sandi baru <span class="text-red-500">*</span>
-                                    </label>
-                                    <div x-data="{ show: false }" class="relative">
-                                        <input :type="show ? 'text' : 'password'" wire:model.blur="newPasswordConfirmation"
-                                            placeholder="Ulangi kata sandi baru"
-                                            class="w-full rounded-2xl border px-4 py-3 pr-10 text-sm transition outline-none border-[#D9D0C5] bg-[#FCFAF6] text-zinc-900 focus:border-[#2D5945] focus:ring-2 focus:ring-[#2D5945]/20" />
-                                        <button type="button" @click="show = !show"
-                                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
-                                            aria-label="Tampilkan kata sandi">
-                                            <template x-if="!show">
-                                                <flux:icon icon="eye" class="size-4" />
-                                            </template>
-                                            <template x-if="show">
-                                                <flux:icon icon="eye-slash" class="size-4" />
-                                            </template>
-                                        </button>
-                                    </div>
-                                    <flux:error name="newPasswordConfirmation" class="mt-1" />
-                                </div>
+                                @endforeach
                             </div>
-
-                            <div class="pt-2 flex justify-end gap-3">
-                                <button type="button" wire:click="cancelChangingPassword"
-                                    class="px-5 py-2.5 rounded-full border border-zinc-300 text-zinc-700 hover:bg-zinc-50 text-sm font-semibold transition cursor-pointer">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#1B3C2A] text-white hover:bg-[#153022] text-sm font-semibold transition shadow-sm cursor-pointer">
-                                    <span wire:loading.remove wire:target="updatePassword">Simpan Kata Sandi</span>
-                                    <span wire:loading wire:target="updatePassword">Menyimpan...</span>
+                            <div class="profile-form-actions">
+                                <button type="button" wire:click="cancelEditing" wire:loading.attr="disabled" wire:target="save,avatar" class="profile-button profile-button-outline">Batal</button>
+                                <button type="submit" wire:loading.attr="disabled" wire:target="save,avatar" class="profile-button profile-button-primary">
+                                    <span wire:loading.remove wire:target="save">Simpan perubahan</span><span wire:loading wire:target="save" role="status">Menyimpan…</span>
+                                    <flux:icon.check class="size-4" />
                                 </button>
                             </div>
                         </form>
+                    @else
+                        <dl class="profile-data">
+                            @foreach ($profileFields as $key => $field)
+                                <div><dt>{{ $field['label'] }}</dt><dd>{{ $formData[$key] ?: 'Belum ditambahkan' }}</dd></div>
+                            @endforeach
+                        </dl>
+                        <p class="profile-view-hint"><flux:icon.pencil class="size-4" />Klik Edit profil untuk memperbarui informasi.</p>
                     @endif
+                </section>
 
-                    <!-- Separator -->
-                    <div class="w-full border-t border-zinc-100 my-4"></div>
-
-                    <!-- Security Warning Note -->
-                    <p class="text-xs text-zinc-400 font-normal">
-                        Jangan bagikan kata sandi atau kode akses kepada siapa pun, termasuk pihak yang mengatasnamakan PawPaw.
-                    </p>
-                </div>
+                <section id="keamanan-akun" class="profile-panel profile-security" aria-labelledby="profile-security-heading">
+                    <div class="profile-panel-heading">
+                        <span class="profile-section-icon" aria-hidden="true"><flux:icon.shield-check class="size-6" /></span>
+                        <div><h2 id="profile-security-heading">Keamanan akun</h2><p>Jaga akunmu, biar tetap nyaman merawatnya.</p></div>
+                    </div>
+                    @if (! $isChangingPassword)
+                        <div class="profile-security-summary"><div><h3>{{ empty($user?->password) ? 'Buat kata sandi' : 'Kata sandi' }}</h3><p>Gunakan kata sandi unik yang tidak dipakai di akun lain.</p></div>
+                            <button type="button" wire:click="startChangingPassword" class="profile-button profile-button-outline"><flux:icon.lock-closed class="size-4" />{{ empty($user?->password) ? 'Buat kata sandi' : 'Ubah kata sandi' }}</button>
+                        </div>
+                    @else
+                        <form wire:submit="updatePassword" class="profile-password-form">
+                            @if (empty($user?->password))
+                                <p class="profile-google-note">Kamu masuk melalui Google dan belum memiliki kata sandi. Buat kata sandi jika ingin masuk dengan email dan kata sandi.</p>
+                            @endif
+                            <p class="profile-form-note">Semua kolom kata sandi wajib diisi.</p>
+                            <div class="profile-fields">
+                                @foreach ([
+                                    'currentPassword' => ['label' => 'Kata sandi saat ini', 'autocomplete' => 'current-password', 'help' => 'Masukkan kata sandi yang sedang kamu gunakan.'],
+                                    'newPassword' => ['label' => 'Kata sandi baru', 'autocomplete' => 'new-password', 'help' => 'Minimal 8 karakter. Gunakan kata sandi unik yang sulit ditebak.'],
+                                    'newPasswordConfirmation' => ['label' => 'Konfirmasi kata sandi baru', 'autocomplete' => 'new-password', 'help' => 'Ketik kembali kata sandi baru yang sama.'],
+                                ] as $key => $field)
+                                    @continue($key === 'currentPassword' && empty($user?->password))
+                                    <div class="profile-field {{ $key === 'currentPassword' ? 'profile-field-wide' : '' }}" wire:key="profile-password-{{ $key }}">
+                                        <label for="profile-{{ $key }}">{{ $field['label'] }} <span aria-hidden="true">*</span></label>
+                                        <div class="profile-password-control" x-data="{ show: false }">
+                                            <input id="profile-{{ $key }}" name="{{ $key }}" :type="show ? 'text' : 'password'" type="password" wire:model.blur="{{ $key }}" required
+                                                autocomplete="{{ $field['autocomplete'] }}" @if ($key !== 'currentPassword') minlength="8" @endif
+                                                aria-invalid="{{ $errors->has($key) ? 'true' : 'false' }}" aria-describedby="profile-{{ $key }}-help profile-{{ $key }}-error">
+                                            <button type="button" @click="show = !show" :aria-pressed="show.toString()"
+                                                :aria-label="show ? @js('Sembunyikan '.$field['label']) : @js('Tampilkan '.$field['label'])" aria-controls="profile-{{ $key }}">
+                                                <flux:icon.eye x-show="!show" class="size-5" /><flux:icon.eye-slash x-show="show" x-cloak class="size-5" />
+                                            </button>
+                                        </div>
+                                        <p id="profile-{{ $key }}-help" class="profile-help">{{ $field['help'] }}</p>
+                                        <div id="profile-{{ $key }}-error"><flux:error name="{{ $key }}" /></div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="profile-form-actions">
+                                <button type="button" wire:click="cancelChangingPassword" wire:loading.attr="disabled" wire:target="updatePassword" class="profile-button profile-button-outline">Batal</button>
+                                <button type="submit" wire:loading.attr="disabled" wire:target="updatePassword" class="profile-button profile-button-primary"><span wire:loading.remove wire:target="updatePassword">Simpan kata sandi</span><span wire:loading wire:target="updatePassword" role="status">Menyimpan…</span></button>
+                            </div>
+                        </form>
+                    @endif
+                    <p class="profile-security-note"><flux:icon.lock-closed class="size-4" />Jangan bagikan kata sandi atau kode akses kepada siapa pun, termasuk pihak yang mengatasnamakan PawPaw.</p>
+                </section>
             </div>
         </div>
+        <div class="profile-session"><div><strong>Selesai mengelola akun?</strong><p>Keluar jika perangkat ini digunakan bersama.</p></div><form method="POST" action="{{ route('client.logout') }}">@csrf<button type="submit" class="profile-button profile-button-exit"><flux:icon.arrow-right-start-on-rectangle class="size-4" />Keluar dari akun</button></form></div>
     </div>
     @include('components.client.components.clinic-footer')
 </div>

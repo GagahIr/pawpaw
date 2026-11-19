@@ -92,7 +92,7 @@
                 <li data-animate="fade-up" data-animate-delay="0.16"><span class="landing-step-number" aria-hidden="true">03</span><img src="{{ asset('assets/list.webp') }}" alt="" width="48" height="48" loading="lazy"><h3>Tunggu konfirmasi, lalu datang</h3><p>Cek statusnya di akunmu. Setelah reservasi diterima, datang sesuai jadwal dan bayar layanan langsung di klinik.</p></li>
             </ol>
             </div>
-            <a href="{{ route('client.clinic') }}" class="landing-button landing-button-light">Cari layanan <span aria-hidden="true">&rarr;</span></a>
+            {{-- <a href="{{ route('client.clinic') }}" class="landing-button landing-button-light">Cari layanan <span aria-hidden="true">&rarr;</span></a> --}}
         </div>
     </section>
 

@@ -5,6 +5,7 @@
 @import "./booking.css";
 /* Shared customer reservation and history styles. */
 @import "./my-bookings.css";
+@import "./profile.css";
 
 @import '../../vendor/livewire/flux/dist/flux.css';
 @custom-variant dark (&:where(.dark, .dark *));

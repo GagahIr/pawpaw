@@ -4,8 +4,9 @@ use App\Actions\Vendor\RegisterVendorAction;
 use App\DTOs\RegisterVendorData;
 use App\Enums\SystemMessage;
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 
-new class extends Component {
+new #[Layout('layouts.client')] class extends Component {
     public string $vendor_name = '';
     public string $address = '';
     public string $contact = '';
@@ -95,7 +96,11 @@ new class extends Component {
 };
 ?>
 
-<div x-data="{
+<div class="clinic-page">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-wrap">
+        <div class="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+            <div x-data="{
     step: @entangle('currentStep'),
     vendorName: $wire.vendor_name || '',
     baseDomain: '{{ request()->getHost() }}{{ request()->getPort() !== 80 && request()->getPort() !== 443 ? ':' . request()->getPort() : '' }}',
@@ -133,10 +138,7 @@ new class extends Component {
             return slug ? slug + '.' + this.baseDomain : ''; 
         },
 }">
-    <div class="min-h-screen bg-gradient-to-b dark:from-zinc-950 dark:to-zinc-900">
-        <div class="flex min-h-screen">
-            <div class="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-                <div class="w-full max-w-xl space-y-6">
+                <div class="w-full max-w-xl mx-auto space-y-6">
 
                     <flux:link href="{{ route('landing_page') }}" variant="subtle" class="inline-flex items-center gap-1 text-sm">
                         <flux:icon.arrow-left variant="micro" />
@@ -148,7 +150,7 @@ new class extends Component {
                             alt="PawPaw">
                     </div> --}}
                     <div class="text-center">
-                        <flux:heading size="xl">Pendaftaran Mitra</flux:heading>
+                        <flux:heading size="xl" class="clinic-auth-title" level="1">Pendaftaran Mitra</flux:heading>
                         <flux:subheading
                             x-text="step === 1 ? 'Ceritakan tentang bisnis pet care Anda.' : step === 2 ? 'Lengkapi data pemilik dan akun untuk masuk.' : 'Periksa kembali data sebelum menyelesaikan pendaftaran.'">
                             Ceritakan tentang bisnis pet care Anda.
@@ -157,8 +159,9 @@ new class extends Component {
 
                     <div class="space-y-6 px-0 sm:px-20 lg:px-28">
                         <nav aria-label="Langkah pendaftaran">
-                            <div class="flex items-center">
+                            <ol class="clinic-auth-steps">
                                 @foreach ($steps as $num => $label)
+                                    <li :class="{ 'is-complete': step > {{ $num }} }">
                                     <div class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors"
                                         :class="{
                                             'bg-[#1a5c40] text-white': step > {{ $num }},
@@ -176,19 +179,6 @@ new class extends Component {
                                         </span>
                                         <span x-show="step <= {{ $num }}">{{ $num }}</span>
                                     </div>
-
-                                    @if (!$loop->last)
-                                        <div class="mx-2 h-0.5 flex-1 rounded-full transition-colors"
-                                            :class="step > {{ $num }} ?
-                                                'bg-[#1a5c40]' :
-                                                'bg-zinc-200 dark:bg-zinc-700'">
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-
-                            <div class="mt-1.5 grid grid-cols-3 gap-2">
-                                @foreach ($steps as $num => $label)
                                     <span class="text-center text-xs transition-colors"
                                         :class="step === {{ $num }} ?
                                             'font-bold text-[#1a5c40] dark:text-[#25825a]' :
@@ -196,8 +186,9 @@ new class extends Component {
                                                 'text-zinc-400 dark:text-zinc-600')">
                                         {{ $label }}
                                     </span>
+                                    </li>
                                 @endforeach
-                            </div>
+                            </ol>
                         </nav>
                     </div>
 
@@ -425,18 +416,8 @@ new class extends Component {
                     </flux:text>
                 </div>
             </div>
-
-            {{-- Jika ingin menggunakan gambar background di sisi kanan, hilangkan komentar di bawah --}}
-            {{--
-        <div class="flex-1 p-4 max-lg:hidden">
-            <div class="text-white relative rounded-lg h-full w-full bg-zinc-900 flex flex-col items-start justify-end p-16"
-                style="background-image: url('https://fluxui.dev/img/demo/auth_aurora_2x.png'); background-size: cover">
-                <div class="mb-6 italic font-base text-3xl xl:text-4xl">
-                    Bergabunglah dengan PawPaw dan kembangkan bisnis pet care Anda bersama kami.
-                </div>
-            </div>
-        </div>
-        --}}
         </div>
     </div>
+</div>
+</div>
 </div>

@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Enums\SystemMessage;
 
-new #[Layout('layouts.app')] class extends Component {
+new #[Layout('layouts.client')] class extends Component {
     public string $identifier = '';
 
     public string $password = '';
@@ -167,8 +167,11 @@ new #[Layout('layouts.app')] class extends Component {
 };
 ?>
 
-<div class="min-h-[calc(100vh-14rem)] flex flex-col justify-center items-center pt-6 sm:pt-10 pb-16 px-4 sm:px-6 lg:px-8 bg-[#FFF8F5] dark:bg-zinc-950 transition-colors">
-    <div class="w-full max-w-md mx-auto space-y-6 -mt-4 sm:-mt-10" x-data="{
+<div class="clinic-page">
+    @include('components.client.components.clinic-atmosphere')
+    <div class="clinic-wrap">
+        <div class="min-h-[calc(100vh-14rem)] flex flex-col justify-center items-center pt-6 sm:pt-10 pb-16 px-4 sm:px-6 lg:px-8">
+            <div class="w-full max-w-md mx-auto space-y-6 -mt-4 sm:-mt-10" x-data="{
         seconds: {{ $retryAfter }},
         init() {
             if (this.seconds > 0) {
@@ -189,7 +192,7 @@ new #[Layout('layouts.app')] class extends Component {
                 </flux:link>
 
                 <div class="text-center">
-                    <flux:heading size="xl">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
+                    <flux:heading size="xl" class="clinic-auth-title" level="1">Selamat datang di {{ app('vendor.context')->get()->name }}</flux:heading>
                     <flux:subheading>Silakan masuk menggunakan akun pemilik atau front office Anda.</flux:subheading>
                 </div>
 

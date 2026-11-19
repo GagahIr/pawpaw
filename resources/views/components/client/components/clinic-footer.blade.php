@@ -43,7 +43,7 @@
                     <div class="clinic-footer-cta-copy">
                         <h2 id="footer-client-heading">Untuk si kesayangan</h2>
                         <p>Dari pemeriksaan sampai menginap, temukan perawatan yang pas untuknya.</p>
-                        <a href="{{ route('client.clinic') }}" class="clinic-footer-button">Cari layanan <span aria-hidden="true">&rarr;</span></a>
+                        <a href="{{ route('client.clinic') }}" class="clinic-footer-button">Cari layanan klinik <span aria-hidden="true">&rarr;</span></a>
                     </div>
                     <svg class="clinic-footer-paw" viewBox="0 0 80 80" fill="currentColor" aria-hidden="true"><path d="M24 48c-8 8-12 19-3 23 8 4 13-2 19-2s12 6 20 1c9-5 4-16-5-23-6-5-7-13-15-13s-10 8-16 14Z"/><ellipse cx="14" cy="32" rx="8" ry="11" transform="rotate(-25 14 32)"/><ellipse cx="31" cy="18" rx="8" ry="11" transform="rotate(-8 31 18)"/><ellipse cx="51" cy="17" rx="8" ry="11" transform="rotate(12 51 17)"/><ellipse cx="68" cy="31" rx="8" ry="11" transform="rotate(25 68 31)"/></svg>
                     <svg class="clinic-footer-cat-marks" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="m9 13 5 7m7-14 1 10m10 1-6 6"/></svg>
