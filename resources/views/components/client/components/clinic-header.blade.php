@@ -3,6 +3,10 @@
     $isClinicPage = $isClinicPage ?? false;
     $clientUser = auth('client')->user();
     $clientUsername = $clientUser?->username ?? ($clientUser?->name ?? 'User');
+    $mainSiteUrl = rtrim(route('landing_page'), '/');
+    $clientLoginUrl = $mainSiteUrl.route('client.login', [], false);
+    $clientRegisterUrl = $mainSiteUrl.route('client.register', [], false);
+    $clientLogoutUrl = $mainSiteUrl.route('client.logout', [], false);
 @endphp
 
 <flux:header container class="border-b border-zinc-200 bg-white lg:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
@@ -44,7 +48,7 @@
                 <flux:menu.item icon="calendar-days" href="{{ route('client.my-bookings') }}">Reservasi saya &amp; Riwayat</flux:menu.item>
                 <flux:menu.item icon="cog-6-tooth">Settings</flux:menu.item>
                 <flux:menu.separator />
-                <form method="POST" action="{{ route('client.logout') }}">
+                <form method="POST" action="{{ $clientLogoutUrl }}">
                     @csrf
                     <flux:menu.item type="submit" icon="arrow-right-start-on-rectangle" class="pawpaw-account-logout">Keluar</flux:menu.item>
                 </form>
@@ -52,7 +56,7 @@
         </flux:dropdown>
     @else
         <div class="clinic-header-auth max-sm:hidden">
-            <a href="{{ route('client.login') }}" class="clinic-header-login">Masuk Pelanggan</a>
+            <a href="{{ $clientLoginUrl }}" class="clinic-header-login">Masuk Pelanggan</a>
             <a href="{{ route('vendor.register') }}" class="clinic-header-partner">Gabung Jadi Mitra</a>
         </div>
     @endif
@@ -81,8 +85,8 @@
             <flux:sidebar.item icon="user" href="{{ route('client.profile') }}">Profil Saya</flux:sidebar.item>
             <flux:sidebar.item icon="cog-6-tooth" href="#">Settings</flux:sidebar.item>
         @else
-            <flux:sidebar.item icon="user" href="{{ route('client.login') }}">Masuk Pelanggan</flux:sidebar.item>
-            <flux:sidebar.item icon="user-plus" href="{{ route('client.register') }}">Daftar Pelanggan</flux:sidebar.item>
+            <flux:sidebar.item icon="user" href="{{ $clientLoginUrl }}">Masuk Pelanggan</flux:sidebar.item>
+            <flux:sidebar.item icon="user-plus" href="{{ $clientRegisterUrl }}">Daftar Pelanggan</flux:sidebar.item>
             <flux:sidebar.item icon="building-office-2" href="{{ route('vendor.register') }}">Gabung Jadi Mitra</flux:sidebar.item>
         @endif
     </flux:sidebar.nav>

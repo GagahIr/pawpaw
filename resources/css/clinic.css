@@ -440,9 +440,9 @@
     .clinic-book-button:hover svg { translate: none; }
 }
 /* Clinic detail keeps the shared palette and groups care by category. */
-.clinic-detail::before, .clinic-detail::after, .booking-page::before, .reservations-page::before, .booking-page::after, .reservations-page::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: min(1000px, 110vw); height: 900px; border-radius: 50%; filter: blur(32px); }
-.clinic-detail::before, .booking-page::before, .reservations-page::before { top: -220px; left: -300px; background: radial-gradient(ellipse, #ee6d5230 0%, #f4a58218 32%, transparent 70%); }
-.clinic-detail::after, .booking-page::after, .reservations-page::after { top: -160px; right: -240px; background: radial-gradient(ellipse, #1b5e432b 0%, #1b5e4314 35%, transparent 70%); }
+.clinic-detail::before, .clinic-detail::after, .booking-page::before, .reservations-page::before, .profile-page::before, .booking-page::after, .reservations-page::after, .profile-page::after { content: ''; position: absolute; z-index: -1; pointer-events: none; width: min(1000px, 110vw); height: 900px; border-radius: 50%; filter: blur(32px); }
+.clinic-detail::before, .booking-page::before, .reservations-page::before, .profile-page::before { top: -220px; left: -300px; background: radial-gradient(ellipse, #ee6d5230 0%, #f4a58218 32%, transparent 70%); }
+.clinic-detail::after, .booking-page::after, .reservations-page::after, .profile-page::after { top: -160px; right: -240px; background: radial-gradient(ellipse, #1b5e432b 0%, #1b5e4314 35%, transparent 70%); }
 .clinic-detail .clinic-section-title > span { color: #e07a5f; }
 .clinic-detail .clinic-profile { margin-bottom: 72px; }
 .clinic-detail .clinic-profile-copy::before { content: none; }
@@ -538,3 +538,25 @@
     .clinic-detail .clinic-service-card:hover .clinic-service-icon { rotate: none; }
     .clinic-photo-outline path { stroke-dashoffset: 0; }
 }
+
+/* Public account forms share the clinic navigation, typography and footer. */
+.clinic-auth-main { padding-top: 104px; }
+.clinic-auth-shell .clinic-footer { margin-top: 48px; }
+@media (max-width: 639px) {
+    .clinic-auth-main { padding-top: 88px; }
+    .clinic-auth-shell .clinic-footer { margin-top: 32px; }
+}
+
+.clinic-auth-main { font-family: var(--clinic-body-font); }
+.clinic-auth-main [data-flux-heading] { font-family: var(--clinic-ui-font); font-weight: 800; }
+.clinic-auth-main .clinic-auth-title { font-family: var(--clinic-display-font); font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 600; line-height: 1.2; letter-spacing: -.02em; text-wrap: balance; color: #1b5e43; }
+.clinic-auth-main :is([data-flux-label], [data-flux-button]) { font-family: var(--clinic-ui-font); }
+.clinic-auth-main [data-flux-label] { font-weight: 700; }
+.clinic-auth-main [data-flux-button] { font-weight: 800; }
+.clinic-auth-main :is(input, textarea, select, [data-flux-text], [data-flux-subheading]) { font-family: var(--clinic-body-font); }
+
+.clinic-auth-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; font-family: var(--clinic-ui-font); }
+.clinic-auth-steps li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+.clinic-auth-steps li:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: calc(50% + 22px); width: calc(100% - 36px); height: 2px; border-radius: 2px; background: #dce5d5; }
+.clinic-auth-steps li.is-complete::after { background: #1b5e43; }
+.clinic-auth-steps li > span { width: 100%; font-size: .75rem; line-height: 1.4; text-align: center; overflow-wrap: anywhere; }
