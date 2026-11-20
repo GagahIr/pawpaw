@@ -42,8 +42,8 @@
 .clinic-shell .clinic-main { max-width: none; padding: 0; }
 .clinic-landing-main { padding-top: var(--landing-header-space, 96px); }
 .clinic-landing-main section[id] { scroll-margin-top: 108px; }
-.clinic-header-login { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 10px; color: #1b5e43; font-size: .85rem; font-weight: 700; }
-.clinic-header-login:hover { color: #bd593f; }
+.clinic-header-login { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 20px; border-radius: 999px; background: #1b5e43; color: #fff; font-size: .85rem; font-weight: 800; white-space: nowrap; transition: background .2s ease; }
+.clinic-header-login:hover { background: #1b5e43; }
 .clinic-header-login:focus-visible { outline: 2px solid #1b5e43; outline-offset: 3px; border-radius: 8px; }
 .clinic-header-auth { display: flex; align-items: center; flex-shrink: 0; gap: 14px; }
 .clinic-header-partner { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 11px 20px; border-radius: 999px; background: #b84a3a; color: #fff; font-size: .85rem; font-weight: 800; white-space: nowrap; transition: background .2s ease; }
