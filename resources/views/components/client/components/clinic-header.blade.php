@@ -43,9 +43,9 @@
     </flux:navbar>
     <flux:spacer />
     @if ($clientUser)
-        <flux:navbar class="me-4">
+        {{-- <flux:navbar class="me-4">
             <flux:navbar.item icon="bell" href="#" label="Notifications" aria-label="Notifications" />
-        </flux:navbar>
+        </flux:navbar> --}}
         <flux:dropdown position="bottom" align="end">
             <button type="button" aria-label="Menu akun {{ $clientUsername }}" class="pawpaw-account-trigger">
                 <x-client.components.account-avatar :user="$clientUser" />
@@ -61,7 +61,6 @@
                 <flux:menu.item icon="user" href="{{ route('client.profile') }}">Profil Saya</flux:menu.item>
                 <flux:menu.item icon="calendar-days" href="{{ route('client.my-bookings') }}">Reservasi saya &amp;
                     Riwayat</flux:menu.item>
-                <flux:menu.item icon="cog-6-tooth">Settings</flux:menu.item>
                 <flux:menu.separator />
                 <form method="POST" action="{{ $clientLogoutUrl }}">
                     @csrf

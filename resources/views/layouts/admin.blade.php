@@ -136,7 +136,7 @@
 
                 <flux:navbar class="me-4">
                     {{-- <flux:navbar.item icon="cog-6-tooth" href="#" label="Settings" aria-label="Settings" /> --}}
-                    <flux:navbar.item icon="bell" href="#" label="Notifications" aria-label="Notifications" />
+                    {{-- <flux:navbar.item icon="bell" href="#" label="Notifications" aria-label="Notifications" /> --}}
                 </flux:navbar>
 
                 @php
